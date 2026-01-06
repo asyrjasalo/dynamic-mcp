@@ -88,16 +88,17 @@
 
 | Metric | Value |
 |--------|-------|
-| **Version** | 1.0.0 (Production Release) |
+| **Version** | 1.0.0 (Production Release Published) |
 | **Lines of Code** | ~2,900 (Rust) |
 | **Source Files** | 17 Rust files |
 | **Dependencies** | 114 crates |
 | **Tests** | 46 (37 unit + 9 integration) |
 | **Test Pass Rate** | 100% ✅ |
-| **Build Targets** | 5 (Linux x2, macOS x2, Windows) |
+| **Binary Releases** | 3 platforms (Linux x86_64, macOS ARM64, Windows x86_64) |
 | **Supported Transports** | stdio, HTTP, SSE |
 | **Authentication** | OAuth2 with PKCE |
-| **CI/CD** | GitHub Actions (test, lint, build) |
+| **CI/CD** | GitHub Actions (test, lint, build, release) |
+| **Published** | crates.io, GitHub Releases |
 
 ## 🏗️ Implementation Details
 
@@ -150,27 +151,55 @@ cargo test
 # - 100% pass rate
 ```
 
-## 🎯 Next Steps (Post-Release)
+## 🎯 Release Information
 
-### Publication Checklist (NOT PERFORMED YET)
-- [ ] Publish to crates.io (`cargo publish`)
-- [ ] Create GitHub release (`git tag v1.0.0 && git push --tags`)
-- [ ] Verify GitHub Actions creates release with binaries
-- [ ] Announce release
+### Publication Status (v1.0.0) ✅
+- [x] Published to crates.io: https://crates.io/crates/dynamic-mcp
+- [x] GitHub release created: https://github.com/asyrjasalo/dynamic-mcp/releases/tag/v1.0.0
+- [x] Binary releases available for download (3 platforms)
 
-### Potential Enhancements
+### Available Binary Downloads
+- ✅ **Linux x86_64** (`x86_64-unknown-linux-gnu`) - Native build
+- ✅ **macOS ARM64** (`aarch64-apple-darwin`) - Native build for Apple Silicon
+- ✅ **Windows x86_64** (`x86_64-pc-windows-msvc`) - Native build
+
+### Platform Limitations
+
+#### Not Available as Binary (Build from Source Required)
+- ⚠️ **Linux ARM64** (`aarch64-unknown-linux-gnu`) - OpenSSL cross-compilation complexity
+  - **Workaround**: Users can build natively with `cargo install dynamic-mcp`
+  - **Future**: Will be addressed in future release with vendored OpenSSL or alternative approach
+
+#### Planned for Future Release
+- 🔜 **Windows ARM64** (`aarch64-pc-windows-msvc`) - Planned for v1.1.0 or later
+  - Native Windows ARM support becoming more common
+  - Will be added once GitHub Actions runner support improves
+- 🔜 **Linux ARM64 binaries** - Planned for v1.1.0 or later
+  - Will use vendored OpenSSL or musl-based cross-compilation
+
+### Potential Future Enhancements
 - [ ] WebSocket transport support
 - [ ] Configuration validation command
 - [ ] Health check endpoint
 - [ ] Metrics/observability
 - [ ] Plugin system for custom transports
+- [ ] Additional platform binaries (ARM64 Linux, Windows ARM64)
 
 ## 📝 Known Limitations
 
+### Runtime Limitations
 - **Live Reload**: Works for config changes but requires manual update for code changes (expected behavior for compiled binaries)
 - **Token Storage**: Plain text in filesystem (not encrypted at rest) - see SECURITY.md
 - **No Rate Limiting**: No built-in rate limiting for tool calls
 - **No Sandboxing**: Child processes run with full privileges
+
+### Platform Binary Availability
+- **Linux ARM64**: Pre-built binaries not available due to OpenSSL cross-compilation complexity
+  - Users on ARM64 Linux systems (servers, Raspberry Pi, cloud instances) must build from source
+  - Use `cargo install dynamic-mcp` which builds natively
+- **Windows ARM64**: Not yet supported (planned for future release)
+- **macOS Intel**: Not included in v1.0.0 (GitHub Actions deprecated macOS-13 runners)
+  - Intel Mac users can use Rosetta 2 with ARM64 binary or build from source
 
 ## 🔍 Code Quality
 
