@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+# Change to project root (two levels up from tests/scripts/)
+cd "$(dirname "$0")/../.."
+
 echo "=== Phase 1 Integration Test ==="
 echo ""
 
