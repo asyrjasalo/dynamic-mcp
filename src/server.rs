@@ -1,20 +1,19 @@
 use std::sync::Arc;
-use tokio::sync::Mutex;
 use anyhow::Result;
 use serde_json::json;
 use crate::proxy::ModularMcpClient;
 use crate::proxy::types::{JsonRpcRequest, JsonRpcResponse, JsonRpcError};
 
 pub struct ModularMcpServer {
-    client: Arc<Mutex<ModularMcpClient>>,
+    client: Arc<tokio::sync::RwLock<ModularMcpClient>>,
     name: String,
     version: String,
 }
 
 impl ModularMcpServer {
-    pub fn new(client: ModularMcpClient, name: String, version: String) -> Self {
+    pub fn new(client: Arc<tokio::sync::RwLock<ModularMcpClient>>, name: String, version: String) -> Self {
         Self {
-            client: Arc::new(Mutex::new(client)),
+            client,
             name,
             version,
         }
@@ -57,7 +56,7 @@ impl ModularMcpServer {
     }
 
     async fn handle_list_tools(&self, request: JsonRpcRequest) -> JsonRpcResponse {
-        let client = self.client.lock().await;
+        let client = self.client.read().await;
         let groups = client.list_groups();
         let failed_groups = client.list_failed_groups();
 
@@ -172,7 +171,7 @@ Example usage:
                     };
                 }
 
-                let client = self.client.lock().await;
+                let client = self.client.read().await;
                 match client.list_tools(group.unwrap()) {
                     Ok(tools) => {
                         let tools_json: Vec<_> = tools.iter().map(|tool| {
@@ -233,7 +232,7 @@ Example usage:
                     };
                 }
 
-                let client = self.client.lock().await;
+                let client = self.client.read().await;
                 match client.call_tool(group.unwrap(), name.unwrap(), args).await {
                     Ok(result) => {
                         JsonRpcResponse {

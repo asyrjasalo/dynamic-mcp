@@ -8,7 +8,7 @@ use tokio::process::{Child, ChildStdin, ChildStdout, Command};
 use tokio::sync::Mutex;
 
 pub struct StdioTransport {
-    child: Child,
+    child: Arc<Mutex<Child>>,
     stdin: Arc<Mutex<ChildStdin>>,
     stdout: Arc<Mutex<BufReader<ChildStdout>>>,
 }
@@ -27,7 +27,7 @@ impl StdioTransport {
         
         cmd.stdin(Stdio::piped())
             .stdout(Stdio::piped())
-            .stderr(Stdio::inherit());
+            .stderr(Stdio::null());
         
         let mut child = cmd.spawn()
             .with_context(|| format!("Failed to spawn command: {}", command))?;
@@ -38,7 +38,7 @@ impl StdioTransport {
             .context("Failed to capture stdout")?;
         
         Ok(Self {
-            child,
+            child: Arc::new(Mutex::new(child)),
             stdin: Arc::new(Mutex::new(stdin)),
             stdout: Arc::new(Mutex::new(BufReader::new(stdout))),
         })
@@ -54,68 +54,81 @@ impl StdioTransport {
             stdin.flush().await?;
         }
         
-        let mut line = String::new();
-        {
-            let mut stdout = self.stdout.lock().await;
-            stdout.read_line(&mut line).await?;
+        let mut stdout = self.stdout.lock().await;
+        loop {
+            let mut line = String::new();
+            let bytes_read = stdout.read_line(&mut line).await?;
+            
+            if bytes_read == 0 {
+                anyhow::bail!("Connection closed before receiving response");
+            }
+            
+            let trimmed = line.trim();
+            if trimmed.is_empty() {
+                continue;
+            }
+            
+            if let Ok(response) = serde_json::from_str::<JsonRpcResponse>(trimmed) {
+                return Ok(response);
+            }
         }
-        
-        let response: JsonRpcResponse = serde_json::from_str(&line)
-            .with_context(|| format!("Failed to parse response: {}", line))?;
-        
-        Ok(response)
     }
     
     pub async fn close(&mut self) -> Result<()> {
-        self.child.kill().await?;
+        let mut child = self.child.lock().await;
+        child.kill().await?;
         Ok(())
     }
 }
 
+impl Drop for StdioTransport {
+    fn drop(&mut self) {
+        if let Ok(mut child) = self.child.try_lock() {
+            let _ = child.start_kill();
+        }
+    }
+}
+
 pub struct HttpTransport {
-    transport: Arc<Mutex<rmcp::transport::StreamableHttpClientTransport<reqwest::Client>>>,
+    client: reqwest::Client,
+    url: String,
+    headers: std::collections::HashMap<String, String>,
 }
 
 impl HttpTransport {
     pub async fn new(url: &str, headers: Option<&std::collections::HashMap<String, String>>) -> Result<Self> {
-        let mut config = rmcp::transport::streamable_http_client::StreamableHttpClientTransportConfig::with_uri(url);
-        
-        if let Some(headers_map) = headers {
-            if let Some(auth) = headers_map.get("Authorization") {
-                config.auth_header = Some(auth.clone());
-            }
-        }
+        let headers_map = headers.cloned().unwrap_or_default();
         
         Ok(Self {
-            transport: Arc::new(Mutex::new(
-                rmcp::transport::StreamableHttpClientTransport::with_client(
-                    reqwest::Client::new(),
-                    config,
-                )
-            )),
+            client: reqwest::Client::new(),
+            url: url.to_string(),
+            headers: headers_map,
         })
     }
     
     pub async fn send_request(&self, request: &JsonRpcRequest) -> Result<JsonRpcResponse> {
-        use rmcp::transport::Transport as RmcpTransport;
+        let mut req = self.client
+            .post(&self.url)
+            .header("Content-Type", "application/json")
+            .header("Accept", "application/json");
         
-        let message = serde_json::to_value(request)?;
-        let client_message: rmcp::model::ClientJsonRpcMessage = serde_json::from_value(message)?;
+        for (key, value) in &self.headers {
+            req = req.header(key, value);
+        }
         
-        let response_message = {
-            let mut transport = self.transport.lock().await;
-            
-            transport.send(client_message).await
-                .context("Failed to send request via HTTP transport")?;
-            
-            transport.receive().await
-                .ok_or_else(|| anyhow::anyhow!("Transport closed unexpectedly"))?
-        };
+        let response = req
+            .json(request)
+            .send()
+            .await
+            .context("Failed to send HTTP request")?;
         
-        let response_value = serde_json::to_value(response_message)?;
-        let response: JsonRpcResponse = serde_json::from_value(response_value)?;
+        let response_text = response.text().await
+            .context("Failed to read HTTP response")?;
         
-        Ok(response)
+        let json_response: JsonRpcResponse = serde_json::from_str(&response_text)
+            .with_context(|| format!("Failed to parse HTTP response as JSON: {}", response_text))?;
+        
+        Ok(json_response)
     }
     
     pub async fn close(&mut self) -> Result<()> {
