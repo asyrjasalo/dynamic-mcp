@@ -43,7 +43,11 @@ fn get_config_path(cli_arg: Option<String>) -> Option<(String, &'static str)> {
     if let Some(path) = cli_arg {
         Some((path, "command line argument"))
     } else if let Ok(path) = std::env::var("GATEWAY_MCP_CONFIG") {
-        Some((path, "GATEWAY_MCP_CONFIG environment variable"))
+        if path.is_empty() {
+            None
+        } else {
+            Some((path, "GATEWAY_MCP_CONFIG environment variable"))
+        }
     } else {
         None
     }
@@ -310,10 +314,7 @@ mod tests {
         env::set_var("GATEWAY_MCP_CONFIG", "");
 
         let result = get_config_path(None);
-        assert!(result.is_some());
-
-        let (path, _) = result.unwrap();
-        assert_eq!(path, "");
+        assert!(result.is_none());
 
         env::remove_var("GATEWAY_MCP_CONFIG");
     }
