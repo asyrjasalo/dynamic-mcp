@@ -8,9 +8,6 @@ use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::process::{Child, ChildStdin, ChildStdout, Command};
 use tokio::sync::Mutex;
 
-#[cfg(windows)]
-use std::os::windows::process::CommandExt;
-
 pub struct StdioTransport {
     child: Arc<Mutex<Child>>,
     stdin: Arc<Mutex<ChildStdin>>,
@@ -189,7 +186,7 @@ impl Drop for StdioTransport {
                         };
 
                         let handle = OpenProcess(PROCESS_TERMINATE, 0, pid);
-                        if handle != 0 {
+                        if !handle.is_null() {
                             let _ = TerminateProcess(handle, 1);
                             CloseHandle(handle);
                         }
