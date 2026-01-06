@@ -15,8 +15,8 @@ fn test_project_builds() {
 #[test]
 fn test_config_example_exists() {
     assert!(
-        std::path::Path::new("config.example.json").exists(),
-        "config.example.json should exist"
+        std::path::Path::new("examples/config.example.json").exists(),
+        "examples/config.example.json should exist"
     );
 }
 
@@ -122,8 +122,8 @@ fn test_invalid_config_path() {
 
 #[test]
 fn test_config_schema_validation() {
-    let config =
-        std::fs::read_to_string("config.example.json").expect("Failed to read config.example.json");
+    let config = std::fs::read_to_string("examples/config.example.json")
+        .expect("Failed to read examples/config.example.json");
 
     let parsed: serde_json::Value =
         serde_json::from_str(&config).expect("Config should be valid JSON");

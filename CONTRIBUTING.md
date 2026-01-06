@@ -45,7 +45,7 @@ cargo build
 cargo build --release
 
 # Run without building binary
-cargo run -- config.example.json
+cargo run -- examples/config.example.json
 ```
 
 ### Running Tests
@@ -82,14 +82,14 @@ cargo test -- --test-threads=1
 
 ```bash
 # With command line argument
-cargo run -- config.example.json
+cargo run -- examples/config.example.json
 
 # With environment variable
-export GATEWAY_MCP_CONFIG=config.example.json
+export GATEWAY_MCP_CONFIG=examples/config.example.json
 cargo run
 
 # With debug logging
-RUST_LOG=debug cargo run -- config.example.json
+RUST_LOG=debug cargo run -- examples/config.example.json
 ```
 
 ## 🧪 Testing Guidelines

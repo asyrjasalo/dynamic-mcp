@@ -32,7 +32,7 @@ dynamic-mcp/
 │   └── cli/                 # CLI commands
 │       └── migrate.rs       # Config migration
 ├── docs/                    # Documentation
-├── config.example.json      # Example configuration
+├── examples/                # Example configurations
 └── Cargo.toml              # Dependencies
 ```
 
@@ -87,10 +87,10 @@ Config details:
 
 ```bash
 # Run with config file
-./target/release/dynamic-mcp config.example.json
+./target/release/dynamic-mcp examples/config.example.json
 
 # Or use environment variable
-export GATEWAY_MCP_CONFIG=config.example.json
+export GATEWAY_MCP_CONFIG=examples/config.example.json
 ./target/release/dynamic-mcp
 ```
 
