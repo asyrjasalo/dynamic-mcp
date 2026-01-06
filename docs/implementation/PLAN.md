@@ -8,7 +8,7 @@
 - **MCP Server** (downstream): Exposes 2 tools to LLM clients
 - **MCP Client** (upstream): Connects to multiple configured MCP servers
 
-**Reference Implementation**: https://github.com/d-kimuson/dynamic-mcp (TypeScript)
+**Reference Implementation**: https://github.com/d-kimuson/modular-mcp (TypeScript)
 
 ## Design Principles
 

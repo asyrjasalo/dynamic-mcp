@@ -2,6 +2,28 @@
 
 Dynamic-MCP is a proxy server that reduces LLM context overhead by grouping tools from multiple upstream MCP servers and loading schemas on-demand.
 
+## Project Structure
+
+```
+dynamic-mcp/
+├── src/
+│   ├── main.rs              # CLI entry point
+│   ├── server.rs            # MCP server (exposes 2 tools)
+│   ├── config/              # Configuration management
+│   │   ├── schema.rs        # Config data structures
+│   │   ├── loader.rs        # File loading & validation
+│   │   └── env_sub.rs       # Environment variable substitution
+│   ├── proxy/               # Upstream server management
+│   │   ├── types.rs         # Shared types
+│   │   ├── client.rs        # Group state management
+│   │   └── transport.rs     # Transport creation
+│   └── cli/                 # CLI commands
+│       └── migrate.rs       # Config migration
+├── docs/                    # Documentation
+├── examples/                # Example configurations
+└── Cargo.toml              # Dependencies
+```
+
 ## System Overview
 
 ```
@@ -377,5 +399,5 @@ enum McpServerConfig {
 ### Custom Authentication
 
 1. Implement auth module similar to `auth/oauth_client.rs`
-2. Integrate in `Transport::new()` 
+2. Integrate in `Transport::new()`
 3. Add config fields to `McpServerConfig`

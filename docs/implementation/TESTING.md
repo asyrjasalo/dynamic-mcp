@@ -1,6 +1,6 @@
 # Testing Guide
 
-> **Last Updated**: January 6, 2026  
+> **Last Updated**: January 6, 2026
 > **Test Status**: 46 tests, 100% pass rate ✅
 
 ## Test Summary
@@ -20,7 +20,7 @@ cargo test
 # Results:
 # running 37 tests (unit)
 # test result: ok. 37 passed; 0 failed
-# 
+#
 # running 9 tests (integration)
 # test result: ok. 9 passed; 0 failed
 ```
@@ -237,6 +237,22 @@ These limitations will be addressed in Phase 2.
 - **Dependencies**: See Cargo.toml
 - **Test Data**: config.example.json
 
+## ⚡ Performance Benchmarks
+
+Run benchmarks to measure performance characteristics:
+
+```bash
+cargo bench --bench performance
+```
+
+**Key metrics:**
+- Environment variable substitution: <1 µs per operation
+- JSON config parsing: ~6 µs for typical configs
+- Tool list caching: O(1) lookup performance
+- Parallel connections: ~12ms for 10 servers
+
+See `benches/performance.rs` for benchmark implementation.
+
 ## Troubleshooting
 
 ### Tests Fail to Build
@@ -254,6 +270,6 @@ Ensure requests are valid JSON-RPC 2.0 format with proper newlines.
 
 ---
 
-**Last Updated**: January 6, 2026  
-**Test Suite Version**: Phase 1  
+**Last Updated**: January 6, 2026
+**Test Suite Version**: Phase 1
 **Status**: ✅ All Phase 1 Tests Passing

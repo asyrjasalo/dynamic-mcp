@@ -5,38 +5,7 @@
 
 A Rust implementation of dynamic-mcp - an MCP proxy server that reduces LLM context overhead by grouping tools from multiple upstream MCP servers and loading schemas on-demand.
 
-## 📖 Documentation
-
-- **[Architecture](docs/ARCHITECTURE.md)** - System design, data flows, and component details
-- **[Migration Guide](docs/MIGRATION.md)** - Migrate from standard MCP to dynamic-mcp
-- **[Contributing](CONTRIBUTING.md)** - Development setup and contribution guidelines
-- **[Development Status](docs/implementation/DEVELOPMENT.md)** - Project status, roadmap, and metrics
-- **[Agent Guidelines](AGENTS.md)** - For AI coding agents: how to maintain documentation
-- **[TypeScript Reference](https://github.com/d-kimuson/dynamic-mcp)** - Original implementation
-
-## 🏗️ Architecture
-
-```
-dynamic-mcp/
-├── src/
-│   ├── main.rs              # CLI entry point
-│   ├── server.rs            # MCP server (exposes 2 tools)
-│   ├── config/              # Configuration management
-│   │   ├── schema.rs        # Config data structures
-│   │   ├── loader.rs        # File loading & validation
-│   │   └── env_sub.rs       # Environment variable substitution
-│   ├── proxy/               # Upstream server management
-│   │   ├── types.rs         # Shared types
-│   │   ├── client.rs        # Group state management
-│   │   └── transport.rs     # Transport creation
-│   └── cli/                 # CLI commands
-│       └── migrate.rs       # Config migration
-├── docs/                    # Documentation
-├── examples/                # Example configurations
-└── Cargo.toml              # Dependencies
-```
-
-## 🚀 Quick Start
+## Quick Start
 
 ### Installation
 
@@ -55,7 +24,7 @@ If you have an existing MCP config without descriptions, use the migration comma
 
 ```bash
 # Migrate standard config to dynamic-mcp format
-dynamic-mcp migrate mcp-config.json -o dynamic-mcp.json
+dynamic-mcp migrate mcp.json -o dynamic-mcp.json
 
 # The tool will interactively prompt for descriptions for each server
 ```
@@ -63,7 +32,7 @@ dynamic-mcp migrate mcp-config.json -o dynamic-mcp.json
 **Example migration session:**
 ```
 🔄 Starting migration from standard MCP config to dynamic-mcp format
-📖 Reading config from: mcp-config.json
+📖 Reading config from: mcp.json
 
 ✅ Found 2 MCP server(s) to migrate
 
@@ -133,7 +102,7 @@ Supports `${VAR}` syntax for environment variable interpolation:
 }
 ```
 
-## 🔧 Configuration Schema
+## Configuration Schema
 
 ### Server Types
 
@@ -191,25 +160,7 @@ Supports `${VAR}` syntax for environment variable interpolation:
 - Automatic token refresh before expiry (with RFC 6749 token rotation support)
 - Token injected as `Authorization: Bearer <token>` header
 
-## ⚡ Performance
-
-Run benchmarks to measure performance characteristics:
-
-```bash
-cargo bench --bench performance
-```
-
-**Key metrics:**
-- Environment variable substitution: <1 µs per operation
-- JSON config parsing: ~6 µs for typical configs
-- Tool list caching: O(1) lookup performance
-- Parallel connections: ~12ms for 10 servers
-
-See `benches/performance.rs` for benchmark implementation.
-
-
-
-## 🔧 Troubleshooting
+## Troubleshooting
 
 ### Server Connection Issues
 
@@ -295,18 +246,11 @@ RUST_LOG=debug dynamic-mcp config.json
 - Failed groups use minimal memory
 - Large tool schemas contribute to memory usage
 
-## 🤝 Contributing
-
-Contributions are welcome! Please see:
-- **[CONTRIBUTING.md](CONTRIBUTING.md)** - Development setup, testing, and contribution guidelines
-- **[docs/implementation/DEVELOPMENT.md](docs/implementation/DEVELOPMENT.md)** - Project status, roadmap, and metrics
-
-## 📄 License
+## License
 
 MIT License - see [LICENSE](LICENSE) for details
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
-- Original TypeScript implementation: [d-kimuson/dynamic-mcp](https://github.com/d-kimuson/dynamic-mcp)
 - MCP Specification: [Model Context Protocol](https://modelcontextprotocol.io/)
 - Rust MCP Ecosystem: [rust-mcp-stack](https://github.com/rust-mcp-stack)
