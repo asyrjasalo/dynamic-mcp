@@ -70,6 +70,19 @@ cargo test test_substitute_env_vars
 cargo test -- --test-threads=1
 ```
 
+### Running Benchmarks
+
+```bash
+# Run performance benchmarks
+cargo bench --bench performance
+
+# Benchmarks include:
+# - Environment variable substitution
+# - JSON config parsing
+# - Tool list caching performance
+# - Parallel connection simulation
+```
+
 ### Code Structure
 
 - **config/**: Configuration loading, validation, and environment variable substitution

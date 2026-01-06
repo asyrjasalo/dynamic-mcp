@@ -195,17 +195,31 @@ impl OAuthClient {
             .expires_in()
             .map(|duration| Utc::now() + chrono::Duration::seconds(duration.as_secs() as i64));
 
+        // OAuth2 token rotation: Use new refresh token if provided, keep old one otherwise
+        let new_refresh_token = token_result
+            .refresh_token()
+            .map(|t| t.secret().clone())
+            .or_else(|| Some(refresh_token.to_string()));
+
         let tokens = OAuthTokens {
             access_token: token_result.access_token().secret().clone(),
-            refresh_token: token_result
-                .refresh_token()
-                .map(|t| t.secret().clone())
-                .or_else(|| Some(refresh_token.to_string())),
+            refresh_token: new_refresh_token.clone(),
             expires_at,
         };
 
         self.store.save_token(server_name, &tokens).await?;
-        tracing::info!("Successfully refreshed token for {}", server_name);
+
+        if token_result.refresh_token().is_some() {
+            tracing::info!(
+                "Successfully refreshed token for {} (received new refresh token)",
+                server_name
+            );
+        } else {
+            tracing::info!(
+                "Successfully refreshed token for {} (reusing refresh token)",
+                server_name
+            );
+        }
 
         Ok(tokens)
     }

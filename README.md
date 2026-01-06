@@ -1,9 +1,9 @@
-# Modular MCP (Rust Implementation)
+# dynamic-mcp
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Rust](https://img.shields.io/badge/rust-1.75%2B-orange.svg)](https://www.rust-lang.org/)
 
-A Rust implementation of Modular MCP - an MCP proxy server that reduces LLM context overhead by grouping tools from multiple upstream MCP servers and loading schemas on-demand.
+A Rust implementation of dynamic-mcp - an MCP proxy server that reduces LLM context overhead by grouping tools from multiple upstream MCP servers and loading schemas on-demand.
 
 ## 📖 Documentation
 
@@ -188,8 +188,24 @@ Supports `${VAR}` syntax for environment variable interpolation:
 **OAuth Flow:**
 - On first connect, browser opens for authorization
 - Access token stored in `~/.dynamic-mcp/oauth-servers/<server-name>.json`
-- Automatic token refresh before expiry
+- Automatic token refresh before expiry (with RFC 6749 token rotation support)
 - Token injected as `Authorization: Bearer <token>` header
+
+## ⚡ Performance
+
+Run benchmarks to measure performance characteristics:
+
+```bash
+cargo bench --bench performance
+```
+
+**Key metrics:**
+- Environment variable substitution: <1 µs per operation
+- JSON config parsing: ~6 µs for typical configs
+- Tool list caching: O(1) lookup performance
+- Parallel connections: ~12ms for 10 servers
+
+See `benches/performance.rs` for benchmark implementation.
 
 
 
@@ -200,6 +216,8 @@ Supports `${VAR}` syntax for environment variable interpolation:
 **Problem**: `❌ Failed to connect to <server>`
 
 **Solutions**:
+- **Automatic retry**: System retries up to 3 times with exponential backoff (2s, 4s, 8s)
+- **Periodic retry**: Failed servers are retried every 30 seconds in the background
 - **Stdio servers**: Verify command exists (`which <command>`)
 - **HTTP/SSE servers**: Check server is running and URL is correct
 - **Environment variables**: Ensure all `${VAR}` references are defined

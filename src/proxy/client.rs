@@ -4,6 +4,7 @@ use crate::proxy::types::{FailedGroupInfo, GroupInfo, JsonRpcRequest, ToolInfo};
 use anyhow::{Context, Result};
 use serde_json::json;
 use std::collections::HashMap;
+use std::time::Duration;
 
 pub enum GroupState {
     Connected {
@@ -16,6 +17,8 @@ pub enum GroupState {
         name: String,
         description: String,
         error: String,
+        retry_count: u32,
+        config: McpServerConfig,
     },
 }
 
@@ -105,12 +108,21 @@ impl ModularMcpClient {
         config: McpServerConfig,
         error: anyhow::Error,
     ) {
+        let retry_count =
+            if let Some(GroupState::Failed { retry_count, .. }) = self.groups.get(&group_name) {
+                retry_count + 1
+            } else {
+                0
+            };
+
         self.groups.insert(
             group_name.clone(),
             GroupState::Failed {
                 name: group_name,
                 description: config.description().to_string(),
                 error: error.to_string(),
+                retry_count,
+                config,
             },
         );
     }
@@ -138,6 +150,7 @@ impl ModularMcpClient {
                     name,
                     description,
                     error,
+                    ..
                 } => Some(FailedGroupInfo {
                     name: name.clone(),
                     description: description.clone(),
@@ -148,14 +161,75 @@ impl ModularMcpClient {
             .collect()
     }
 
+    pub async fn retry_failed_connections(&mut self) -> Vec<String> {
+        const MAX_RETRIES: u32 = 3;
+        let mut successfully_retried = Vec::new();
+        let mut failed_to_retry = Vec::new();
+
+        let failed_groups: Vec<_> = self
+            .groups
+            .iter()
+            .filter_map(|(name, state)| {
+                if let GroupState::Failed {
+                    retry_count,
+                    config,
+                    ..
+                } = state
+                {
+                    if *retry_count < MAX_RETRIES {
+                        Some((name.clone(), config.clone(), *retry_count))
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                }
+            })
+            .collect();
+
+        for (group_name, config, retry_count) in failed_groups {
+            let backoff_secs = 2u64.pow(retry_count);
+            tracing::info!(
+                "Retrying connection to {} (attempt {}/{}), waiting {}s...",
+                group_name,
+                retry_count + 1,
+                MAX_RETRIES,
+                backoff_secs
+            );
+
+            tokio::time::sleep(Duration::from_secs(backoff_secs)).await;
+
+            match self.connect(group_name.clone(), config.clone()).await {
+                Ok(_) => {
+                    tracing::info!("✅ Successfully reconnected to MCP group: {}", group_name);
+                    successfully_retried.push(group_name);
+                }
+                Err(e) => {
+                    tracing::warn!("❌ Retry failed for {}: {:#}", group_name, e);
+                    failed_to_retry.push((group_name, config, e));
+                }
+            }
+        }
+
+        for (group_name, config, error) in failed_to_retry {
+            self.record_failed_connection(group_name, config, error);
+        }
+
+        successfully_retried
+    }
+
     pub fn list_tools(&self, group_name: &str) -> Result<Vec<ToolInfo>> {
         let group = self.groups.get(group_name).context("Group not found")?;
 
         match group {
             GroupState::Connected { tools, .. } => Ok(tools.clone()),
-            GroupState::Failed { error, .. } => {
-                Err(anyhow::anyhow!("Group failed to connect: {}", error))
-            }
+            GroupState::Failed {
+                error, retry_count, ..
+            } => Err(anyhow::anyhow!(
+                "Group failed to connect after {} attempts: {}",
+                retry_count + 1,
+                error
+            )),
         }
     }
 
@@ -183,9 +257,13 @@ impl ModularMcpClient {
 
                 Ok(response.result.unwrap_or(json!({})))
             }
-            GroupState::Failed { error, .. } => {
-                Err(anyhow::anyhow!("Group failed to connect: {}", error))
-            }
+            GroupState::Failed {
+                error, retry_count, ..
+            } => Err(anyhow::anyhow!(
+                "Group failed to connect after {} attempts: {}",
+                retry_count + 1,
+                error
+            )),
         }
     }
 

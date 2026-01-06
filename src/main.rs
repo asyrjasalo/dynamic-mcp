@@ -143,8 +143,35 @@ async fn run_server(config_path: String, config_source: &str) -> Result<()> {
                     .collect::<Vec<_>>()
                     .join(", ")
             );
+
+            tracing::info!("Attempting to retry failed connections...");
+            let retried = client_lock.retry_failed_connections().await;
+            if !retried.is_empty() {
+                tracing::info!("Successfully reconnected to: {}", retried.join(", "));
+            }
         }
     }
+
+    // Spawn periodic retry handler for failed connections
+    let client_retry = client.clone();
+    tokio::spawn(async move {
+        let mut interval = tokio::time::interval(tokio::time::Duration::from_secs(30));
+        interval.tick().await;
+
+        loop {
+            interval.tick().await;
+            let mut client_lock = client_retry.write().await;
+            let failed = client_lock.list_failed_groups();
+
+            if !failed.is_empty() {
+                tracing::debug!("Periodic retry check: {} failed groups", failed.len());
+                let retried = client_lock.retry_failed_connections().await;
+                if !retried.is_empty() {
+                    tracing::info!("✅ Periodic retry reconnected: {}", retried.join(", "));
+                }
+            }
+        }
+    });
 
     // Spawn config reload handler
     let client_clone = client.clone();

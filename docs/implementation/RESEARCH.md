@@ -5,13 +5,13 @@ January 6, 2026
 
 ## Executive Summary
 
-The Rust MCP ecosystem is mature and production-ready with an official SDK (`rmcp`) that supports all required features for building a modular MCP proxy server.
+The Rust MCP ecosystem is mature and production-ready with an official SDK (`rmcp`) that supports all required features for building a dynamic-mcp proxy server.
 
 ## Official Rust SDK
 
-**Repository**: https://github.com/modelcontextprotocol/rust-sdk  
-**Crates**: `rmcp` (v0.12.0), `rmcp-macros` (v0.12.0)  
-**Downloads**: 2.3M+ each  
+**Repository**: https://github.com/modelcontextprotocol/rust-sdk
+**Crates**: `rmcp` (v0.12.0), `rmcp-macros` (v0.12.0)
+**Downloads**: 2.3M+ each
 **Maintenance**: Active (December 2025)
 
 ### Key Features
@@ -96,7 +96,7 @@ impl ServerHandler for Counter {
         })
     }
 
-    async fn read_resource(&self, ReadResourceRequestParam { uri }, ...) 
+    async fn read_resource(&self, ReadResourceRequestParam { uri }, ...)
         -> Result<ReadResourceResult, McpError> {
         match uri.as_str() {
             "file:///path" => Ok(ReadResourceResult {
@@ -125,7 +125,7 @@ impl Counter {
         _ctx: RequestContext<RoleServer>,
     ) -> Result<GetPromptResult, McpError> {
         let messages = vec![
-            PromptMessage::new_text(PromptMessageRole::User, 
+            PromptMessage::new_text(PromptMessageRole::User,
                 format!("Analyze: {}", args.goal)),
         ];
         Ok(GetPromptResult {
@@ -176,8 +176,8 @@ impl ServerHandler for Counter {
 
 ### AgentGateway (Production Reference)
 
-**Repository**: https://github.com/agentgateway/agentgateway  
-**Stars**: 1,526  
+**Repository**: https://github.com/agentgateway/agentgateway
+**Stars**: 1,526
 **Purpose**: Production MCP gateway/proxy server
 
 Features:
@@ -274,4 +274,4 @@ The Rust MCP ecosystem is production-ready with:
 - ✅ Strong ecosystem with 800+ projects
 - ✅ Active community and regular updates
 
-**Recommendation**: Use the official `rmcp` SDK as the foundation for building the modular MCP proxy server.
+**Recommendation**: Use the official `rmcp` SDK as the foundation for building the dynamic-mcp proxy server.

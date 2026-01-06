@@ -1,4 +1,4 @@
-# Implementation Plan: Modular MCP in Rust
+# Implementation Plan: dynamic-mcp in Rust
 
 ## Project Overview
 
@@ -176,7 +176,7 @@ use crate::config::schema::McpServerConfig;
 /// Substitutes ${VAR} syntax only (NOT $VAR)
 pub fn substitute_env_vars(value: &str) -> String {
     let pattern = Regex::new(r"\$\{([A-Za-z_][A-Za-z0-9_]*)\}").unwrap();
-    
+
     pattern.replace_all(value, |caps: &regex::Captures| {
         let var_name = &caps[1];
         match std::env::var(var_name) {
@@ -246,15 +246,15 @@ use crate::config::env_sub::substitute_in_config;
 pub async fn load_config(path: &str) -> Result<ServerConfig> {
     let absolute_path = Path::new(path).canonicalize()
         .with_context(|| format!("Failed to resolve config path: {}", path))?;
-    
+
     // Read file
     let content = fs::read_to_string(&absolute_path).await
         .with_context(|| format!("Failed to read config file: {:?}", absolute_path))?;
-    
+
     // Parse JSON
     let mut config: ServerConfig = serde_json::from_str(&content)
         .with_context(|| format!("Invalid JSON in config file: {:?}", absolute_path))?;
-    
+
     // Apply environment variable substitution
     config.mcp_servers = config.mcp_servers
         .into_iter()
@@ -262,9 +262,9 @@ pub async fn load_config(path: &str) -> Result<ServerConfig> {
             (name, substitute_in_config(server_config))
         })
         .collect();
-    
+
     tracing::info!("✅ MCP server config loaded successfully");
-    
+
     Ok(config)
 }
 ```
@@ -347,23 +347,23 @@ impl ModularMcpClient {
         }
 
         let description = config.description().to_string();
-        
+
         // Create transport
         let transport = create_transport(&config).await?;
-        
+
         // Create client
         let client_options = ClientOptions {
             name: "dynamic-mcp-client".to_string(),
             version: env!("CARGO_PKG_VERSION").to_string(),
         };
-        
+
         let mut client = Client::new(client_options);
         client.connect(transport).await?;
-        
+
         // Initialize and list tools
         client.initialize().await?;
         let tools_result = client.list_tools().await?;
-        
+
         let tools: Vec<ToolInfo> = tools_result.tools.iter().map(|tool| {
             ToolInfo {
                 name: tool.name.clone(),
@@ -371,7 +371,7 @@ impl ModularMcpClient {
                 input_schema: tool.input_schema.clone(),
             }
         }).collect();
-        
+
         self.groups.insert(
             group_name.clone(),
             GroupState::Connected {
@@ -381,7 +381,7 @@ impl ModularMcpClient {
                 tools,
             },
         );
-        
+
         Ok(())
     }
 
@@ -433,7 +433,7 @@ impl ModularMcpClient {
     pub async fn list_tools(&self, group_name: &str) -> Result<Vec<ToolInfo>> {
         let group = self.groups.get(group_name)
             .context("Group not found")?;
-            
+
         match group {
             GroupState::Connected { tools, .. } => Ok(tools.clone()),
             GroupState::Failed { error, .. } => {
@@ -450,7 +450,7 @@ impl ModularMcpClient {
     ) -> Result<serde_json::Value> {
         let group = self.groups.get(group_name)
             .context("Group not found")?;
-            
+
         match group {
             GroupState::Connected { client, .. } => {
                 let result = client.call_tool(tool_name, args).await?;
@@ -487,17 +487,17 @@ pub async fn create_transport(config: &McpServerConfig) -> Result<Box<dyn Transp
         McpServerConfig::Stdio { command, args, env, .. } => {
             use std::process::Command;
             use rmcp::transport::ChildProcessTransport;
-            
+
             let mut cmd = Command::new(command);
-            
+
             if let Some(args) = args {
                 cmd.args(args);
             }
-            
+
             if let Some(env_vars) = env {
                 cmd.envs(env_vars);
             }
-            
+
             Ok(Box::new(ChildProcessTransport::new(cmd)?))
         }
         McpServerConfig::Http { .. } | McpServerConfig::Sse { .. } => {
@@ -557,14 +557,14 @@ impl ServerHandler for ModularMcpServer {
         let client = self.client.lock().await;
         let groups = client.list_groups();
         let failed_groups = client.list_failed_groups();
-        
+
         let group_names: Vec<String> = groups.iter().map(|g| g.name.clone()).collect();
-        
+
         let groups_desc = groups.iter()
             .map(|g| format!("- {}: {}", g.name, g.description))
             .collect::<Vec<_>>()
             .join("\n");
-            
+
         let failed_desc = if !failed_groups.is_empty() {
             let failed = failed_groups.iter()
                 .map(|g| format!("- {}: {} (Error: {})", g.name, g.description, g.error))
@@ -650,11 +650,11 @@ Example usage:
             "get-modular-tools" => {
                 let args: GetToolsArgs = serde_json::from_value(request.params.arguments)
                     .map_err(|e| McpError::invalid_params(e.to_string(), None))?;
-                    
+
                 let client = self.client.lock().await;
                 let tools = client.list_tools(&args.group).await
                     .map_err(|e| McpError::internal_error(e.to_string(), None))?;
-                    
+
                 // Strip $schema from input_schema
                 let tools_json: Vec<_> = tools.iter().map(|tool| {
                     let mut schema = tool.input_schema.clone();
@@ -667,7 +667,7 @@ Example usage:
                         "inputSchema": schema
                     })
                 }).collect();
-                    
+
                 Ok(CallToolResult::success(vec![
                     Content::text(serde_json::to_string(&tools_json).unwrap())
                 ]))
@@ -675,11 +675,11 @@ Example usage:
             "call-modular-tool" => {
                 let args: CallToolArgs = serde_json::from_value(request.params.arguments)
                     .map_err(|e| McpError::invalid_params(e.to_string(), None))?;
-                    
+
                 let client = self.client.lock().await;
                 let result = client.call_tool(&args.group, &args.name, args.args).await
                     .map_err(|e| McpError::internal_error(e.to_string(), None))?;
-                    
+
                 Ok(CallToolResult::success(vec![
                     Content::text(serde_json::to_string(&result).unwrap())
                 ]))
@@ -711,7 +711,7 @@ use anyhow::Result;
 #[derive(Parser)]
 #[command(name = "dynamic-mcp")]
 #[command(version = env!("CARGO_PKG_VERSION"))]
-#[command(about = "Modular MCP Proxy Server - Reduce context overhead with on-demand tool loading")]
+#[command(about = "dynamic-mcp Proxy Server - Reduce context overhead with on-demand tool loading")]
 struct Cli {
     /// Path to configuration file
     #[arg(value_name = "CONFIG_FILE")]
@@ -729,13 +729,13 @@ async fn main() -> Result<()> {
         .init();
 
     let cli = Cli::parse();
-    
+
     // Load configuration
     let config = config::load_config(&cli.config_path).await?;
-    
+
     // Initialize modular client
     let mut modular_client = proxy::client::ModularMcpClient::new();
-    
+
     // Connect to all upstream servers in parallel
     let connection_futures: Vec<_> = config.mcp_servers.into_iter()
         .map(|(name, server_config)| {
@@ -747,9 +747,9 @@ async fn main() -> Result<()> {
             }
         })
         .collect();
-        
+
     let connection_results = futures::future::join_all(connection_futures).await;
-    
+
     for (name, server_config, result) in connection_results {
         match result {
             Ok(_) => {
@@ -762,11 +762,11 @@ async fn main() -> Result<()> {
             }
         }
     }
-    
+
     // Log summary
     let groups = modular_client.list_groups();
     let failed = modular_client.list_failed_groups();
-    
+
     if failed.is_empty() {
         tracing::info!(
             "Successfully connected {} MCP groups. All groups are valid.",
@@ -779,19 +779,19 @@ async fn main() -> Result<()> {
             failed.iter().map(|g| &g.name).cloned().collect::<Vec<_>>().join(", ")
         );
     }
-    
+
     // Create and start server
     let server_handler = server::ModularMcpServer::new(modular_client);
-    
+
     let server_info = ServerInfo {
         name: env!("CARGO_PKG_NAME").to_string(),
         version: env!("CARGO_PKG_VERSION").to_string(),
     };
-    
+
     // Start stdio transport
     let transport = StdioTransport::new();
     let mut mcp_server = Server::new(server_info, server_handler);
-    
+
     // Setup signal handlers for graceful shutdown
     tokio::select! {
         result = mcp_server.serve(transport) => {
@@ -801,7 +801,7 @@ async fn main() -> Result<()> {
             tracing::info!("Received shutdown signal, cleaning up...");
         }
     }
-    
+
     Ok(())
 }
 ```
@@ -868,20 +868,20 @@ pub async fn create_transport(config: &McpServerConfig) -> Result<Box<dyn Transp
         }
         McpServerConfig::Http { url, headers, .. } => {
             use rmcp::transport::HttpTransport;
-            
+
             let mut request_builder = reqwest::Client::new().post(url);
-            
+
             if let Some(headers) = headers {
                 for (key, value) in headers {
                     request_builder = request_builder.header(key, value);
                 }
             }
-            
+
             Ok(Box::new(HttpTransport::new(request_builder)?))
         }
         McpServerConfig::Sse { url, headers, .. } => {
             use rmcp::transport::SseTransport;
-            
+
             Ok(Box::new(SseTransport::new(url, headers.clone())?))
         }
     }
@@ -899,7 +899,7 @@ pub fn convert_to_mcp_remote_if_needed(config: McpServerConfig) -> McpServerConf
         .unwrap_or_else(|_| std::path::PathBuf::from("npx"))
         .to_string_lossy()
         .to_string();
-    
+
     match config {
         McpServerConfig::Http { description, url, headers } |
         McpServerConfig::Sse { description, url, headers } => {
@@ -907,23 +907,23 @@ pub fn convert_to_mcp_remote_if_needed(config: McpServerConfig) -> McpServerConf
                 McpServerConfig::Sse { .. } => "sse-only",
                 _ => "http-only",
             };
-            
+
             let mut args = vec![
                 "-y".to_string(),
                 "mcp-remote".to_string(),
                 url,
             ];
-            
+
             if let Some(headers) = headers {
                 for (key, value) in headers {
                     args.push("--header".to_string());
                     args.push(format!("{}: {}", key, value));
                 }
             }
-            
+
             args.push("--transport".to_string());
             args.push(transport_type.to_string());
-            
+
             McpServerConfig::Stdio {
                 description,
                 command: npx_path,
@@ -989,7 +989,7 @@ impl AuthStore {
             .ok_or_else(|| anyhow::anyhow!("Cannot find home directory"))?
             .join(".dynamic-mcp")
             .join("oauth-servers");
-            
+
         Ok(Self { base_path })
     }
 
@@ -1065,7 +1065,7 @@ use clap::{Parser, Subcommand};
 pub struct Cli {
     #[command(subcommand)]
     pub command: Option<Commands>,
-    
+
     /// Config file (when running as server)
     pub config_path: Option<String>,
 }
@@ -1076,7 +1076,7 @@ pub enum Commands {
     Migrate {
         /// Path to standard MCP config file
         mcp_config_path: String,
-        
+
         /// Output path for dynamic-mcp.json
         #[arg(short, long, default_value = "dynamic-mcp.json")]
         output: String,

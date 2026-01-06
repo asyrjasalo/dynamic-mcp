@@ -236,7 +236,11 @@ LLM Client                  Dynamic-MCP                 Upstream Server
 
 ### Connection Failures
 
-- Failed connections recorded in `GroupState::Failed`
+- Failed connections recorded in `GroupState::Failed` with retry count
+- **Automatic retry with exponential backoff**:
+  - Retry attempts: Up to 3 times per server
+  - Backoff strategy: 2^n seconds (2s, 4s, 8s)
+  - Periodic retry: Every 30 seconds for failed groups
 - Failed groups included in tool descriptions with error info
 - LLM aware of unavailable groups, can inform user
 - Server continues operating with available groups

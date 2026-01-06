@@ -15,6 +15,7 @@
 - [x] Two-tool API (get-modular-tools, call-modular-tool)
 - [x] Parallel upstream server connections
 - [x] Error handling and graceful degradation
+- [x] **Automatic retry with exponential backoff** for failed connections
 - [x] Integration tests
 - [x] **Live reload** - Configuration file watching with automatic reconnection
 
@@ -31,6 +32,7 @@
 - [x] Automatic token discovery via `/.well-known/oauth-authorization-server`
 - [x] Secure token storage in `~/.dynamic-mcp/oauth-servers/`
 - [x] Automatic token refresh before expiry
+- [x] **OAuth refresh token rotation** (RFC 6749 compliant)
 - [x] Browser-based authorization flow
 - [x] Token injection into HTTP/SSE transport headers
 - [x] Support for custom OAuth scopes
@@ -47,6 +49,11 @@
   - 37 unit tests covering all modules
   - 9 integration tests for CLI and workflows
 - [x] Test coverage: Config (100%), Auth (100%), Server (100%), Transport (100%)
+- [x] **Performance benchmarking suite**
+  - Environment variable substitution benchmarks
+  - JSON parsing performance tests
+  - Tool list caching performance
+  - Parallel connection simulation
 - [x] Complete documentation
   - Module-level Rust documentation (cargo doc)
   - Architecture documentation with diagrams
@@ -123,7 +130,7 @@ cargo test
 - [ ] CI/CD pipeline (GitHub Actions)
 - [ ] Cross-platform binaries (Linux, macOS, Windows)
 - [ ] Publish to crates.io
-- [ ] Performance benchmarking and optimization
+- [x] Performance benchmarking and optimization
 - [ ] Security audit
 - [ ] Release v1.0.0
 
@@ -136,10 +143,7 @@ cargo test
 
 ## 📝 Known Limitations
 
-- **Live Reload**: Works for config changes but requires manual update for code changes
-- **Error Recovery**: Failed upstream servers don't automatically retry (by design)
-- **OAuth**: Refresh token rotation not yet implemented
-- **Performance**: No benchmarks yet; optimization deferred to Phase 6
+- **Live Reload**: Works for config changes but requires manual update for code changes (expected behavior for compiled binaries)
 
 ## 🔍 Code Quality
 

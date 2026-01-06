@@ -3,16 +3,21 @@ name = "dynamic-mcp"
 version = "0.1.0"
 edition = "2021"
 rust-version = "1.75"
-authors = ["Dynamic MCP Contributors"]
+authors = ["Anssi Syrjäsalo"]
 license = "MIT"
 description = "Dynamic MCP Proxy Server - Reduce context overhead with on-demand tool loading"
-repository = "https://github.com/yourusername/dynamic-mcp"
+repository = "https://github.com/asyrjasalo/dynamic-mcp"
 keywords = ["mcp", "model-context-protocol", "llm", "proxy", "tools"]
 categories = ["command-line-utilities", "development-tools"]
 
 [[bin]]
 name = "dynamic-mcp"
 path = "src/main.rs"
+
+[[bench]]
+name = "performance"
+path = "benches/performance.rs"
+harness = false
 
 [dependencies]
 # MCP Protocol Types
@@ -59,7 +64,7 @@ open = "5.0"
 dirs = "5.0"
 chrono = { version = "0.4", features = ["serde"] }
 
-# Process management  
+# Process management
 tokio-util = { version = "0.7", features = ["codec"] }
 bytes = "1.0"
 

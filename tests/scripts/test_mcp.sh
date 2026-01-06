@@ -2,7 +2,7 @@
 
 cd "$(dirname "$0")/../.."
 
-echo "Testing Modular MCP Server..."
+echo "Testing dynamic-mcp Server..."
 echo
 
 echo "1. Testing initialize request:"
