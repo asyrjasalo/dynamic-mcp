@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use crate::config::McpServerConfig;
 use crate::proxy::types::{GroupInfo, FailedGroupInfo, ToolInfo, JsonRpcRequest};
-use crate::proxy::transport::StdioTransport;
+use crate::proxy::transport::Transport;
 use anyhow::{Context, Result};
 use serde_json::json;
 
@@ -10,7 +10,7 @@ pub enum GroupState {
         name: String,
         description: String,
         tools: Vec<ToolInfo>,
-        transport: StdioTransport,
+        transport: Transport,
     },
     Failed {
         name: String,
@@ -37,7 +37,7 @@ impl ModularMcpClient {
 
         let description = config.description().to_string();
         
-        let transport = StdioTransport::new(&config).await
+        let transport = Transport::new(&config).await
             .with_context(|| format!("Failed to create transport for group: {}", group_name))?;
         
         let init_request = JsonRpcRequest::new(1, "initialize")

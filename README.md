@@ -7,8 +7,8 @@ A Rust implementation of Modular MCP - an MCP proxy server that reduces LLM cont
 
 ## 🎯 Project Status
 
-**Current Phase**: Phase 1 (Foundation) ✅ **COMPLETE**  
-**Next Phase**: Phase 2 (HTTP/SSE Transport Support)
+**Current Phase**: Phase 2 (HTTP/SSE Transport) ✅ **COMPLETE**  
+**Next Phase**: Phase 3 (OAuth Authentication)
 
 ### ✅ Phase 1 Completed (100%)
 - Project structure and build system
@@ -26,9 +26,18 @@ A Rust implementation of Modular MCP - an MCP proxy server that reduces LLM cont
 - Comprehensive documentation
 - Integration tests
 
+### ✅ Phase 2 Completed (100%)
+- **HTTP transport support** using rmcp StreamableHttpClientTransport
+- **SSE transport support** using rmcp StreamableHttpClientTransport
+- **Unified Transport enum** supporting stdio, HTTP, and SSE
+- **Native Rust implementation** (no npx/mcp-remote dependency)
+- **Header support** for HTTP/SSE (Authorization, custom headers)
+- **Async request/response** handling for all transport types
+- Integration with rmcp v0.12 official MCP Rust SDK
+
 ### 📅 Roadmap
 - [x] Phase 1: Core proxy with stdio transport ✅ **COMPLETE**
-- [ ] Phase 2: HTTP/SSE transport support
+- [x] Phase 2: HTTP/SSE transport support ✅ **COMPLETE**
 - [ ] Phase 3: OAuth authentication
 - [ ] Phase 4: Migration command
 - [ ] Phase 5: Tests & documentation
@@ -223,12 +232,12 @@ MIT License - see [LICENSE](LICENSE) for details
 
 ## 📊 Project Metrics
 
-- **Lines of Code**: ~1,340 (Rust)
-- **Dependencies**: 20+ crates
+- **Lines of Code**: ~1,500 (Rust)
+- **Dependencies**: 114 crates (including rmcp and HTTP/SSE stack)
 - **Tests**: 7 passing (4 unit + 3 integration)
 - **Test Coverage**: Config: 100%, Core: Working
 - **Documentation**: Comprehensive
 
 ---
 
-**Status**: ✅ Phase 1 Complete | Ready for Phase 2
+**Status**: ✅ Phase 2 Complete | Ready for Phase 3
