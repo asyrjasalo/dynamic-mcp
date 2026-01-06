@@ -105,33 +105,6 @@
 5. **Process Privileges**: Child processes inherit full privileges
 6. **No Sandboxing**: No isolation between upstream MCP servers
 
-## Reporting a Vulnerability
-
-**DO NOT** open public issues for security vulnerabilities.
-
-Instead:
-1. Email security concerns to: opensource@syrjasalo.com
-2. Include:
-   - Description of the vulnerability
-   - Steps to reproduce
-   - Potential impact
-   - Suggested fix (if available)
-3. Allow 48 hours for initial response
-4. Coordinate disclosure timeline
-
-**Response Timeline**:
-- Initial response: 48 hours
-- Status update: 7 days
-- Fix timeline: Depends on severity
-  - Critical: 7 days
-  - High: 14 days
-  - Medium: 30 days
-  - Low: 60 days
-
-**Recognition**:
-- Security researchers credited in release notes (unless anonymity requested)
-- Public disclosure coordinated after fix released
-
 ## Security Best Practices
 
 ### For Operators
@@ -148,7 +121,7 @@ Instead:
    # Config file
    chmod 600 dynamic-mcp.json
    chown dynamic-mcp:dynamic-mcp dynamic-mcp.json
-   
+
    # Token storage
    chmod 700 ~/.dynamic-mcp
    chmod 600 ~/.dynamic-mcp/oauth-servers/*.json
@@ -164,7 +137,7 @@ Instead:
    ```bash
    # Enable debug logging
    RUST_LOG=debug dynamic-mcp config.json
-   
+
    # Monitor for anomalies
    tail -f /var/log/dynamic-mcp.log | grep -E 'ERROR|WARN'
    ```
@@ -202,19 +175,6 @@ Instead:
    - Fuzzing for input validation
    - Regular penetration testing
 
-## Security Roadmap
-
-**Planned Improvements**:
-- [ ] OS keychain integration for token storage
-- [ ] Token encryption at rest
-- [ ] Rate limiting for tool calls
-- [ ] Audit logging for security events
-- [ ] Input validation framework
-- [ ] Process sandboxing (Linux: seccomp, macOS: sandbox-exec)
-- [ ] Network policy enforcement
-- [ ] Security scanning in CI/CD
-- [ ] Privilege separation (drop privileges after startup)
-
 ## References
 
 - OAuth 2.0: [RFC 6749](https://tools.ietf.org/html/rfc6749)
@@ -224,5 +184,5 @@ Instead:
 
 ---
 
-**Last Updated**: January 6, 2026  
+**Last Updated**: January 6, 2026
 **Version**: 0.1.0
