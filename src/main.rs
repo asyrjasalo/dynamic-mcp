@@ -270,9 +270,11 @@ async fn run_server(config_path: String, config_source: &str) -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use serial_test::serial;
     use std::env;
 
     #[test]
+    #[serial]
     fn test_cli_arg_takes_precedence() {
         let cli_path = Some("cli-config.json".to_string());
         env::set_var("DYNAMIC_MCP_CONFIG", "env-config.json");
@@ -288,6 +290,7 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn test_env_var_used_when_no_cli() {
         env::set_var("DYNAMIC_MCP_CONFIG", "env-config.json");
 
@@ -302,6 +305,7 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn test_no_config_returns_none() {
         env::remove_var("DYNAMIC_MCP_CONFIG");
 
@@ -310,6 +314,7 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn test_empty_env_var_is_invalid() {
         env::set_var("DYNAMIC_MCP_CONFIG", "");
 

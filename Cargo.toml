@@ -86,6 +86,7 @@ windows-sys = { version = "0.59", features = ["Win32_Foundation", "Win32_System_
 [dev-dependencies]
 tempfile = "3"
 tokio-test = "0.4"
+serial_test = "3"
 
 [profile.release]
 opt-level = 3
