@@ -42,11 +42,11 @@ enum Commands {
 fn get_config_path(cli_arg: Option<String>) -> Option<(String, &'static str)> {
     if let Some(path) = cli_arg {
         Some((path, "command line argument"))
-    } else if let Ok(path) = std::env::var("GATEWAY_MCP_CONFIG") {
+    } else if let Ok(path) = std::env::var("DYNAMIC_MCP_CONFIG") {
         if path.is_empty() {
             None
         } else {
-            Some((path, "GATEWAY_MCP_CONFIG environment variable"))
+            Some((path, "DYNAMIC_MCP_CONFIG environment variable"))
         }
     } else {
         None
@@ -79,10 +79,10 @@ async fn main() -> Result<()> {
                     eprintln!("Error: No configuration file specified");
                     eprintln!();
                     eprintln!("Usage: dynamic-mcp <config-file>");
-                    eprintln!("   or: GATEWAY_MCP_CONFIG=<config-file> dynamic-mcp");
+                    eprintln!("   or: DYNAMIC_MCP_CONFIG=<config-file> dynamic-mcp");
                     eprintln!();
                     eprintln!("Example: dynamic-mcp config.example.json");
-                    eprintln!("     or: GATEWAY_MCP_CONFIG=config.example.json dynamic-mcp");
+                    eprintln!("     or: DYNAMIC_MCP_CONFIG=config.example.json dynamic-mcp");
                     std::process::exit(1);
                 });
 
@@ -275,7 +275,7 @@ mod tests {
     #[test]
     fn test_cli_arg_takes_precedence() {
         let cli_path = Some("cli-config.json".to_string());
-        env::set_var("GATEWAY_MCP_CONFIG", "env-config.json");
+        env::set_var("DYNAMIC_MCP_CONFIG", "env-config.json");
 
         let result = get_config_path(cli_path);
         assert!(result.is_some());
@@ -284,26 +284,26 @@ mod tests {
         assert_eq!(path, "cli-config.json");
         assert_eq!(source, "command line argument");
 
-        env::remove_var("GATEWAY_MCP_CONFIG");
+        env::remove_var("DYNAMIC_MCP_CONFIG");
     }
 
     #[test]
     fn test_env_var_used_when_no_cli() {
-        env::set_var("GATEWAY_MCP_CONFIG", "env-config.json");
+        env::set_var("DYNAMIC_MCP_CONFIG", "env-config.json");
 
         let result = get_config_path(None);
         assert!(result.is_some());
 
         let (path, source) = result.unwrap();
         assert_eq!(path, "env-config.json");
-        assert_eq!(source, "GATEWAY_MCP_CONFIG environment variable");
+        assert_eq!(source, "DYNAMIC_MCP_CONFIG environment variable");
 
-        env::remove_var("GATEWAY_MCP_CONFIG");
+        env::remove_var("DYNAMIC_MCP_CONFIG");
     }
 
     #[test]
     fn test_no_config_returns_none() {
-        env::remove_var("GATEWAY_MCP_CONFIG");
+        env::remove_var("DYNAMIC_MCP_CONFIG");
 
         let result = get_config_path(None);
         assert!(result.is_none());
@@ -311,11 +311,11 @@ mod tests {
 
     #[test]
     fn test_empty_env_var_is_invalid() {
-        env::set_var("GATEWAY_MCP_CONFIG", "");
+        env::set_var("DYNAMIC_MCP_CONFIG", "");
 
         let result = get_config_path(None);
         assert!(result.is_none());
 
-        env::remove_var("GATEWAY_MCP_CONFIG");
+        env::remove_var("DYNAMIC_MCP_CONFIG");
     }
 }

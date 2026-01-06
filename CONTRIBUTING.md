@@ -98,7 +98,7 @@ cargo bench --bench performance
 cargo run -- examples/config.example.json
 
 # With environment variable
-export GATEWAY_MCP_CONFIG=examples/config.example.json
+export DYNAMIC_MCP_CONFIG=examples/config.example.json
 cargo run
 
 # With debug logging
@@ -130,10 +130,10 @@ mod tests {
     fn test_env_var_substitution() {
         // Arrange
         std::env::set_var("TEST_VAR", "test_value");
-        
+
         // Act
         let result = substitute_env_vars("${TEST_VAR}");
-        
+
         // Assert
         assert_eq!(result, "test_value");
     }

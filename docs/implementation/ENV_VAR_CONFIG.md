@@ -1,18 +1,18 @@
 # Environment Variable Configuration Support
 
-**Date**: January 6, 2026  
+**Date**: January 6, 2026
 **Status**: ✅ Complete
 
 ## Overview
 
-Added support for specifying the configuration file via the `GATEWAY_MCP_CONFIG` environment variable, with proper precedence handling when both environment variable and command line argument are provided.
+Added support for specifying the configuration file via the `DYNAMIC_MCP_CONFIG` environment variable, with proper precedence handling when both environment variable and command line argument are provided.
 
 ## Implementation
 
 ### Precedence Rules
 
 1. **Command line argument** (highest priority)
-2. **GATEWAY_MCP_CONFIG environment variable**
+2. **DYNAMIC_MCP_CONFIG environment variable**
 3. **No config** → Error with helpful message
 
 ### Usage
@@ -24,13 +24,13 @@ dynamic-mcp config.json
 
 #### Environment Variable
 ```bash
-export GATEWAY_MCP_CONFIG=config.json
+export DYNAMIC_MCP_CONFIG=config.json
 dynamic-mcp
 ```
 
 #### Override (CLI wins)
 ```bash
-export GATEWAY_MCP_CONFIG=default.json
+export DYNAMIC_MCP_CONFIG=default.json
 dynamic-mcp custom.json  # Uses custom.json, ignores env var
 ```
 
@@ -41,10 +41,10 @@ When no configuration is provided:
 Error: No configuration file specified
 
 Usage: dynamic-mcp <config-file>
-   or: GATEWAY_MCP_CONFIG=<config-file> dynamic-mcp
+   or: DYNAMIC_MCP_CONFIG=<config-file> dynamic-mcp
 
 Example: dynamic-mcp config.example.json
-     or: GATEWAY_MCP_CONFIG=config.example.json dynamic-mcp
+     or: DYNAMIC_MCP_CONFIG=config.example.json dynamic-mcp
 ```
 
 ## Code Changes
@@ -86,21 +86,21 @@ Total: 17 tests passing (14 unit + 3 integration)
 
 ### Docker/Container Usage
 ```dockerfile
-ENV GATEWAY_MCP_CONFIG=/etc/dynamic-mcp/config.json
+ENV DYNAMIC_MCP_CONFIG=/etc/dynamic-mcp/config.json
 CMD ["/usr/local/bin/dynamic-mcp"]
 ```
 
 ### Systemd Service
 ```ini
 [Service]
-Environment="GATEWAY_MCP_CONFIG=/etc/dynamic-mcp/config.json"
+Environment="DYNAMIC_MCP_CONFIG=/etc/dynamic-mcp/config.json"
 ExecStart=/usr/local/bin/dynamic-mcp
 ```
 
 ### Development
 ```bash
 # Use default config for dev
-export GATEWAY_MCP_CONFIG=config.dev.json
+export DYNAMIC_MCP_CONFIG=config.dev.json
 
 # Switch to test config
 dynamic-mcp config.test.json
@@ -109,14 +109,14 @@ dynamic-mcp config.test.json
 ### CI/CD
 ```yaml
 env:
-  GATEWAY_MCP_CONFIG: config.ci.json
+  DYNAMIC_MCP_CONFIG: config.ci.json
 run: dynamic-mcp
 ```
 
 ## Design Decisions
 
 ### 1. Environment Variable Name
-**Choice**: `GATEWAY_MCP_CONFIG` (not `MCP_CONFIG` or `CONFIG_FILE`)
+**Choice**: `DYNAMIC_MCP_CONFIG` (not `MCP_CONFIG` or `CONFIG_FILE`)
 
 **Rationale**:
 - Specific to this gateway application
@@ -160,7 +160,7 @@ INFO Starting dynamic-mcp server with config: config.json (from command line arg
 or
 
 ```
-INFO Starting dynamic-mcp server with config: config.json (from GATEWAY_MCP_CONFIG environment variable)
+INFO Starting dynamic-mcp server with config: config.json (from DYNAMIC_MCP_CONFIG environment variable)
 ```
 
 This helps with debugging configuration issues.
@@ -194,7 +194,7 @@ The env var is purely additive functionality.
 
 ```bash
 # Set config location via env var
-export GATEWAY_MCP_CONFIG=/etc/dynamic-mcp/config.json
+export DYNAMIC_MCP_CONFIG=/etc/dynamic-mcp/config.json
 
 # Secrets in separate env vars (substituted in config)
 export API_TOKEN=secret-token-here
@@ -242,6 +242,6 @@ Potential improvements (not implemented):
 
 ---
 
-**Implementation Complete**: All 7 tasks finished  
-**Test Coverage**: 4 new unit tests, all passing  
+**Implementation Complete**: All 7 tasks finished
+**Test Coverage**: 4 new unit tests, all passing
 **Production Ready**: ✅

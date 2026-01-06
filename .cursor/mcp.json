@@ -3,7 +3,7 @@
     "dynamic-mcp": {
       "command": "./target/release/dynamic-mcp",
       "env": {
-        "GATEWAY_MCP_CONFIG": "dynamic-mcp.json"
+        "DYNAMIC_MCP_CONFIG": "dynamic-mcp.json"
       }
     }
   }

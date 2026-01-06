@@ -59,7 +59,7 @@ Config details:
 ./target/release/dynamic-mcp examples/config.example.json
 
 # Or use environment variable
-export GATEWAY_MCP_CONFIG=examples/config.example.json
+export DYNAMIC_MCP_CONFIG=examples/config.example.json
 ./target/release/dynamic-mcp
 ```
 
