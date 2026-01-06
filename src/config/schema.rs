@@ -138,6 +138,7 @@ impl McpServerConfig {
         }
     }
 
+    #[allow(dead_code)]
     pub fn set_description(&mut self, new_description: String) {
         match self {
             McpServerConfig::Stdio { description, .. } => *description = new_description,
@@ -146,6 +147,7 @@ impl McpServerConfig {
         }
     }
 
+    #[allow(dead_code)]
     pub fn requires_oauth(&self) -> bool {
         match self {
             McpServerConfig::Http {
@@ -158,6 +160,7 @@ impl McpServerConfig {
         }
     }
 
+    #[allow(dead_code)]
     pub fn oauth_config(&self) -> Option<(String, String, Option<Vec<String>>)> {
         match self {
             McpServerConfig::Http {

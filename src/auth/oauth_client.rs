@@ -285,6 +285,7 @@ impl OAuthClient {
         Ok((code, state))
     }
 
+    #[allow(dead_code)]
     pub async fn get_valid_token(&self, server_name: &str) -> Result<Option<String>> {
         let token = self.store.load_token(server_name).await?;
 

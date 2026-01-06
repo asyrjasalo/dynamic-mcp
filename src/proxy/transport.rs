@@ -36,7 +36,6 @@ impl StdioTransport {
 
         #[cfg(unix)]
         {
-            use std::os::unix::process::CommandExt;
             unsafe {
                 cmd.pre_exec(|| {
                     libc::setpgid(0, 0);
@@ -221,13 +220,13 @@ impl HttpTransport {
         {
             // Parse SSE format: event: message\ndata: {...}
             let mut data_content = String::new();
-            
+
             for line in response_text.lines() {
                 let line = line.trim();
                 if line.is_empty() {
                     continue;
                 }
-                
+
                 if let Some(data) = line.strip_prefix("data: ") {
                     data_content.push_str(data);
                 } else if line.starts_with("event:") {
@@ -250,17 +249,14 @@ impl HttpTransport {
                 .with_context(|| format!("Failed to parse SSE data as JSON: {}", data_content))?
         } else {
             // Parse plain JSON response
-            serde_json::from_str(&response_text)
-                .with_context(|| format!("Failed to parse HTTP response as JSON: {}", response_text))?
+            serde_json::from_str(&response_text).with_context(|| {
+                format!("Failed to parse HTTP response as JSON: {}", response_text)
+            })?
         };
 
         // Check for JSON-RPC errors in the response
         if let Some(error) = &json_response.error {
-            anyhow::bail!(
-                "JSON-RPC error (code {}): {}",
-                error.code,
-                error.message
-            );
+            anyhow::bail!("JSON-RPC error (code {}): {}", error.code, error.message);
         }
 
         Ok(json_response)
@@ -361,11 +357,7 @@ impl SseTransport {
 
         // Check for JSON-RPC errors in the response
         if let Some(error) = &json_response.error {
-            anyhow::bail!(
-                "JSON-RPC error (code {}): {}",
-                error.code,
-                error.message
-            );
+            anyhow::bail!("JSON-RPC error (code {}): {}", error.code, error.message);
         }
 
         Ok(json_response)

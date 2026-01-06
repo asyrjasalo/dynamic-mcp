@@ -80,6 +80,7 @@ impl AuthStore {
         Ok(Some(tokens))
     }
 
+    #[allow(dead_code)]
     pub async fn delete_token(&self, server_name: &str) -> Result<()> {
         let path = self.base_path.join(format!("{}.json", server_name));
 

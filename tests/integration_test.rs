@@ -5,7 +5,7 @@ use tempfile::NamedTempFile;
 #[test]
 fn test_project_builds() {
     let output = Command::new("cargo")
-        .args(&["build", "--quiet"])
+        .args(["build", "--quiet"])
         .output()
         .expect("Failed to build");
 
@@ -23,7 +23,7 @@ fn test_config_example_exists() {
 #[test]
 fn test_binary_exists_after_build() {
     let _ = Command::new("cargo")
-        .args(&["build"])
+        .args(["build"])
         .output()
         .expect("Failed to build");
 
@@ -42,7 +42,7 @@ fn test_binary_exists_after_build() {
 #[test]
 fn test_migrate_command_help() {
     let output = Command::new("cargo")
-        .args(&["run", "--", "migrate", "--help"])
+        .args(["run", "--", "migrate", "--help"])
         .output()
         .expect("Failed to run migrate help");
 
@@ -65,10 +65,10 @@ fn test_migrate_command_with_valid_config() {
     input_file.write_all(config_json.as_bytes()).unwrap();
     input_file.flush().unwrap();
 
-    let mut output_file = NamedTempFile::new().unwrap();
+    let output_file = NamedTempFile::new().unwrap();
 
     let output = Command::new("cargo")
-        .args(&[
+        .args([
             "run",
             "--",
             "migrate",
@@ -89,7 +89,7 @@ fn test_migrate_command_with_valid_config() {
 #[test]
 fn test_version_flag() {
     let output = Command::new("cargo")
-        .args(&["run", "--", "--version"])
+        .args(["run", "--", "--version"])
         .output()
         .expect("Failed to run version");
 
@@ -100,7 +100,7 @@ fn test_version_flag() {
 #[test]
 fn test_help_flag() {
     let output = Command::new("cargo")
-        .args(&["run", "--", "--help"])
+        .args(["run", "--", "--help"])
         .output()
         .expect("Failed to run help");
 
@@ -112,7 +112,7 @@ fn test_help_flag() {
 #[test]
 fn test_invalid_config_path() {
     let output = Command::new("cargo")
-        .args(&["run", "--", "/nonexistent/config.json"])
+        .args(["run", "--", "/nonexistent/config.json"])
         .output()
         .expect("Failed to run with invalid config");
 
