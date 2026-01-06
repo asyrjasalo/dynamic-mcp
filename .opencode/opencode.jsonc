@@ -1,8 +1,8 @@
 {
   "$schema": "https://opencode.ai/config.json",
   "mcp": {
-    "gateway": {
-      "command": ["uvx", "agent-mcp-gateway"],
+    "dynamic-mcp": {
+      "command": ["./target/release/dynamic-mcp", "dynamic-mcp.json"],
       "enabled": true,
       "type": "local"
     }

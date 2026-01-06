@@ -1,7 +1,10 @@
 {
   "mcpServers": {
     "dynamic-mcp": {
-      "command": "/Users/asyrjasalo/Downloads/dynamic-mcp/target/release/dynamic-mcp"
+      "command": "./target/release/dynamic-mcp",
+      "env": {
+        "GATEWAY_MCP_CONFIG": "dynamic-mcp.json"
+      }
     }
   }
 }
