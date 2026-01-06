@@ -2,7 +2,7 @@
 
 Thank you for your interest in contributing to dynamic-mcp! This document provides guidelines and instructions for contributors.
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -33,7 +33,7 @@ Thank you for your interest in contributing to dynamic-mcp! This document provid
    cargo test
    ```
 
-## 🔨 Development Workflow
+## Development Workflow
 
 ### Building
 
@@ -46,7 +46,15 @@ cargo build --release
 
 # Run without building binary
 cargo run -- examples/config.example.json
+
+# With environment variable
+export DYNAMIC_MCP_CONFIG=examples/config.example.json
+cargo run
+
+# With debug logging
+RUST_LOG=debug cargo run -- examples/config.example.json
 ```
+
 
 ### Running Tests
 
@@ -83,29 +91,7 @@ cargo bench --bench performance
 # - Parallel connection simulation
 ```
 
-### Code Structure
-
-- **config/**: Configuration loading, validation, and environment variable substitution
-- **proxy/**: MCP client management, group state tracking, transport creation
-- **server/**: MCP server that exposes the two-tool API
-- **cli/**: Command-line interface and migration tools
-- **auth/**: OAuth2 authentication and token management
-
-### Running in Development
-
-```bash
-# With command line argument
-cargo run -- examples/config.example.json
-
-# With environment variable
-export DYNAMIC_MCP_CONFIG=examples/config.example.json
-cargo run
-
-# With debug logging
-RUST_LOG=debug cargo run -- examples/config.example.json
-```
-
-## 🧪 Testing Guidelines
+## Testing Guidelines
 
 ### Test Categories
 
@@ -140,7 +126,7 @@ mod tests {
 }
 ```
 
-## 📋 Code Style
+## Code Style
 
 ### Formatting
 
@@ -175,7 +161,7 @@ cargo clippy -- -D warnings
 - Avoid unwrap() in production code; prefer proper error handling
 - Write tests for new features and bug fixes
 
-## 📝 Commit Guidelines
+## Commit Guidelines
 
 ### Commit Message Format
 
@@ -215,7 +201,7 @@ Properly validate and warn when environment variables are undefined
 instead of silently failing.
 ```
 
-## 🔄 Pull Request Process
+## Pull Request Process
 
 1. **Create a feature branch**
    ```bash
@@ -254,7 +240,7 @@ instead of silently failing.
 - [ ] No compiler warnings
 - [ ] `cargo fmt` and `cargo clippy` pass
 
-## 🐛 Reporting Bugs
+## Reporting Bugs
 
 When reporting bugs, please include:
 
@@ -269,7 +255,7 @@ When reporting bugs, please include:
 6. **Configuration**: Relevant config file (sanitized)
 7. **Logs**: Output with `RUST_LOG=debug` if applicable
 
-## 💡 Suggesting Features
+## Suggesting Features
 
 Feature suggestions are welcome! Please:
 
@@ -278,7 +264,7 @@ Feature suggestions are welcome! Please:
 3. Provide use cases and examples
 4. Be open to discussion and feedback
 
-## 📚 Additional Resources
+## Additional Resources
 
 - **[docs/implementation/DEVELOPMENT.md](docs/implementation/DEVELOPMENT.md)** - Project status, roadmap, and metrics
 - **[AGENTS.md](AGENTS.md)** - Guidelines for AI coding agents (documentation maintenance)
@@ -287,14 +273,7 @@ Feature suggestions are welcome! Please:
 - **[Rust Book](https://doc.rust-lang.org/book/)** - Official Rust learning resource
 - **[MCP Specification](https://modelcontextprotocol.io/)** - Model Context Protocol docs
 
-## 🤝 Code of Conduct
-
-- Be respectful and constructive
-- Welcome newcomers and help them get started
-- Focus on what's best for the project and community
-- Accept constructive criticism gracefully
-
-## 📄 License
+## License
 
 By contributing to dynamic-mcp, you agree that your contributions will be licensed under the MIT License.
 
