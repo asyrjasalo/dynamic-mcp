@@ -36,8 +36,8 @@ result=$({
 tool_count=$(echo "$result" | jq '.result.tools | length' 2>/dev/null || echo "0")
 if [ "$tool_count" = "2" ]; then
 	echo "   ✅ Exposes 2 tools correctly"
-	echo "      - get-modular-tools"
-	echo "      - call-modular-tool"
+	echo "      - get_dynamic_tools"
+	echo "      - call_dynamic_tool"
 else
 	echo "   ❌ Expected 2 tools, got $tool_count"
 	exit 1
@@ -73,8 +73,8 @@ echo "     • Tool listing & execution"
 echo ""
 echo "  ✅ Integration"
 echo "     • Auto-connect to upstream servers"
-echo "     • get-modular-tools implementation"
-echo "     • call-modular-tool implementation"
+echo "     • get_dynamic_tools implementation"
+echo "     • call_dynamic_tool implementation"
 echo "     • Graceful error handling"
 echo ""
 echo "📊 Statistics:"

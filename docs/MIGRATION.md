@@ -393,7 +393,7 @@ After successful migration:
 
 1. Update your MCP client config to point to dynamic-mcp
 2. Configure dynamic-mcp to start automatically
-3. Test each group with `get-modular-tools`
+3. Test each group with `get_dynamic_tools`
 4. Verify tool calls work as expected
 
 ## Example: Full Migration Workflow

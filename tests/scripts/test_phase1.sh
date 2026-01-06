@@ -29,7 +29,7 @@ result=$({
 	echo '{"jsonrpc":"2.0","id":2,"method":"tools/list"}'
 } | timeout 2 cargo run --quiet -- examples/config.example.json 2>/dev/null | tail -1)
 
-if echo "$result" | grep -q 'get-modular-tools'; then
+if echo "$result" | grep -q 'get_dynamic_tools'; then
 	echo "   ✅ Tools list successful"
 else
 	echo "   ❌ Tools list failed"

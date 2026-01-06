@@ -580,25 +580,25 @@ impl ServerHandler for ModularMcpServer {
             providing only the necessary group's tool descriptions to the LLM \
             on demand instead of overwhelming it with all tool descriptions at once.\n\n\
             Use this tool to retrieve available tools in a specific group, \
-            then use call-modular-tool to execute them.\n\n\
+            then use call_dynamic_tool to execute them.\n\n\
             Available groups:\n{}{}",
             groups_desc, failed_desc
         );
 
         let call_tool_desc = r#"Execute a tool from a specific MCP group. Proxies the call to the appropriate upstream MCP server.
 
-Use get-modular-tools first to discover available tools and their input schemas in the specified group, then use this tool to execute them.
+Use get_dynamic_tools first to discover available tools and their input schemas in the specified group, then use this tool to execute them.
 
 This maintains a clean separation between discovery (context-efficient) and execution phases, enabling effective management of large tool collections across multiple MCP servers.
 
 Example usage:
-  call-modular-tool(group="playwright", name="browser_navigate", args={"url": "https://example.com"})
+  call_dynamic_tool(group="playwright", name="browser_navigate", args={"url": "https://example.com"})
   → Executes the browser_navigate tool from the playwright group with the specified arguments"#;
 
         Ok(ListToolsResult {
             tools: vec![
                 Tool {
-                    name: "get-modular-tools".to_string(),
+                    name: "get_dynamic_tools".to_string(),
                     description: Some(get_tools_desc),
                     input_schema: json!({
                         "type": "object",
@@ -613,7 +613,7 @@ Example usage:
                     }),
                 },
                 Tool {
-                    name: "call-modular-tool".to_string(),
+                    name: "call_dynamic_tool".to_string(),
                     description: Some(call_tool_desc.to_string()),
                     input_schema: json!({
                         "type": "object",
@@ -647,7 +647,7 @@ Example usage:
         _context: RequestContext<RoleServer>,
     ) -> Result<CallToolResult, McpError> {
         match request.params.name.as_str() {
-            "get-modular-tools" => {
+            "get_dynamic_tools" => {
                 let args: GetToolsArgs = serde_json::from_value(request.params.arguments)
                     .map_err(|e| McpError::invalid_params(e.to_string(), None))?;
 
@@ -672,7 +672,7 @@ Example usage:
                     Content::text(serde_json::to_string(&tools_json).unwrap())
                 ]))
             }
-            "call-modular-tool" => {
+            "call_dynamic_tool" => {
                 let args: CallToolArgs = serde_json::from_value(request.params.arguments)
                     .map_err(|e| McpError::invalid_params(e.to_string(), None))?;
 
@@ -836,7 +836,7 @@ async fn main() -> Result<()> {
 - ✅ Working stdio-based proxy server
 - ✅ Configuration loading with env var substitution
 - ✅ Parallel upstream server connections
-- ✅ Two-tool API (get-modular-tools, call-modular-tool)
+- ✅ Two-tool API (get_dynamic_tools, call_dynamic_tool)
 - ✅ Error handling and graceful degradation
 - ✅ Logging with tracing
 

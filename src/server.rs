@@ -88,19 +88,19 @@ impl ModularMcpServer {
             providing only the necessary group's tool descriptions to the LLM \
             on demand instead of overwhelming it with all tool descriptions at once.\n\n\
             Use this tool to retrieve available tools in a specific group, \
-            then use call-modular-tool to execute them.\n\n\
+            then use call_dynamic_tool to execute them.\n\n\
             Available groups:\n{}{}",
             groups_desc, failed_desc
         );
 
         let call_tool_desc = r#"Execute a tool from a specific MCP group. Proxies the call to the appropriate upstream MCP server.
 
-Use get-modular-tools first to discover available tools and their input schemas in the specified group, then use this tool to execute them.
+Use get_dynamic_tools first to discover available tools and their input schemas in the specified group, then use this tool to execute them.
 
 This maintains a clean separation between discovery (context-efficient) and execution phases, enabling effective management of large tool collections across multiple MCP servers.
 
 Example usage:
-  call-modular-tool(group="playwright", name="browser_navigate", args={"url": "https://example.com"})
+  call_dynamic_tool(group="playwright", name="browser_navigate", args={"url": "https://example.com"})
   → Executes the browser_navigate tool from the playwright group with the specified arguments"#;
 
         JsonRpcResponse {
@@ -109,7 +109,7 @@ Example usage:
             result: Some(json!({
                 "tools": [
                     {
-                        "name": "get-modular-tools",
+                        "name": "get_dynamic_tools",
                         "description": get_tools_desc,
                         "inputSchema": {
                             "type": "object",
@@ -124,7 +124,7 @@ Example usage:
                         }
                     },
                     {
-                        "name": "call-modular-tool",
+                        "name": "call_dynamic_tool",
                         "description": call_tool_desc,
                         "inputSchema": {
                             "type": "object",
@@ -159,7 +159,7 @@ Example usage:
         let arguments = params.get("arguments").cloned().unwrap_or(json!({}));
 
         match tool_name {
-            "get-modular-tools" => {
+            "get_dynamic_tools" => {
                 let group = arguments.get("group").and_then(|v| v.as_str());
 
                 if group.is_none() {
@@ -219,7 +219,7 @@ Example usage:
                     },
                 }
             }
-            "call-modular-tool" => {
+            "call_dynamic_tool" => {
                 let group = arguments.get("group").and_then(|v| v.as_str());
                 let name = arguments.get("name").and_then(|v| v.as_str());
                 let args = arguments.get("args").cloned().unwrap_or(json!({}));
@@ -387,11 +387,11 @@ mod tests {
         assert_eq!(tools.len(), 2);
         assert_eq!(
             tools[0].get("name").unwrap().as_str().unwrap(),
-            "get-modular-tools"
+            "get_dynamic_tools"
         );
         assert_eq!(
             tools[1].get("name").unwrap().as_str().unwrap(),
-            "call-modular-tool"
+            "call_dynamic_tool"
         );
     }
 
@@ -413,7 +413,7 @@ mod tests {
     async fn test_handle_call_tool_missing_params() {
         let server = create_test_server();
         let request = JsonRpcRequest::new(1, "tools/call")
-            .with_params(json!({"name": "get-modular-tools", "arguments": {}}));
+            .with_params(json!({"name": "get_dynamic_tools", "arguments": {}}));
         let response = server.handle_request(request).await;
 
         assert!(response.result.is_none());
@@ -442,10 +442,10 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_handle_get_modular_tools_nonexistent_group() {
+    async fn test_handle_get_dynamic_tools_nonexistent_group() {
         let server = create_test_server();
         let request = JsonRpcRequest::new(1, "tools/call").with_params(json!({
-            "name": "get-modular-tools",
+            "name": "get_dynamic_tools",
             "arguments": {
                 "group": "nonexistent"
             }
@@ -461,10 +461,10 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_handle_call_modular_tool_missing_group() {
+    async fn test_handle_call_dynamic_tool_missing_group() {
         let server = create_test_server();
         let request = JsonRpcRequest::new(1, "tools/call").with_params(json!({
-            "name": "call-modular-tool",
+            "name": "call_dynamic_tool",
             "arguments": {
                 "name": "some-tool"
             }
@@ -479,10 +479,10 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_handle_call_modular_tool_missing_name() {
+    async fn test_handle_call_dynamic_tool_missing_name() {
         let server = create_test_server();
         let request = JsonRpcRequest::new(1, "tools/call").with_params(json!({
-            "name": "call-modular-tool",
+            "name": "call_dynamic_tool",
             "arguments": {
                 "group": "some-group"
             }

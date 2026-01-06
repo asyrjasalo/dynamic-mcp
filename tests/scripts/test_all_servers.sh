@@ -24,7 +24,7 @@ for group in context7 gh-grep exa tavily utcp ht; do
     echo -n "Testing $group... "
 
     # Try to get tools from this group
-    result=$(echo "{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"tools/call\",\"params\":{\"name\":\"get-modular-tools\",\"arguments\":{\"group\":\"$group\"}}}" | timeout 3 ./target/release/dynamic-mcp 2>/dev/null | jq -r '.error // .result.content[0].text' 2>/dev/null)
+    result=$(echo "{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"tools/call\",\"params\":{\"name\":\"get_dynamic_tools\",\"arguments\":{\"group\":\"$group\"}}}" | timeout 3 ./target/release/dynamic-mcp 2>/dev/null | jq -r '.error // .result.content[0].text' 2>/dev/null)
 
     if echo "$result" | grep -q "error\|Failed"; then
         echo "❌ FAILED"

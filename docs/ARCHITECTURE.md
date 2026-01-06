@@ -39,8 +39,8 @@ dynamic-mcp/
 │  ┌──────────────────────────────────────────────────────┐  │
 │  │              MCP Server (src/server.rs)              │  │
 │  │  Exposes 2 tools:                                    │  │
-│  │  - get-modular-tools  (list tools in a group)        │  │
-│  │  - call-modular-tool  (execute a tool)               │  │
+│  │  - get_dynamic_tools  (list tools in a group)        │  │
+│  │  - call_dynamic_tool  (execute a tool)               │  │
 │  └──────────────────┬───────────────────────────────────┘  │
 │                     │                                       │
 │  ┌──────────────────▼───────────────────────────────────┐  │
@@ -152,12 +152,12 @@ config.json → load_config() → substitute_env_vars() → ServerConfig
 
 **Tools**:
 
-1. **`get-modular-tools`**
+1. **`get_dynamic_tools`**
    - Input: `{ "group": "group_name" }`
    - Output: JSON array of tools with schemas
    - Purpose: On-demand schema loading (reduces initial context)
 
-2. **`call-modular-tool`**
+2. **`call_dynamic_tool`**
    - Input: `{ "group": "group_name", "name": "tool_name", "args": {...} }`
    - Output: Tool execution result
    - Purpose: Proxy calls to upstream servers
@@ -165,7 +165,7 @@ config.json → load_config() → substitute_env_vars() → ServerConfig
 **JSON-RPC Methods**:
 - `initialize`: Handshake with client
 - `tools/list`: Return the two proxy tools
-- `tools/call`: Execute get-modular-tools or call-modular-tool
+- `tools/call`: Execute get_dynamic_tools or call_dynamic_tool
 
 ### 6. CLI & Migration (`src/cli/`)
 
@@ -218,11 +218,11 @@ LLM Client                  Dynamic-MCP                 Upstream Server
     │  tools/list               │                             │
     ├──────────────────────────>│                             │
     │                           │                             │
-    │  [get-modular-tools,      │                             │
-    │   call-modular-tool]      │                             │
+    │  [get_dynamic_tools,      │                             │
+    │   call_dynamic_tool]      │                             │
     │<──────────────────────────┤                             │
     │                           │                             │
-    │  call: get-modular-tools  │                             │
+    │  call: get_dynamic_tools  │                             │
     │  args: {group: "fs"}      │                             │
     ├──────────────────────────>│                             │
     │                           │  (from cached tools)        │
@@ -236,7 +236,7 @@ LLM Client                  Dynamic-MCP                 Upstream Server
 ```
 LLM Client                  Dynamic-MCP                 Upstream Server
     │                           │                             │
-    │  call: call-modular-tool  │                             │
+    │  call: call_dynamic_tool  │                             │
     │  args: {                  │                             │
     │    group: "fs",           │                             │
     │    name: "read_file",     │                             │

@@ -285,7 +285,7 @@ When updating one doc, check if related docs need updates. For example:
 - **Transport**: stdio, HTTP, SSE, WebSocket
 - **Module**: config, proxy, server, cli, auth
 - **Phase**: Phase 1-6 (as per PLAN.md)
-- **Tool**: get-modular-tools, call-modular-tool
+- **Tool**: get_dynamic_tools, call_dynamic_tool
 
 ### 3. Update Timestamps
 Add "Last Updated: [Date]" when making significant updates to:
@@ -306,11 +306,11 @@ When updating README.md or MIGRATION.md:
 
 ## 📊 Current Project State (Reference)
 
-**Phase**: Phase 5 Complete ✅  
-**LOC**: ~2,900 Rust  
-**Tests**: 46 (37 unit + 9 integration)  
-**Modules**: config, proxy, server, cli, auth  
-**Transports**: stdio, HTTP, SSE  
+**Phase**: Phase 5 Complete ✅
+**LOC**: ~2,900 Rust
+**Tests**: 46 (37 unit + 9 integration)
+**Modules**: config, proxy, server, cli, auth
+**Transports**: stdio, HTTP, SSE
 **Key Features**: OAuth2, Live Reload, Migration Command
 
 **Where to find details:**

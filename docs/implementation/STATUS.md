@@ -1,7 +1,7 @@
 # Current Implementation Status
 
-> **Last Updated**: January 6, 2026  
-> **Current Phase**: Phase 6 Complete ✅  
+> **Last Updated**: January 6, 2026
+> **Current Phase**: Phase 6 Complete ✅
 > **Version**: 1.0.0 (Production Release Ready - Not Yet Published)
 
 ## ✅ Completed Features
@@ -12,7 +12,7 @@
 - [x] Environment variable substitution (`${VAR}` syntax)
 - [x] MCP server with JSON-RPC 2.0 protocol
 - [x] Stdio transport for upstream servers
-- [x] Two-tool API (get-modular-tools, call-modular-tool)
+- [x] Two-tool API (get_dynamic_tools, call_dynamic_tool)
 - [x] Parallel upstream server connections
 - [x] Error handling and graceful degradation
 - [x] **Automatic retry with exponential backoff** for failed connections

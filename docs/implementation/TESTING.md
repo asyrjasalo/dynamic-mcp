@@ -69,8 +69,8 @@ cargo test -- --nocapture  # Show println! output
 
 ### Server Module (100%)
 - ✅ JSON-RPC request/response
-- ✅ Tool listing (get-modular-tools)
-- ✅ Tool execution (call-modular-tool)
+- ✅ Tool listing (get_dynamic_tools)
+- ✅ Tool execution (call_dynamic_tool)
 - ✅ Initialize/shutdown protocol
 
 ### CLI Module (100%)
@@ -133,7 +133,7 @@ Expected response should include:
   "result": {
     "tools": [
       {
-        "name": "get-modular-tools",
+        "name": "get_dynamic_tools",
         "description": "dynamic-mcp manages multiple MCP servers...",
         "inputSchema": {
           "type": "object",
@@ -148,7 +148,7 @@ Expected response should include:
         }
       },
       {
-        "name": "call-modular-tool",
+        "name": "call_dynamic_tool",
         "description": "Execute a tool from a specific MCP group...",
         "inputSchema": {
           "type": "object",
@@ -185,8 +185,8 @@ Expected response should include:
 Expected output:
 ```json
 [
-  "get-modular-tools",
-  "call-modular-tool"
+  "get_dynamic_tools",
+  "call_dynamic_tool"
 ]
 ```
 
@@ -207,7 +207,7 @@ Expected output:
 ## Known Limitations (Phase 1)
 
 1. **No Upstream Connections**: Server doesn't actually connect to upstream MCP servers yet
-2. **Stub Tool Implementation**: `get-modular-tools` and `call-modular-tool` return placeholder responses
+2. **Stub Tool Implementation**: `get_dynamic_tools` and `call_dynamic_tool` return placeholder responses
 3. **No Transport Layer**: stdio transport for upstream servers not implemented
 4. **No Tool Execution**: Tools can be listed but not actually executed
 

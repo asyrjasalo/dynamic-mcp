@@ -14,7 +14,7 @@
 - **MCP server with JSON-RPC 2.0 protocol**
 - **Stdio transport for upstream servers**
 - **Client connection management**
-- **Two-tool API (get-modular-tools, call-modular-tool)**
+- **Two-tool API (get_dynamic_tools, call_dynamic_tool)**
 - **Parallel upstream server connections**
 - **Error handling and graceful degradation**
 - Example configuration files
