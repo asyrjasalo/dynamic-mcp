@@ -1,0 +1,43 @@
+{
+  "$schema": "https://raw.githubusercontent.com/code-yeongyu/oh-my-opencode/master/assets/oh-my-opencode.schema.json",
+  // google_auth: false -> uses opencode-antigravity-auth plugin
+  "google_auth": false,
+  "agents": {
+    "Sisyphus": {
+      "model": "openrouter/anthropic/claude-sonnet-4.5"
+    },
+    "Planner-Sisyphus": {
+      "model": "openrouter/anthropic/claude-sonnet-4.5",
+      "permission": {
+        "bash": {
+          "*": "allow",
+          "git": "ask",
+          "rm": "ask"
+        }
+      }
+    },
+    "OpenCode-Builder": {
+      "model": "openrouter/anthropic/claude-sonnet-4.5"
+    },
+    "oracle": {
+      "model": "openrouter/anthropic/claude-haiku-4.5"
+    },
+    "librarian": {
+      "model": "openrouter/anthropic/claude-haiku-4.5"
+    },
+    "explore": {
+      "model": "openrouter/anthropic/claude-haiku-4.5"
+    },
+    "frontend-ui-ux-engineer": {
+      "model": "openrouter/anthropic/claude-sonnet-4.5"
+    },
+    "document-writer": {
+      "model": "openrouter/anthropic/claude-haiku-4.5"
+    },
+    "multimodal-looker": {
+      "model": "openrouter/anthropic/claude-haiku-4.5"
+    }
+  },
+  "disabled_mcps": ["context7", "websearch_exa", "grep_app"],
+  "disabled_skills": ["playwright"]
+}
