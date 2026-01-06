@@ -40,7 +40,7 @@ cd dynamic-mcp
 ```toml
 [package]
 name = "dynamic-mcp"
-version = "0.1.0"
+version = "1.0.0"
 edition = "2021"
 rust-version = "1.75"
 
