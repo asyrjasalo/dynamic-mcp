@@ -5,29 +5,47 @@
 
 A Rust implementation of dynamic-mcp - an MCP proxy server that reduces LLM context overhead by grouping tools from multiple upstream MCP servers and loading schemas on-demand.
 
-## Quick Start
+## Quick start
 
 ### Installation
 
+
+
 ```bash
-# Clone and build
 git clone https://github.com/yourusername/dynamic-mcp.git
 cd dynamic-mcp
 cargo build --release
 ```
 
-For development setup and testing, see [CONTRIBUTING.md](CONTRIBUTING.md).
+### Setup
 
-### Migration from Standard MCP Config
+Once `dynamic-mcp` is installed, configure it in your agent's MCP settings:
 
-If you have an existing MCP config without descriptions, use the migration command:
-
-```bash
-# Migrate standard config to dynamic-mcp format
-dynamic-mcp migrate mcp.json -o dynamic-mcp.json
-
-# The tool will interactively prompt for descriptions for each server
+```json
+{
+  "mcpServers": {
+    "dynamic-mcp": {
+      "command": "dynamic-mcp",
+      "args": ["/path/to/your/dynamic-mcp.json"]
+    }
+  }
+}
 ```
+
+Alternatively, you can set `DYNAMIC_MCP_CONFIG` environment variable and not
+pass any arguments to `dynamic-mcp`.
+
+### Migrate from an existing MCP config
+
+If you have an existing MCP config without description, use the migration command.
+
+Note: There is no standard MCP json format. Not all formats are supported.
+
+Migrate from existing mcp config to dynamic-mcp format:
+
+    dynamic-mcp migrate mcp.json -o dynamic-mcp.json
+
+The command will interactively prompt for descriptions for each server.
 
 **Example migration session:**
 ```
@@ -52,20 +70,24 @@ Config details:
 📝 Output saved to: dynamic-mcp.json
 ```
 
-### Usage
+## Usage
 
-```bash
-# Run with config file
-./target/release/dynamic-mcp examples/config.example.json
+### CLI
 
-# Or use environment variable
-export DYNAMIC_MCP_CONFIG=examples/config.example.json
-./target/release/dynamic-mcp
-```
+Run with config file:
 
-**Note**: Command line argument takes precedence over environment variable.
+    dynamic-mcp examples/config.example.json
 
-### Configuration
+Or use environment variable:
+
+    export DYNAMIC_MCP_CONFIG=examples/config.example.json
+    dynamic-mcp
+
+**Note**: Commandline argument takes precedence over environment variable.
+
+## Config file
+
+### MCP
 
 Create a `dynamic-mcp.json` file:
 
@@ -83,7 +105,7 @@ Create a `dynamic-mcp.json` file:
 
 ### Environment Variables
 
-Supports `${VAR}` syntax for environment variable interpolation:
+It supports `${VAR}` syntax for environment variable interpolation:
 
 ```json
 {
@@ -99,8 +121,6 @@ Supports `${VAR}` syntax for environment variable interpolation:
   }
 }
 ```
-
-## Configuration Schema
 
 ### Server Types
 
@@ -242,10 +262,6 @@ RUST_LOG=debug dynamic-mcp config.json
 - Tools are cached in memory (expected)
 - Failed groups use minimal memory
 - Large tool schemas contribute to memory usage
-
-## License
-
-MIT License - see [LICENSE](LICENSE) for details
 
 ## Acknowledgments
 
