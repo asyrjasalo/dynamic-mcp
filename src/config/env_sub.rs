@@ -49,19 +49,27 @@ pub fn substitute_in_config(config: McpServerConfig) -> McpServerConfig {
             description,
             url,
             headers,
+            oauth_client_id,
+            oauth_scopes,
         } => McpServerConfig::Http {
             description,
             url: substitute_env_vars(&url),
             headers: headers.map(substitute_in_object),
+            oauth_client_id: oauth_client_id.map(|id| substitute_env_vars(&id)),
+            oauth_scopes,
         },
         McpServerConfig::Sse {
             description,
             url,
             headers,
+            oauth_client_id,
+            oauth_scopes,
         } => McpServerConfig::Sse {
             description,
             url: substitute_env_vars(&url),
             headers: headers.map(substitute_in_object),
+            oauth_client_id: oauth_client_id.map(|id| substitute_env_vars(&id)),
+            oauth_scopes,
         },
     }
 }

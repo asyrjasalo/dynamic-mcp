@@ -37,7 +37,7 @@ impl ModularMcpClient {
 
         let description = config.description().to_string();
 
-        let transport = Transport::new(&config)
+        let transport = Transport::new(&config, &group_name)
             .await
             .with_context(|| format!("Failed to create transport for group: {}", group_name))?;
 

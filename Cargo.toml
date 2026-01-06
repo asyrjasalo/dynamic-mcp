@@ -52,6 +52,13 @@ regex = "1"
 uuid = { version = "1.0", features = ["v4", "serde"] }
 notify = "6.1"
 
+# OAuth2 Authentication
+oauth2 = { version = "4.4", features = ["reqwest"] }
+url = "2.5"
+open = "5.0"
+dirs = "5.0"
+chrono = { version = "0.4", features = ["serde"] }
+
 # Process management  
 tokio-util = { version = "0.7", features = ["codec"] }
 bytes = "1.0"

@@ -7,8 +7,8 @@ A Rust implementation of Modular MCP - an MCP proxy server that reduces LLM cont
 
 ## 🎯 Project Status
 
-**Current Phase**: Phase 2 (HTTP/SSE Transport) ✅ **COMPLETE**  
-**Next Phase**: Phase 3 (OAuth Authentication)
+**Current Phase**: Phase 3 (OAuth Authentication) ✅ **COMPLETE**  
+**Next Phase**: Phase 4 (Migration Command)
 
 ### ✅ Phase 1 Completed (100%)
 - Project structure and build system
@@ -35,10 +35,19 @@ A Rust implementation of Modular MCP - an MCP proxy server that reduces LLM cont
 - **Async request/response** handling for all transport types
 - Integration with rmcp v0.12 official MCP Rust SDK
 
+### ✅ Phase 3 Completed (100%)
+- **OAuth2 authentication** with PKCE flow
+- **Automatic token discovery** via `/.well-known/oauth-authorization-server`
+- **Secure token storage** in `~/.dynamic-mcp/oauth-servers/`
+- **Automatic token refresh** before expiry
+- **Browser-based authorization** flow
+- **Token injection** into HTTP/SSE transport headers
+- Support for custom OAuth scopes
+
 ### 📅 Roadmap
 - [x] Phase 1: Core proxy with stdio transport ✅ **COMPLETE**
 - [x] Phase 2: HTTP/SSE transport support ✅ **COMPLETE**
-- [ ] Phase 3: OAuth authentication
+- [x] Phase 3: OAuth authentication ✅ **COMPLETE**
 - [ ] Phase 4: Migration command
 - [ ] Phase 5: Tests & documentation
 - [ ] Phase 6: Production release
@@ -182,6 +191,23 @@ Supports `${VAR}` syntax for environment variable interpolation:
   }
 }
 ```
+
+#### OAuth Authentication (HTTP/SSE)
+```json
+{
+  "type": "http",
+  "description": "OAuth-protected MCP server",
+  "url": "https://api.example.com/mcp",
+  "oauth_client_id": "your-client-id",
+  "oauth_scopes": ["read", "write"]
+}
+```
+
+**OAuth Flow:**
+- On first connect, browser opens for authorization
+- Access token stored in `~/.dynamic-mcp/oauth-servers/<server-name>.json`
+- Automatic token refresh before expiry
+- Token injected as `Authorization: Bearer <token>` header
 
 ## 🧪 Testing
 

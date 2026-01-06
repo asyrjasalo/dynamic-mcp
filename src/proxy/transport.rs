@@ -1,3 +1,4 @@
+use crate::auth::OAuthClient;
 use crate::config::McpServerConfig;
 use crate::proxy::types::{JsonRpcRequest, JsonRpcResponse};
 use anyhow::{Context, Result};
@@ -177,7 +178,7 @@ impl HttpTransport {
             .client
             .post(&self.url)
             .header("Content-Type", "application/json")
-            .header("Accept", "application/json");
+            .header("Accept", "application/json, text/event-stream");
 
         for (key, value) in &self.headers {
             req = req.header(key, value);
@@ -273,7 +274,7 @@ pub enum Transport {
 }
 
 impl Transport {
-    pub async fn new(config: &McpServerConfig) -> Result<Self> {
+    pub async fn new(config: &McpServerConfig, server_name: &str) -> Result<Self> {
         match config {
             McpServerConfig::Stdio {
                 command, args, env, ..
@@ -281,12 +282,56 @@ impl Transport {
                 let transport = StdioTransport::new(command, args.as_ref(), env.as_ref()).await?;
                 Ok(Transport::Stdio(transport))
             }
-            McpServerConfig::Http { url, headers, .. } => {
-                let transport = HttpTransport::new(url, headers.as_ref()).await?;
+            McpServerConfig::Http {
+                url,
+                headers,
+                oauth_client_id,
+                oauth_scopes,
+                ..
+            } => {
+                let mut final_headers = headers.clone().unwrap_or_default();
+
+                if let Some(client_id) = oauth_client_id {
+                    let oauth_client = OAuthClient::new()?;
+                    let token = oauth_client
+                        .authenticate(server_name, url, client_id, oauth_scopes.clone())
+                        .await?;
+
+                    final_headers.insert(
+                        "Authorization".to_string(),
+                        format!("Bearer {}", token.access_token),
+                    );
+
+                    tracing::debug!("Added OAuth token to HTTP transport for {}", server_name);
+                }
+
+                let transport = HttpTransport::new(url, Some(&final_headers)).await?;
                 Ok(Transport::Http(transport))
             }
-            McpServerConfig::Sse { url, headers, .. } => {
-                let transport = SseTransport::new(url, headers.as_ref()).await?;
+            McpServerConfig::Sse {
+                url,
+                headers,
+                oauth_client_id,
+                oauth_scopes,
+                ..
+            } => {
+                let mut final_headers = headers.clone().unwrap_or_default();
+
+                if let Some(client_id) = oauth_client_id {
+                    let oauth_client = OAuthClient::new()?;
+                    let token = oauth_client
+                        .authenticate(server_name, url, client_id, oauth_scopes.clone())
+                        .await?;
+
+                    final_headers.insert(
+                        "Authorization".to_string(),
+                        format!("Bearer {}", token.access_token),
+                    );
+
+                    tracing::debug!("Added OAuth token to SSE transport for {}", server_name);
+                }
+
+                let transport = SseTransport::new(url, Some(&final_headers)).await?;
                 Ok(Transport::Sse(transport))
             }
         }
@@ -320,9 +365,11 @@ mod tests {
             description: "Test HTTP server".to_string(),
             url: "http://localhost:8080/mcp".to_string(),
             headers: None,
+            oauth_client_id: None,
+            oauth_scopes: None,
         };
 
-        let result = Transport::new(&config).await;
+        let result = Transport::new(&config, "test_server").await;
         assert!(result.is_ok(), "HTTP transport creation should succeed");
     }
 
@@ -335,9 +382,11 @@ mod tests {
             description: "Test HTTP server with auth".to_string(),
             url: "http://localhost:8080/mcp".to_string(),
             headers: Some(headers),
+            oauth_client_id: None,
+            oauth_scopes: None,
         };
 
-        let result = Transport::new(&config).await;
+        let result = Transport::new(&config, "test_server").await;
         assert!(result.is_ok(), "HTTP transport with headers should succeed");
     }
 
@@ -347,9 +396,11 @@ mod tests {
             description: "Test SSE server".to_string(),
             url: "http://localhost:8080/sse".to_string(),
             headers: None,
+            oauth_client_id: None,
+            oauth_scopes: None,
         };
 
-        let result = Transport::new(&config).await;
+        let result = Transport::new(&config, "test_server").await;
         assert!(result.is_ok(), "SSE transport creation should succeed");
     }
 
@@ -362,9 +413,11 @@ mod tests {
             description: "Test SSE server with auth".to_string(),
             url: "http://localhost:8080/sse".to_string(),
             headers: Some(headers),
+            oauth_client_id: None,
+            oauth_scopes: None,
         };
 
-        let result = Transport::new(&config).await;
+        let result = Transport::new(&config, "test_server").await;
         assert!(result.is_ok(), "SSE transport with headers should succeed");
     }
 
@@ -377,7 +430,7 @@ mod tests {
             env: None,
         };
 
-        let result = Transport::new(&config).await;
+        let result = Transport::new(&config, "test_server").await;
         assert!(result.is_ok(), "Stdio transport should still work");
     }
 
@@ -389,12 +442,16 @@ mod tests {
             description: "".to_string(),
             url: "http://test".to_string(),
             headers: None,
+            oauth_client_id: None,
+            oauth_scopes: None,
         };
 
         let sse_config = McpServerConfig::Sse {
             description: "".to_string(),
             url: "http://test".to_string(),
             headers: None,
+            oauth_client_id: None,
+            oauth_scopes: None,
         };
 
         let stdio_config = McpServerConfig::Stdio {

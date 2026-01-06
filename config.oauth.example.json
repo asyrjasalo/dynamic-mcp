@@ -1,0 +1,25 @@
+{
+  "$schema": "https://raw.githubusercontent.com/d-kimuson/dynamic-mcp/refs/heads/main/config-schema.json",
+  "mcpServers": {
+    "filesystem": {
+      "type": "stdio",
+      "description": "Use when you need to read, write, or search files on the local filesystem.",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/tmp"]
+    },
+    "oauth-protected-server": {
+      "type": "http",
+      "description": "Example OAuth-protected MCP server with automatic token management.",
+      "url": "https://api.example.com/mcp",
+      "oauth_client_id": "your-client-id-here",
+      "oauth_scopes": ["read", "write"]
+    },
+    "sse-with-oauth": {
+      "type": "sse",
+      "description": "Example SSE server with OAuth authentication.",
+      "url": "https://api.example.com/sse",
+      "oauth_client_id": "${OAUTH_CLIENT_ID}",
+      "oauth_scopes": ["mcp:read", "mcp:execute"]
+    }
+  }
+}

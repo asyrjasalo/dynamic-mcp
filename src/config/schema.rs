@@ -19,12 +19,20 @@ pub enum McpServerConfig {
         url: String,
         #[serde(skip_serializing_if = "Option::is_none")]
         headers: Option<HashMap<String, String>>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        oauth_client_id: Option<String>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        oauth_scopes: Option<Vec<String>>,
     },
     Sse {
         description: String,
         url: String,
         #[serde(skip_serializing_if = "Option::is_none")]
         headers: Option<HashMap<String, String>>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        oauth_client_id: Option<String>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        oauth_scopes: Option<Vec<String>>,
     },
 }
 
@@ -65,11 +73,15 @@ impl<'de> Deserialize<'de> for McpServerConfig {
                 description: String,
                 url: String,
                 headers: Option<HashMap<String, String>>,
+                oauth_client_id: Option<String>,
+                oauth_scopes: Option<Vec<String>>,
             },
             Sse {
                 description: String,
                 url: String,
                 headers: Option<HashMap<String, String>>,
+                oauth_client_id: Option<String>,
+                oauth_scopes: Option<Vec<String>>,
             },
         }
 
@@ -91,19 +103,27 @@ impl<'de> Deserialize<'de> for McpServerConfig {
                 description,
                 url,
                 headers,
+                oauth_client_id,
+                oauth_scopes,
             } => Ok(McpServerConfig::Http {
                 description,
                 url,
                 headers,
+                oauth_client_id,
+                oauth_scopes,
             }),
             McpServerConfigHelper::Sse {
                 description,
                 url,
                 headers,
+                oauth_client_id,
+                oauth_scopes,
             } => Ok(McpServerConfig::Sse {
                 description,
                 url,
                 headers,
+                oauth_client_id,
+                oauth_scopes,
             }),
         }
     }
@@ -123,6 +143,36 @@ impl McpServerConfig {
             McpServerConfig::Stdio { description, .. } => *description = new_description,
             McpServerConfig::Http { description, .. } => *description = new_description,
             McpServerConfig::Sse { description, .. } => *description = new_description,
+        }
+    }
+
+    pub fn requires_oauth(&self) -> bool {
+        match self {
+            McpServerConfig::Http {
+                oauth_client_id, ..
+            }
+            | McpServerConfig::Sse {
+                oauth_client_id, ..
+            } => oauth_client_id.is_some(),
+            _ => false,
+        }
+    }
+
+    pub fn oauth_config(&self) -> Option<(String, String, Option<Vec<String>>)> {
+        match self {
+            McpServerConfig::Http {
+                url,
+                oauth_client_id: Some(client_id),
+                oauth_scopes,
+                ..
+            }
+            | McpServerConfig::Sse {
+                url,
+                oauth_client_id: Some(client_id),
+                oauth_scopes,
+                ..
+            } => Some((url.clone(), client_id.clone(), oauth_scopes.clone())),
+            _ => None,
         }
     }
 }
