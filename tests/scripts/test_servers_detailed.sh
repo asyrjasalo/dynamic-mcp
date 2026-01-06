@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "=== Testing all downstream servers ==="
+echo "=== Testing all upstream servers ==="
 echo ""
 
 # Start server in background

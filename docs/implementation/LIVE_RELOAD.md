@@ -2,7 +2,7 @@
 
 ## Overview
 
-The dynamic-mcp server now supports live reloading of downstream resources when the configuration file is modified. This feature automatically detects changes to the config file and reconnects to all MCP servers with the updated configuration.
+The dynamic-mcp server now supports live reloading of upstream MCP servers when the configuration file is modified. This feature automatically detects changes to the config file and reconnects to all MCP servers with the updated configuration.
 
 ## How It Works
 

@@ -79,9 +79,9 @@ else
 fi
 
 if grep -q "reconnected" /tmp/mcp-output.log; then
-	echo "✅ Downstream resources reconnected"
+	echo "✅ Upstream MCP servers reconnected"
 else
-	echo "❌ Downstream resources not reconnected"
+	echo "❌ Upstream MCP servers not reconnected"
 fi
 
 echo ""

@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# Test script to verify all downstream servers are working
+# Test script to verify all upstream servers are working
 
-echo "Testing connections to all downstream servers..."
+echo "Testing connections to all upstream servers..."
 echo ""
 
 # Start server in background
