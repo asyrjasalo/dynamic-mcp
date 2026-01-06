@@ -335,3 +335,164 @@ Example usage:
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::proxy::ModularMcpClient;
+
+    fn create_test_server() -> ModularMcpServer {
+        let client = ModularMcpClient::new();
+        ModularMcpServer::new(
+            Arc::new(tokio::sync::RwLock::new(client)),
+            "test-server".to_string(),
+            "1.0.0".to_string(),
+        )
+    }
+
+    #[tokio::test]
+    async fn test_handle_initialize() {
+        let server = create_test_server();
+        let request = JsonRpcRequest::new(1, "initialize");
+        let response = server.handle_request(request).await;
+
+        assert!(response.error.is_none());
+        assert!(response.result.is_some());
+
+        let result = response.result.unwrap();
+        assert_eq!(result.get("protocolVersion").unwrap(), "2024-11-05");
+        assert_eq!(
+            result
+                .get("serverInfo")
+                .unwrap()
+                .get("name")
+                .unwrap()
+                .as_str()
+                .unwrap(),
+            "test-server"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_handle_list_tools_empty() {
+        let server = create_test_server();
+        let request = JsonRpcRequest::new(1, "tools/list");
+        let response = server.handle_request(request).await;
+
+        assert!(response.error.is_none());
+        assert!(response.result.is_some());
+
+        let result = response.result.unwrap();
+        let tools = result.get("tools").unwrap().as_array().unwrap();
+        assert_eq!(tools.len(), 2);
+        assert_eq!(
+            tools[0].get("name").unwrap().as_str().unwrap(),
+            "get-modular-tools"
+        );
+        assert_eq!(
+            tools[1].get("name").unwrap().as_str().unwrap(),
+            "call-modular-tool"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_handle_unknown_method() {
+        let server = create_test_server();
+        let request = JsonRpcRequest::new(1, "unknown/method");
+        let response = server.handle_request(request).await;
+
+        assert!(response.result.is_none());
+        assert!(response.error.is_some());
+
+        let error = response.error.unwrap();
+        assert_eq!(error.code, -32601);
+        assert!(error.message.contains("Method not found"));
+    }
+
+    #[tokio::test]
+    async fn test_handle_call_tool_missing_params() {
+        let server = create_test_server();
+        let request = JsonRpcRequest::new(1, "tools/call")
+            .with_params(json!({"name": "get-modular-tools", "arguments": {}}));
+        let response = server.handle_request(request).await;
+
+        assert!(response.result.is_none());
+        assert!(response.error.is_some());
+
+        let error = response.error.unwrap();
+        assert_eq!(error.code, -32602);
+        assert!(error.message.contains("Missing required parameter"));
+    }
+
+    #[tokio::test]
+    async fn test_handle_call_tool_unknown_tool() {
+        let server = create_test_server();
+        let request = JsonRpcRequest::new(1, "tools/call").with_params(json!({
+            "name": "unknown-tool",
+            "arguments": {}
+        }));
+        let response = server.handle_request(request).await;
+
+        assert!(response.result.is_none());
+        assert!(response.error.is_some());
+
+        let error = response.error.unwrap();
+        assert_eq!(error.code, -32601);
+        assert!(error.message.contains("Unknown tool"));
+    }
+
+    #[tokio::test]
+    async fn test_handle_get_modular_tools_nonexistent_group() {
+        let server = create_test_server();
+        let request = JsonRpcRequest::new(1, "tools/call").with_params(json!({
+            "name": "get-modular-tools",
+            "arguments": {
+                "group": "nonexistent"
+            }
+        }));
+        let response = server.handle_request(request).await;
+
+        assert!(response.result.is_none());
+        assert!(response.error.is_some());
+
+        let error = response.error.unwrap();
+        assert_eq!(error.code, -32603);
+        assert!(error.message.contains("Failed to list tools"));
+    }
+
+    #[tokio::test]
+    async fn test_handle_call_modular_tool_missing_group() {
+        let server = create_test_server();
+        let request = JsonRpcRequest::new(1, "tools/call").with_params(json!({
+            "name": "call-modular-tool",
+            "arguments": {
+                "name": "some-tool"
+            }
+        }));
+        let response = server.handle_request(request).await;
+
+        assert!(response.result.is_none());
+        assert!(response.error.is_some());
+
+        let error = response.error.unwrap();
+        assert_eq!(error.code, -32602);
+    }
+
+    #[tokio::test]
+    async fn test_handle_call_modular_tool_missing_name() {
+        let server = create_test_server();
+        let request = JsonRpcRequest::new(1, "tools/call").with_params(json!({
+            "name": "call-modular-tool",
+            "arguments": {
+                "group": "some-group"
+            }
+        }));
+        let response = server.handle_request(request).await;
+
+        assert!(response.result.is_none());
+        assert!(response.error.is_some());
+
+        let error = response.error.unwrap();
+        assert_eq!(error.code, -32602);
+    }
+}

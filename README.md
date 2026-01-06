@@ -7,8 +7,8 @@ A Rust implementation of Modular MCP - an MCP proxy server that reduces LLM cont
 
 ## 🎯 Project Status
 
-**Current Phase**: Phase 4 (Migration Command) ✅ **COMPLETE**  
-**Next Phase**: Phase 5 (Tests & Documentation)
+**Current Phase**: Phase 5 (Tests & Documentation) ✅ **COMPLETE**  
+**Next Phase**: Phase 6 (Production Release)
 
 ### ✅ Phase 1 Completed (100%)
 - Project structure and build system
@@ -51,17 +51,31 @@ A Rust implementation of Modular MCP - an MCP proxy server that reduces LLM cont
 - **Preserves all server settings** (command, args, env, headers, OAuth)
 - **JSON output** with proper formatting
 
+### ✅ Phase 5 Completed (100%)
+- **Comprehensive test suite**
+  - 37 unit tests covering all modules
+  - 9 integration tests for CLI and workflows
+  - Test coverage: Config (100%), Auth (100%), Server (100%), Transport (100%)
+- **Complete documentation**
+  - Module-level Rust documentation (cargo doc)
+  - Architecture documentation with diagrams
+  - Migration guide with examples
+  - Troubleshooting guide
+  - Enhanced README with practical examples
+
 ### 📅 Roadmap
 - [x] Phase 1: Core proxy with stdio transport ✅ **COMPLETE**
 - [x] Phase 2: HTTP/SSE transport support ✅ **COMPLETE**
 - [x] Phase 3: OAuth authentication ✅ **COMPLETE**
 - [x] Phase 4: Migration command ✅ **COMPLETE**
-- [ ] Phase 5: Tests & documentation
+- [x] Phase 5: Tests & documentation ✅ **COMPLETE**
 - [ ] Phase 6: Production release
 
 ## 📖 Documentation
 
 - **[Implementation Plan](docs/PLAN.md)** - Complete 6-phase implementation roadmap
+- **[Architecture](docs/ARCHITECTURE.md)** - System design, data flows, and component details
+- **[Migration Guide](docs/MIGRATION.md)** - Migrate from standard MCP to dynamic-mcp
 - **[Research](docs/RESEARCH.md)** - Rust MCP SDK ecosystem research
 - **[TypeScript Reference](https://github.com/d-kimuson/dynamic-mcp)** - Original implementation
 
@@ -263,6 +277,90 @@ cargo test -- --test-threads=1
 cargo test test_substitute_env_vars
 ```
 
+## 🔧 Troubleshooting
+
+### Server Connection Issues
+
+**Problem**: `❌ Failed to connect to <server>`
+
+**Solutions**:
+- **Stdio servers**: Verify command exists (`which <command>`)
+- **HTTP/SSE servers**: Check server is running and URL is correct
+- **Environment variables**: Ensure all `${VAR}` references are defined
+- **OAuth servers**: Complete OAuth flow when prompted
+
+**Debug mode**:
+```bash
+RUST_LOG=debug dynamic-mcp config.json
+```
+
+### OAuth Authentication Problems
+
+**Problem**: Browser doesn't open for OAuth
+
+**Solutions**:
+- Manually open the URL shown in console
+- Check firewall allows localhost connections
+- Verify `oauth_client_id` is correct for the server
+
+**Problem**: Token refresh fails
+
+**Solutions**:
+- Delete cached token: `rm ~/.dynamic-mcp/oauth-servers/<server-name>.json`
+- Re-authenticate on next connection
+
+### Environment Variable Not Substituted
+
+**Problem**: Config shows `${VAR}` instead of value
+
+**Solutions**:
+- Use `${VAR}` syntax, not `$VAR`
+- Export variable: `export VAR=value`
+- Variable names are case-sensitive
+- Check for typos in variable name
+
+### Configuration Errors
+
+**Problem**: `Invalid JSON in config file`
+
+**Solutions**:
+- Validate JSON syntax (use `jq . config.json`)
+- Check for trailing commas
+- Ensure all required fields present (`type`, `description`)
+
+**Problem**: `Failed to resolve config path`
+
+**Solutions**:
+- Use absolute path or path relative to working directory
+- Check file exists and has read permissions
+- Try: `ls -la <config-path>`
+
+### Tool Call Failures
+
+**Problem**: Tool call returns error
+
+**Debugging**:
+1. Test tool directly with upstream server
+2. Check tool name and arguments match schema
+3. Verify group name is correct
+4. Enable debug logging to see JSON-RPC messages
+
+### Performance Issues
+
+**Problem**: Slow startup
+
+**Solutions**:
+- Parallel connections already enabled
+- Check network latency for HTTP/SSE servers
+- Some servers may be slow to initialize (normal)
+
+**Problem**: High memory usage
+
+**Solutions**:
+- Tools are cached in memory (expected)
+- Failed groups use minimal memory
+- Large tool schemas contribute to memory usage
+
 ## 📝 Development
 
 ### Code Structure
@@ -271,6 +369,7 @@ cargo test test_substitute_env_vars
 - **proxy/**: MCP client management, group state tracking, transport creation
 - **server/**: MCP server that exposes the two-tool API
 - **cli/**: Command-line interface and migration tools
+- **auth/**: OAuth2 authentication and token management
 
 ### Key Features
 
@@ -288,6 +387,22 @@ cargo test test_substitute_env_vars
    - Clean separation of concerns
    - Easy to extend with new transports
    - Testable components
+
+### Running Tests
+
+```bash
+# All tests
+cargo test
+
+# Specific module
+cargo test config::
+
+# With output
+cargo test -- --nocapture
+
+# Integration tests only
+cargo test --test integration_test
+```
 
 ## 🤝 Contributing
 
@@ -314,12 +429,12 @@ MIT License - see [LICENSE](LICENSE) for details
 
 ## 📊 Project Metrics
 
-- **Lines of Code**: ~2,000 (Rust)
+- **Lines of Code**: ~2,500 (Rust)
 - **Dependencies**: 114 crates (including rmcp and HTTP/SSE stack)
-- **Tests**: 24 passing (21 unit + 3 integration)
-- **Test Coverage**: Config: 100%, Auth: 100%, Transport: 100%
-- **Documentation**: Comprehensive
+- **Tests**: 46 passing (37 unit + 9 integration)
+- **Test Coverage**: Config: 100%, Auth: 100%, Server: 100%, Transport: 100%
+- **Documentation**: Architecture diagrams, migration guide, API docs, troubleshooting
 
 ---
 
-**Status**: ✅ Phase 4 Complete | Ready for Phase 5
+**Status**: ✅ Phase 5 Complete | Ready for Phase 6 (Production Release)
