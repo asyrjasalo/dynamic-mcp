@@ -73,7 +73,6 @@ Create a `dynamic-mcp.json` file:
 {
   "mcpServers": {
     "filesystem": {
-      "type": "stdio",
       "description": "Use when you need to read, write, or search files.",
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-filesystem", "/tmp"]
@@ -90,7 +89,6 @@ Supports `${VAR}` syntax for environment variable interpolation:
 {
   "mcpServers": {
     "example": {
-      "type": "stdio",
       "description": "Example with env vars",
       "command": "node",
       "args": ["${HOME}/.local/bin/server.js"],
@@ -109,7 +107,6 @@ Supports `${VAR}` syntax for environment variable interpolation:
 #### stdio (Default)
 ```json
 {
-  "type": "stdio",
   "description": "Server description for LLM",
   "command": "npx",
   "args": ["-y", "package-name"],
@@ -211,7 +208,7 @@ RUST_LOG=debug dynamic-mcp config.json
 **Solutions**:
 - Validate JSON syntax (use `jq . config.json`)
 - Check for trailing commas
-- Ensure all required fields present (`type`, `description`)
+- Ensure all required fields present (`description`; `type` required only for http/sse, optional for stdio)
 
 **Problem**: `Failed to resolve config path`
 

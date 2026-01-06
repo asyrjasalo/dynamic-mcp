@@ -42,7 +42,7 @@ Config details:
   command: "npx"
   args: ["-y", "@modelcontextprotocol/server-filesystem", "/tmp"]
 
-💬 Enter description for 'filesystem' (what this server does): 
+💬 Enter description for 'filesystem' (what this server does):
 File operations on /tmp directory
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -96,7 +96,6 @@ If you prefer manual control:
 {
   "mcpServers": {
     "filesystem": {
-      "type": "stdio",
       "description": "File operations on /tmp directory",
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-filesystem", "/tmp"],
@@ -124,7 +123,7 @@ If you prefer manual control:
 ```
 
 **Changes required**:
-1. Add `"type"` field for each server (stdio, http, or sse)
+1. Add `"type"` field for each server (http or sse) - stdio is default and optional
 2. Add `"description"` field explaining what the server does
 3. Keep all other fields unchanged
 
@@ -137,7 +136,6 @@ If you prefer manual control:
 ```json
 {
   "server-name": {
-    "type": "stdio",
     "description": "...",
     "command": "node",
     "args": ["server.js"],
@@ -230,7 +228,6 @@ Examples:
 ```json
 {
   "server": {
-    "type": "stdio",
     "description": "Package-specific functionality description",
     "command": "npx",
     "args": ["-y", "@modelcontextprotocol/server-package"]
@@ -254,11 +251,10 @@ Examples:
 }
 ```
 
-**After** (unchanged except for type and description):
+**After** (unchanged except for description):
 ```json
 {
   "server": {
-    "type": "stdio",
     "description": "Server with API and database access",
     "command": "node",
     "args": ["server.js"],
@@ -397,7 +393,7 @@ After successful migration:
 
 1. Update your MCP client config to point to dynamic-mcp
 2. Configure dynamic-mcp to start automatically
-3. Test each group with `get-modular-tools` 
+3. Test each group with `get-modular-tools`
 4. Verify tool calls work as expected
 
 ## Example: Full Migration Workflow

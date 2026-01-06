@@ -2,13 +2,11 @@
   "$schema": "https://raw.githubusercontent.com/d-kimuson/dynamic-mcp/refs/heads/main/config-schema.json",
   "mcpServers": {
     "filesystem": {
-      "type": "stdio",
       "description": "Use when you need to read, write, or search files on the local filesystem.",
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-filesystem", "/tmp"]
     },
     "example-echo": {
-      "type": "stdio",
       "description": "Example echo server for testing purposes.",
       "command": "echo",
       "args": ["Hello from MCP server"]

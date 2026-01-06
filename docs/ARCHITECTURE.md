@@ -182,10 +182,10 @@ Standard MCP Config          Dynamic-MCP Config
 {                           {
   "mcpServers": {             "mcpServers": {
     "server": {                 "server": {
-      "command": "...",           "type": "stdio",
-      "args": [...]               "description": "...",  ← Added
-    }                             "command": "...",
-  }                               "args": [...]
+      "command": "...",           "description": "...",  ← Added
+      "args": [...]               "command": "...",
+    }                             "args": [...]
+  }                               }
 }                               }
                               }
                             }
