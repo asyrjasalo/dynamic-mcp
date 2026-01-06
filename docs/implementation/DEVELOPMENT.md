@@ -81,24 +81,24 @@
 Detailed implementation documentation is available in `docs/implementation/`:
 
 ### Current Status
-- **[STATUS.md](docs/implementation/STATUS.md)** - Current implementation status and metrics
+- **[STATUS.md](STATUS.md)** - Current implementation status and metrics
 
 ### Planning & Research
-- **[PLAN.md](docs/implementation/PLAN.md)** - Complete 6-phase implementation roadmap
-- **[RESEARCH.md](docs/implementation/RESEARCH.md)** - Rust MCP SDK ecosystem research
+- **[PLAN.md](PLAN.md)** - Complete 6-phase implementation roadmap
+- **[RESEARCH.md](RESEARCH.md)** - Rust MCP SDK ecosystem research
 
 ### Feature Documentation
-- **[TESTING.md](docs/implementation/TESTING.md)** - Testing strategy and coverage
-- **[ENV_VAR_CONFIG.md](docs/implementation/ENV_VAR_CONFIG.md)** - Environment variable implementation
-- **[LIVE_RELOAD.md](docs/implementation/LIVE_RELOAD.md)** - Live reload implementation details
+- **[TESTING.md](TESTING.md)** - Testing strategy and coverage
+- **[ENV_VAR_CONFIG.md](ENV_VAR_CONFIG.md)** - Environment variable implementation
+- **[LIVE_RELOAD.md](LIVE_RELOAD.md)** - Live reload implementation details
 
 ### Phase Completion Reports
-- **[PHASE1_COMPLETE.md](docs/implementation/PHASE1_COMPLETE.md)** - Phase 1: Core proxy with stdio
-- **[PHASE2_COMPLETE.md](docs/implementation/PHASE2_COMPLETE.md)** - Phase 2: HTTP/SSE transport
-- **[PHASE3_COMPLETE.md](docs/implementation/PHASE3_COMPLETE.md)** - Phase 3: OAuth authentication
-- **[PHASE4_COMPLETE.md](docs/implementation/PHASE4_COMPLETE.md)** - Phase 4: Migration command
-- **[PHASE5_COMPLETE.md](docs/implementation/PHASE5_COMPLETE.md)** - Phase 5: Tests & documentation
-- **[PHASE6_COMPLETE.md](docs/implementation/PHASE6_COMPLETE.md)** - Phase 6: Production release
+- **[PHASE1_COMPLETE.md](PHASE1_COMPLETE.md)** - Phase 1: Core proxy with stdio
+- **[PHASE2_COMPLETE.md](PHASE2_COMPLETE.md)** - Phase 2: HTTP/SSE transport
+- **[PHASE3_COMPLETE.md](PHASE3_COMPLETE.md)** - Phase 3: OAuth authentication
+- **[PHASE4_COMPLETE.md](PHASE4_COMPLETE.md)** - Phase 4: Migration command
+- **[PHASE5_COMPLETE.md](PHASE5_COMPLETE.md)** - Phase 5: Tests & documentation
+- **[PHASE6_COMPLETE.md](PHASE6_COMPLETE.md)** - Phase 6: Production release
 
 ## 🏗️ Architecture Overview
 
@@ -129,7 +129,7 @@ Detailed implementation documentation is available in `docs/implementation/`:
 
 ## 🤝 Contributing
 
-For development setup, testing guidelines, and contribution workflow, see **[CONTRIBUTING.md](CONTRIBUTING.md)**.
+For development setup, testing guidelines, and contribution workflow, see **[CONTRIBUTING.md](../../CONTRIBUTING.md)**.
 
 ---
 
