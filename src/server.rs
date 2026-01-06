@@ -295,6 +295,16 @@ Example usage:
 
             match serde_json::from_str::<JsonRpcRequest>(trimmed) {
                 Ok(request) => {
+                    let is_notification = matches!(request.id, serde_json::Value::Null);
+
+                    if is_notification {
+                        tracing::debug!(
+                            "Received notification: {} (no response needed)",
+                            request.method
+                        );
+                        continue;
+                    }
+
                     tracing::debug!("Received request: {}", request.method);
                     let response = self.handle_request(request).await;
                     let response_json = serde_json::to_string(&response)?;
@@ -303,7 +313,7 @@ Example usage:
                     stdout.flush().await?;
                 }
                 Err(e) => {
-                    tracing::error!("Failed to parse request: {}", e);
+                    tracing::error!("Failed to parse request: {}. Raw input: {}", e, trimmed);
                     let error_response = JsonRpcResponse {
                         jsonrpc: "2.0".to_string(),
                         id: serde_json::Value::Null,

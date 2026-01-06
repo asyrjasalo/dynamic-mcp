@@ -82,8 +82,38 @@ impl StdioTransport {
                 continue;
             }
 
-            if let Ok(response) = serde_json::from_str::<JsonRpcResponse>(trimmed) {
-                return Ok(response);
+            if !trimmed.starts_with('{') {
+                tracing::debug!("Skipping non-JSON output: {}", trimmed);
+                continue;
+            }
+
+            match serde_json::from_str::<JsonRpcResponse>(trimmed) {
+                Ok(response) => return Ok(response),
+                Err(e) => {
+                    if let Ok(value) = serde_json::from_str::<serde_json::Value>(trimmed) {
+                        if value.get("error").is_some() {
+                            let id_value = value.get("id").cloned();
+                            if id_value.is_none()
+                                || matches!(id_value, Some(serde_json::Value::Null))
+                            {
+                                tracing::warn!(
+                                    "Received error response with null id, skipping: {}",
+                                    trimmed
+                                );
+                                continue;
+                            }
+                            return Ok(JsonRpcResponse {
+                                jsonrpc: "2.0".to_string(),
+                                id: id_value.unwrap(),
+                                result: None,
+                                error: serde_json::from_value(value.get("error").unwrap().clone())
+                                    .ok(),
+                            });
+                        }
+                    }
+                    tracing::warn!("Failed to parse JSON-RPC response: {}. Raw: {}", e, trimmed);
+                    continue;
+                }
             }
         }
     }

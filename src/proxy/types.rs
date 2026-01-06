@@ -25,10 +25,19 @@ pub struct ToolInfo {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct JsonRpcRequest {
     pub jsonrpc: String,
+    #[serde(default = "default_null_id", skip_serializing_if = "is_null")]
     pub id: serde_json::Value,
     pub method: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub params: Option<serde_json::Value>,
+}
+
+fn default_null_id() -> serde_json::Value {
+    serde_json::Value::Null
+}
+
+fn is_null(value: &serde_json::Value) -> bool {
+    matches!(value, serde_json::Value::Null)
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
