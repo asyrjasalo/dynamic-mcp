@@ -1,8 +1,8 @@
-use std::sync::Arc;
+use crate::proxy::types::{JsonRpcError, JsonRpcRequest, JsonRpcResponse};
+use crate::proxy::ModularMcpClient;
 use anyhow::Result;
 use serde_json::json;
-use crate::proxy::ModularMcpClient;
-use crate::proxy::types::{JsonRpcRequest, JsonRpcResponse, JsonRpcError};
+use std::sync::Arc;
 
 pub struct ModularMcpServer {
     client: Arc<tokio::sync::RwLock<ModularMcpClient>>,
@@ -11,7 +11,11 @@ pub struct ModularMcpServer {
 }
 
 impl ModularMcpServer {
-    pub fn new(client: Arc<tokio::sync::RwLock<ModularMcpClient>>, name: String, version: String) -> Self {
+    pub fn new(
+        client: Arc<tokio::sync::RwLock<ModularMcpClient>>,
+        name: String,
+        version: String,
+    ) -> Self {
         Self {
             client,
             name,
@@ -80,7 +84,7 @@ impl ModularMcpServer {
         };
 
         let get_tools_desc = format!(
-            "modular-mcp manages multiple MCP servers as organized groups, \
+            "dynamic-mcp manages multiple MCP servers as organized groups, \
             providing only the necessary group's tool descriptions to the LLM \
             on demand instead of overwhelming it with all tool descriptions at once.\n\n\
             Use this tool to retrieve available tools in a specific group, \
@@ -157,7 +161,7 @@ Example usage:
         match tool_name {
             "get-modular-tools" => {
                 let group = arguments.get("group").and_then(|v| v.as_str());
-                
+
                 if group.is_none() {
                     return JsonRpcResponse {
                         jsonrpc: "2.0".to_string(),
@@ -174,18 +178,21 @@ Example usage:
                 let client = self.client.read().await;
                 match client.list_tools(group.unwrap()) {
                     Ok(tools) => {
-                        let tools_json: Vec<_> = tools.iter().map(|tool| {
-                            let mut schema = tool.input_schema.clone();
-                            if let Some(obj) = schema.as_object_mut() {
-                                obj.remove("$schema");
-                            }
-                            json!({
-                                "name": tool.name,
-                                "description": tool.description,
-                                "inputSchema": schema
+                        let tools_json: Vec<_> = tools
+                            .iter()
+                            .map(|tool| {
+                                let mut schema = tool.input_schema.clone();
+                                if let Some(obj) = schema.as_object_mut() {
+                                    obj.remove("$schema");
+                                }
+                                json!({
+                                    "name": tool.name,
+                                    "description": tool.description,
+                                    "inputSchema": schema
+                                })
                             })
-                        }).collect();
-                        
+                            .collect();
+
                         JsonRpcResponse {
                             jsonrpc: "2.0".to_string(),
                             id: request.id,
@@ -200,25 +207,23 @@ Example usage:
                             error: None,
                         }
                     }
-                    Err(e) => {
-                        JsonRpcResponse {
-                            jsonrpc: "2.0".to_string(),
-                            id: request.id,
-                            result: None,
-                            error: Some(JsonRpcError {
-                                code: -32603,
-                                message: format!("Failed to list tools: {}", e),
-                                data: None,
-                            }),
-                        }
-                    }
+                    Err(e) => JsonRpcResponse {
+                        jsonrpc: "2.0".to_string(),
+                        id: request.id,
+                        result: None,
+                        error: Some(JsonRpcError {
+                            code: -32603,
+                            message: format!("Failed to list tools: {}", e),
+                            data: None,
+                        }),
+                    },
                 }
             }
             "call-modular-tool" => {
                 let group = arguments.get("group").and_then(|v| v.as_str());
                 let name = arguments.get("name").and_then(|v| v.as_str());
                 let args = arguments.get("args").cloned().unwrap_or(json!({}));
-                
+
                 if group.is_none() || name.is_none() {
                     return JsonRpcResponse {
                         jsonrpc: "2.0".to_string(),
@@ -234,26 +239,22 @@ Example usage:
 
                 let client = self.client.read().await;
                 match client.call_tool(group.unwrap(), name.unwrap(), args).await {
-                    Ok(result) => {
-                        JsonRpcResponse {
-                            jsonrpc: "2.0".to_string(),
-                            id: request.id,
-                            result: Some(result),
-                            error: None,
-                        }
-                    }
-                    Err(e) => {
-                        JsonRpcResponse {
-                            jsonrpc: "2.0".to_string(),
-                            id: request.id,
-                            result: None,
-                            error: Some(JsonRpcError {
-                                code: -32603,
-                                message: format!("Tool execution failed: {}", e),
-                                data: None,
-                            }),
-                        }
-                    }
+                    Ok(result) => JsonRpcResponse {
+                        jsonrpc: "2.0".to_string(),
+                        id: request.id,
+                        result: Some(result),
+                        error: None,
+                    },
+                    Err(e) => JsonRpcResponse {
+                        jsonrpc: "2.0".to_string(),
+                        id: request.id,
+                        result: None,
+                        error: Some(JsonRpcError {
+                            code: -32603,
+                            message: format!("Tool execution failed: {}", e),
+                            data: None,
+                        }),
+                    },
                 }
             }
             _ => JsonRpcResponse {
@@ -271,7 +272,7 @@ Example usage:
 
     pub async fn run_stdio(&self) -> Result<()> {
         use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
-        
+
         let stdin = tokio::io::stdin();
         let mut stdout = tokio::io::stdout();
         let mut reader = BufReader::new(stdin);
@@ -282,7 +283,7 @@ Example usage:
         loop {
             line.clear();
             let bytes_read = reader.read_line(&mut line).await?;
-            
+
             if bytes_read == 0 {
                 break;
             }

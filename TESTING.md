@@ -31,7 +31,7 @@ cargo run -- config.example.json
 
 Expected output:
 ```
-INFO modular_mcp: Starting modular-mcp server with config: config.example.json
+INFO modular_mcp: Starting dynamic-mcp server with config: config.example.json
 INFO modular_mcp::config::loader: ✅ MCP server config loaded successfully
 INFO modular_mcp: MCP server initialized, starting stdio listener...
 INFO modular_mcp::server: MCP server listening on stdio
@@ -54,7 +54,7 @@ Expected response:
       "tools": {}
     },
     "serverInfo": {
-      "name": "modular-mcp",
+      "name": "dynamic-mcp",
       "version": "0.1.0"
     }
   }
@@ -76,7 +76,7 @@ Expected response should include:
     "tools": [
       {
         "name": "get-modular-tools",
-        "description": "modular-mcp manages multiple MCP servers...",
+        "description": "dynamic-mcp manages multiple MCP servers...",
         "inputSchema": {
           "type": "object",
           "properties": {

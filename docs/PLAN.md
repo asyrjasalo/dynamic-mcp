@@ -8,7 +8,7 @@
 - **MCP Server** (downstream): Exposes 2 tools to LLM clients
 - **MCP Client** (upstream): Connects to multiple configured MCP servers
 
-**Reference Implementation**: https://github.com/d-kimuson/modular-mcp (TypeScript)
+**Reference Implementation**: https://github.com/d-kimuson/dynamic-mcp (TypeScript)
 
 ## Design Principles
 
@@ -32,20 +32,20 @@
 ### 1.1 Project Setup
 
 ```bash
-cargo new modular-mcp
-cd modular-mcp
+cargo new dynamic-mcp
+cd dynamic-mcp
 ```
 
 **Dependencies** (`Cargo.toml`):
 ```toml
 [package]
-name = "modular-mcp"
+name = "dynamic-mcp"
 version = "0.1.0"
 edition = "2021"
 rust-version = "1.75"
 
 [[bin]]
-name = "modular-mcp"
+name = "dynamic-mcp"
 path = "src/main.rs"
 
 [dependencies]
@@ -81,7 +81,7 @@ regex = "1"
 ### 1.2 Project Structure
 
 ```
-modular-mcp/
+dynamic-mcp/
 ├── Cargo.toml
 ├── README.md
 ├── LICENSE (MIT)
@@ -353,7 +353,7 @@ impl ModularMcpClient {
         
         // Create client
         let client_options = ClientOptions {
-            name: "modular-mcp-client".to_string(),
+            name: "dynamic-mcp-client".to_string(),
             version: env!("CARGO_PKG_VERSION").to_string(),
         };
         
@@ -576,7 +576,7 @@ impl ServerHandler for ModularMcpServer {
         };
 
         let get_tools_desc = format!(
-            "modular-mcp manages multiple MCP servers as organized groups, \
+            "dynamic-mcp manages multiple MCP servers as organized groups, \
             providing only the necessary group's tool descriptions to the LLM \
             on demand instead of overwhelming it with all tool descriptions at once.\n\n\
             Use this tool to retrieve available tools in a specific group, \
@@ -709,7 +709,7 @@ use rmcp::prelude::*;
 use anyhow::Result;
 
 #[derive(Parser)]
-#[command(name = "modular-mcp")]
+#[command(name = "dynamic-mcp")]
 #[command(version = env!("CARGO_PKG_VERSION"))]
 #[command(about = "Modular MCP Proxy Server - Reduce context overhead with on-demand tool loading")]
 struct Cli {
@@ -812,7 +812,7 @@ async fn main() -> Result<()> {
 
 ```json
 {
-  "$schema": "https://raw.githubusercontent.com/d-kimuson/modular-mcp/refs/heads/main/config-schema.json",
+  "$schema": "https://raw.githubusercontent.com/d-kimuson/dynamic-mcp/refs/heads/main/config-schema.json",
   "mcpServers": {
     "filesystem": {
       "description": "Use when you need to read, write, or search files on the local filesystem.",
@@ -987,7 +987,7 @@ impl AuthStore {
     pub fn new() -> Result<Self> {
         let base_path = dirs::home_dir()
             .ok_or_else(|| anyhow::anyhow!("Cannot find home directory"))?
-            .join(".modular-mcp")
+            .join(".dynamic-mcp")
             .join("oauth-servers");
             
         Ok(Self { base_path })
@@ -1039,7 +1039,7 @@ Update `create_transport` to handle OAuth when needed.
 
 ### 3.5 Deliverables
 
-- ✅ OAuth token storage (~/.modular-mcp/)
+- ✅ OAuth token storage (~/.dynamic-mcp/)
 - ✅ OAuth flow with browser
 - ✅ Token refresh logic
 - ✅ Integration with HTTP/SSE transports
@@ -1060,7 +1060,7 @@ Update `create_transport` to handle OAuth when needed.
 use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
-#[command(name = "modular-mcp")]
+#[command(name = "dynamic-mcp")]
 #[command(version = env!("CARGO_PKG_VERSION"))]
 pub struct Cli {
     #[command(subcommand)]
@@ -1072,13 +1072,13 @@ pub struct Cli {
 
 #[derive(Subcommand)]
 pub enum Commands {
-    /// Migrate standard MCP config to modular-mcp format
+    /// Migrate standard MCP config to dynamic-mcp format
     Migrate {
         /// Path to standard MCP config file
         mcp_config_path: String,
         
-        /// Output path for modular-mcp.json
-        #[arg(short, long, default_value = "modular-mcp.json")]
+        /// Output path for dynamic-mcp.json
+        #[arg(short, long, default_value = "dynamic-mcp.json")]
         output: String,
     },
 }
@@ -1092,7 +1092,7 @@ Prompt user for descriptions and transform config.
 
 ### 4.3 Deliverables
 
-- ✅ `modular-mcp migrate` command
+- ✅ `dynamic-mcp migrate` command
 - ✅ Interactive description prompts
 - ✅ Config transformation
 - ✅ Original config replacement

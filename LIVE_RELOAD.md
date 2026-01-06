@@ -2,7 +2,7 @@
 
 ## Overview
 
-The modular-mcp server now supports live reloading of downstream resources when the configuration file is modified. This feature automatically detects changes to the config file and reconnects to all MCP servers with the updated configuration.
+The dynamic-mcp server now supports live reloading of downstream resources when the configuration file is modified. This feature automatically detects changes to the config file and reconnects to all MCP servers with the updated configuration.
 
 ## How It Works
 
@@ -36,7 +36,7 @@ Simply edit your configuration file while the server is running:
 
 ```bash
 # Start the server
-./target/release/modular-mcp config.json
+./target/release/dynamic-mcp config.json
 
 # In another terminal, edit the config
 vim config.json
@@ -67,7 +67,7 @@ To manually test the live reload feature:
 
 2. Start the server with a test config:
    ```bash
-   ./target/release/modular-mcp config.example.json
+   ./target/release/dynamic-mcp config.example.json
    ```
 
 3. In another terminal, modify the config file:

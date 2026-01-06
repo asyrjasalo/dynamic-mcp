@@ -109,7 +109,7 @@ echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}' | cargo run --
 ## File Structure
 
 ```
-modular-mcp/
+dynamic-mcp/
 ├── Cargo.toml                       ✅ Dependencies configured
 ├── Cargo.lock                       ✅ Locked versions
 ├── README.md                        ✅ 5.5 KB

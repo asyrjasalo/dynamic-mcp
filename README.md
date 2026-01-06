@@ -47,12 +47,12 @@ A Rust implementation of Modular MCP - an MCP proxy server that reduces LLM cont
 
 - **[Implementation Plan](docs/PLAN.md)** - Complete 6-phase implementation roadmap
 - **[Research](docs/RESEARCH.md)** - Rust MCP SDK ecosystem research
-- **[TypeScript Reference](https://github.com/d-kimuson/modular-mcp)** - Original implementation
+- **[TypeScript Reference](https://github.com/d-kimuson/dynamic-mcp)** - Original implementation
 
 ## 🏗️ Architecture
 
 ```
-modular-mcp/
+dynamic-mcp/
 ├── src/
 │   ├── main.rs              # CLI entry point
 │   ├── server.rs            # MCP server (exposes 2 tools)
@@ -92,7 +92,7 @@ You can specify the configuration file in two ways:
 ```bash
 cargo run -- config.example.json
 # or with the binary
-./target/release/modular-mcp config.example.json
+./target/release/dynamic-mcp config.example.json
 ```
 
 **Option 2: Environment variable**
@@ -100,14 +100,14 @@ cargo run -- config.example.json
 export GATEWAY_MCP_CONFIG=config.example.json
 cargo run
 # or with the binary
-./target/release/modular-mcp
+./target/release/dynamic-mcp
 ```
 
 **Note**: Command line argument takes precedence over environment variable if both are provided.
 
 ### Configuration
 
-Create a `modular-mcp.json` file:
+Create a `dynamic-mcp.json` file:
 
 ```json
 {
@@ -241,7 +241,7 @@ MIT License - see [LICENSE](LICENSE) for details
 
 ## 🙏 Acknowledgments
 
-- Original TypeScript implementation: [d-kimuson/modular-mcp](https://github.com/d-kimuson/modular-mcp)
+- Original TypeScript implementation: [d-kimuson/dynamic-mcp](https://github.com/d-kimuson/dynamic-mcp)
 - MCP Specification: [Model Context Protocol](https://modelcontextprotocol.io/)
 - Rust MCP Ecosystem: [rust-mcp-stack](https://github.com/rust-mcp-stack)
 

@@ -1,7 +1,7 @@
 {
   "mcpServers": {
-    "modular-mcp": {
-      "command": "/Users/asyrjasalo/Downloads/dynamic-mcp/target/release/modular-mcp"
+    "dynamic-mcp": {
+      "command": "/Users/asyrjasalo/Downloads/dynamic-mcp/target/release/dynamic-mcp"
     }
   }
 }

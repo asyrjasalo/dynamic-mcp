@@ -1,5 +1,5 @@
-use serde::{Deserialize, Deserializer, Serialize};
 use schemars::JsonSchema;
+use serde::{Deserialize, Deserializer, Serialize};
 use std::collections::HashMap;
 
 #[derive(Debug, Clone, Serialize, JsonSchema)]
@@ -34,17 +34,23 @@ impl<'de> Deserialize<'de> for McpServerConfig {
         D: Deserializer<'de>,
     {
         let mut value = serde_json::Value::deserialize(deserializer)?;
-        
+
         if let Some(obj) = value.as_object_mut() {
             if !obj.contains_key("type") {
                 if obj.contains_key("url") {
-                    obj.insert("type".to_string(), serde_json::Value::String("http".to_string()));
+                    obj.insert(
+                        "type".to_string(),
+                        serde_json::Value::String("http".to_string()),
+                    );
                 } else {
-                    obj.insert("type".to_string(), serde_json::Value::String("stdio".to_string()));
+                    obj.insert(
+                        "type".to_string(),
+                        serde_json::Value::String("stdio".to_string()),
+                    );
                 }
             }
         }
-        
+
         #[derive(Deserialize)]
         #[serde(tag = "type", rename_all = "lowercase")]
         enum McpServerConfigHelper {
@@ -66,19 +72,39 @@ impl<'de> Deserialize<'de> for McpServerConfig {
                 headers: Option<HashMap<String, String>>,
             },
         }
-        
+
         match serde_json::from_value::<McpServerConfigHelper>(value)
             .map_err(serde::de::Error::custom)?
         {
-            McpServerConfigHelper::Stdio { description, command, args, env } => {
-                Ok(McpServerConfig::Stdio { description, command, args, env })
-            }
-            McpServerConfigHelper::Http { description, url, headers } => {
-                Ok(McpServerConfig::Http { description, url, headers })
-            }
-            McpServerConfigHelper::Sse { description, url, headers } => {
-                Ok(McpServerConfig::Sse { description, url, headers })
-            }
+            McpServerConfigHelper::Stdio {
+                description,
+                command,
+                args,
+                env,
+            } => Ok(McpServerConfig::Stdio {
+                description,
+                command,
+                args,
+                env,
+            }),
+            McpServerConfigHelper::Http {
+                description,
+                url,
+                headers,
+            } => Ok(McpServerConfig::Http {
+                description,
+                url,
+                headers,
+            }),
+            McpServerConfigHelper::Sse {
+                description,
+                url,
+                headers,
+            } => Ok(McpServerConfig::Sse {
+                description,
+                url,
+                headers,
+            }),
         }
     }
 }

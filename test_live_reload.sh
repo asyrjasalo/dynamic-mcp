@@ -2,14 +2,14 @@
 
 set -e
 
-echo "Building modular-mcp..."
+echo "Building dynamic-mcp..."
 cargo build --release
 
 echo ""
 echo "Creating test config file..."
 cat >config.test.json <<EOF
 {
-  "\$schema": "https://raw.githubusercontent.com/d-kimuson/modular-mcp/refs/heads/main/config-schema.json",
+  "\$schema": "https://raw.githubusercontent.com/d-kimuson/dynamic-mcp/refs/heads/main/config-schema.json",
   "mcpServers": {
     "test-server": {
       "type": "stdio",
@@ -22,8 +22,8 @@ cat >config.test.json <<EOF
 EOF
 
 echo ""
-echo "Starting modular-mcp in background..."
-./target/release/modular-mcp config.test.json >/tmp/mcp-output.log 2>&1 &
+echo "Starting dynamic-mcp in background..."
+./target/release/dynamic-mcp config.test.json >/tmp/mcp-output.log 2>&1 &
 MCP_PID=$!
 
 echo "MCP started with PID: $MCP_PID"
@@ -43,7 +43,7 @@ echo ""
 echo "Modifying config file..."
 cat >config.test.json <<EOF
 {
-  "\$schema": "https://raw.githubusercontent.com/d-kimuson/modular-mcp/refs/heads/main/config-schema.json",
+  "\$schema": "https://raw.githubusercontent.com/d-kimuson/dynamic-mcp/refs/heads/main/config-schema.json",
   "mcpServers": {
     "test-server": {
       "type": "stdio",

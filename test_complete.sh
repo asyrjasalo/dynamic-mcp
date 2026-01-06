@@ -14,9 +14,9 @@ echo ""
 echo "🧪 Test 1: Server initialization"
 result=$({ 
     echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"1.0"}}}'; 
-} | timeout 2 ./target/release/modular-mcp config.test.json 2>/dev/null | grep jsonrpc | head -1)
+} | timeout 2 ./target/release/dynamic-mcp config.test.json 2>/dev/null | grep jsonrpc | head -1)
 
-if echo "$result" | jq -e '.result.serverInfo.name == "modular-mcp"' >/dev/null 2>&1; then
+if echo "$result" | jq -e '.result.serverInfo.name == "dynamic-mcp"' >/dev/null 2>&1; then
     echo "   ✅ Initialize returns correct server info"
     echo "      Server: $(echo $result | jq -r .result.serverInfo.name) v$(echo $result | jq -r .result.serverInfo.version)"
 else
@@ -29,7 +29,7 @@ echo "🧪 Test 2: Tools listing"
 result=$({ 
     echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}'; 
     echo '{"jsonrpc":"2.0","id":2,"method":"tools/list"}'; 
-} | timeout 2 ./target/release/modular-mcp config.test.json 2>/dev/null | grep '"id":2' | head -1)
+} | timeout 2 ./target/release/dynamic-mcp config.test.json 2>/dev/null | grep '"id":2' | head -1)
 
 tool_count=$(echo "$result" | jq '.result.tools | length' 2>/dev/null || echo "0")
 if [ "$tool_count" = "2" ]; then

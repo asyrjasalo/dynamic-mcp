@@ -1,9 +1,9 @@
-use std::collections::HashMap;
 use crate::config::McpServerConfig;
-use crate::proxy::types::{GroupInfo, FailedGroupInfo, ToolInfo, JsonRpcRequest};
 use crate::proxy::transport::Transport;
+use crate::proxy::types::{FailedGroupInfo, GroupInfo, JsonRpcRequest, ToolInfo};
 use anyhow::{Context, Result};
 use serde_json::json;
+use std::collections::HashMap;
 
 pub enum GroupState {
     Connected {
@@ -36,43 +36,53 @@ impl ModularMcpClient {
         }
 
         let description = config.description().to_string();
-        
-        let transport = Transport::new(&config).await
+
+        let transport = Transport::new(&config)
+            .await
             .with_context(|| format!("Failed to create transport for group: {}", group_name))?;
-        
-        let init_request = JsonRpcRequest::new(1, "initialize")
-            .with_params(json!({
-                "protocolVersion": "2024-11-05",
-                "capabilities": {},
-                "clientInfo": {
-                    "name": "modular-mcp-client",
-                    "version": env!("CARGO_PKG_VERSION")
-                }
-            }));
-        
-        transport.send_request(&init_request).await
+
+        let init_request = JsonRpcRequest::new(1, "initialize").with_params(json!({
+            "protocolVersion": "2024-11-05",
+            "capabilities": {},
+            "clientInfo": {
+                "name": "dynamic-mcp-client",
+                "version": env!("CARGO_PKG_VERSION")
+            }
+        }));
+
+        transport
+            .send_request(&init_request)
+            .await
             .with_context(|| format!("Failed to initialize connection to: {}", group_name))?;
-        
+
         let list_tools_request = JsonRpcRequest::new(2, "tools/list");
-        let tools_response = transport.send_request(&list_tools_request).await
+        let tools_response = transport
+            .send_request(&list_tools_request)
+            .await
             .with_context(|| format!("Failed to list tools from: {}", group_name))?;
-        
+
         let tools = if let Some(result) = tools_response.result {
             if let Some(tools_array) = result.get("tools").and_then(|v| v.as_array()) {
-                tools_array.iter().filter_map(|tool| {
-                    Some(ToolInfo {
-                        name: tool.get("name")?.as_str()?.to_string(),
-                        description: tool.get("description").and_then(|v| v.as_str()).map(String::from),
-                        input_schema: tool.get("inputSchema").cloned().unwrap_or(json!({})),
+                tools_array
+                    .iter()
+                    .filter_map(|tool| {
+                        Some(ToolInfo {
+                            name: tool.get("name")?.as_str()?.to_string(),
+                            description: tool
+                                .get("description")
+                                .and_then(|v| v.as_str())
+                                .map(String::from),
+                            input_schema: tool.get("inputSchema").cloned().unwrap_or(json!({})),
+                        })
                     })
-                }).collect()
+                    .collect()
             } else {
                 Vec::new()
             }
         } else {
             Vec::new()
         };
-        
+
         self.groups.insert(
             group_name.clone(),
             GroupState::Connected {
@@ -82,11 +92,16 @@ impl ModularMcpClient {
                 transport,
             },
         );
-        
+
         Ok(())
     }
 
-    pub fn record_failed_connection(&mut self, group_name: String, config: McpServerConfig, error: anyhow::Error) {
+    pub fn record_failed_connection(
+        &mut self,
+        group_name: String,
+        config: McpServerConfig,
+        error: anyhow::Error,
+    ) {
         self.groups.insert(
             group_name.clone(),
             GroupState::Failed {
@@ -98,38 +113,41 @@ impl ModularMcpClient {
     }
 
     pub fn list_groups(&self) -> Vec<GroupInfo> {
-        self.groups.values()
+        self.groups
+            .values()
             .filter_map(|state| match state {
-                GroupState::Connected { name, description, .. } => {
-                    Some(GroupInfo {
-                        name: name.clone(),
-                        description: description.clone(),
-                    })
-                }
+                GroupState::Connected {
+                    name, description, ..
+                } => Some(GroupInfo {
+                    name: name.clone(),
+                    description: description.clone(),
+                }),
                 _ => None,
             })
             .collect()
     }
 
     pub fn list_failed_groups(&self) -> Vec<FailedGroupInfo> {
-        self.groups.values()
+        self.groups
+            .values()
             .filter_map(|state| match state {
-                GroupState::Failed { name, description, error } => {
-                    Some(FailedGroupInfo {
-                        name: name.clone(),
-                        description: description.clone(),
-                        error: error.clone(),
-                    })
-                }
+                GroupState::Failed {
+                    name,
+                    description,
+                    error,
+                } => Some(FailedGroupInfo {
+                    name: name.clone(),
+                    description: description.clone(),
+                    error: error.clone(),
+                }),
                 _ => None,
             })
             .collect()
     }
 
     pub fn list_tools(&self, group_name: &str) -> Result<Vec<ToolInfo>> {
-        let group = self.groups.get(group_name)
-            .context("Group not found")?;
-        
+        let group = self.groups.get(group_name).context("Group not found")?;
+
         match group {
             GroupState::Connected { tools, .. } => Ok(tools.clone()),
             GroupState::Failed { error, .. } => {
@@ -138,10 +156,14 @@ impl ModularMcpClient {
         }
     }
 
-    pub async fn call_tool(&self, group_name: &str, tool_name: &str, arguments: serde_json::Value) -> Result<serde_json::Value> {
-        let group = self.groups.get(group_name)
-            .context("Group not found")?;
-        
+    pub async fn call_tool(
+        &self,
+        group_name: &str,
+        tool_name: &str,
+        arguments: serde_json::Value,
+    ) -> Result<serde_json::Value> {
+        let group = self.groups.get(group_name).context("Group not found")?;
+
         match group {
             GroupState::Connected { transport, .. } => {
                 let request = JsonRpcRequest::new(uuid::Uuid::new_v4().to_string(), "tools/call")
@@ -149,13 +171,13 @@ impl ModularMcpClient {
                         "name": tool_name,
                         "arguments": arguments
                     }));
-                
+
                 let response = transport.send_request(&request).await?;
-                
+
                 if let Some(error) = response.error {
                     return Err(anyhow::anyhow!("Tool call failed: {}", error.message));
                 }
-                
+
                 Ok(response.result.unwrap_or(json!({})))
             }
             GroupState::Failed { error, .. } => {

@@ -161,7 +161,7 @@ cat TESTING.md
 ## 🎯 Objectives Achieved
 
 ### Original Goals (from PLAN.md)
-- ✅ Create Rust implementation of modular-mcp
+- ✅ Create Rust implementation of dynamic-mcp
 - ✅ Match TypeScript reference architecture
 - ✅ Support JSON configuration
 - ✅ Implement environment variable substitution

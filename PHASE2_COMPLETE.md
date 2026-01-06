@@ -282,7 +282,7 @@ Simply add new server entries with `"type": "http"` or `"type": "sse"`:
 Based on the roadmap, Phase 3 focuses on OAuth authentication:
 
 1. **OAuth2 Token Management**
-   - Token storage (`~/.modular-mcp/oauth-servers/`)
+   - Token storage (`~/.dynamic-mcp/oauth-servers/`)
    - Token refresh logic
    - Browser-based authorization flow
 

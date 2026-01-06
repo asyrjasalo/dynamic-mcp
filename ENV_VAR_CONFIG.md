@@ -19,19 +19,19 @@ Added support for specifying the configuration file via the `GATEWAY_MCP_CONFIG`
 
 #### Command Line (Explicit)
 ```bash
-modular-mcp config.json
+dynamic-mcp config.json
 ```
 
 #### Environment Variable
 ```bash
 export GATEWAY_MCP_CONFIG=config.json
-modular-mcp
+dynamic-mcp
 ```
 
 #### Override (CLI wins)
 ```bash
 export GATEWAY_MCP_CONFIG=default.json
-modular-mcp custom.json  # Uses custom.json, ignores env var
+dynamic-mcp custom.json  # Uses custom.json, ignores env var
 ```
 
 ### Error Messages
@@ -40,11 +40,11 @@ When no configuration is provided:
 ```
 Error: No configuration file specified
 
-Usage: modular-mcp <config-file>
-   or: GATEWAY_MCP_CONFIG=<config-file> modular-mcp
+Usage: dynamic-mcp <config-file>
+   or: GATEWAY_MCP_CONFIG=<config-file> dynamic-mcp
 
-Example: modular-mcp config.example.json
-     or: GATEWAY_MCP_CONFIG=config.example.json modular-mcp
+Example: dynamic-mcp config.example.json
+     or: GATEWAY_MCP_CONFIG=config.example.json dynamic-mcp
 ```
 
 ## Code Changes
@@ -86,15 +86,15 @@ Total: 17 tests passing (14 unit + 3 integration)
 
 ### Docker/Container Usage
 ```dockerfile
-ENV GATEWAY_MCP_CONFIG=/etc/modular-mcp/config.json
-CMD ["/usr/local/bin/modular-mcp"]
+ENV GATEWAY_MCP_CONFIG=/etc/dynamic-mcp/config.json
+CMD ["/usr/local/bin/dynamic-mcp"]
 ```
 
 ### Systemd Service
 ```ini
 [Service]
-Environment="GATEWAY_MCP_CONFIG=/etc/modular-mcp/config.json"
-ExecStart=/usr/local/bin/modular-mcp
+Environment="GATEWAY_MCP_CONFIG=/etc/dynamic-mcp/config.json"
+ExecStart=/usr/local/bin/dynamic-mcp
 ```
 
 ### Development
@@ -103,14 +103,14 @@ ExecStart=/usr/local/bin/modular-mcp
 export GATEWAY_MCP_CONFIG=config.dev.json
 
 # Switch to test config
-modular-mcp config.test.json
+dynamic-mcp config.test.json
 ```
 
 ### CI/CD
 ```yaml
 env:
   GATEWAY_MCP_CONFIG: config.ci.json
-run: modular-mcp
+run: dynamic-mcp
 ```
 
 ## Design Decisions
@@ -154,13 +154,13 @@ run: modular-mcp
 The application logs which method was used:
 
 ```
-INFO Starting modular-mcp server with config: config.json (from command line argument)
+INFO Starting dynamic-mcp server with config: config.json (from command line argument)
 ```
 
 or
 
 ```
-INFO Starting modular-mcp server with config: config.json (from GATEWAY_MCP_CONFIG environment variable)
+INFO Starting dynamic-mcp server with config: config.json (from GATEWAY_MCP_CONFIG environment variable)
 ```
 
 This helps with debugging configuration issues.
@@ -171,7 +171,7 @@ This helps with debugging configuration issues.
 
 Existing usage continues to work:
 ```bash
-modular-mcp config.json
+dynamic-mcp config.json
 ```
 
 The env var is purely additive functionality.
@@ -194,7 +194,7 @@ The env var is purely additive functionality.
 
 ```bash
 # Set config location via env var
-export GATEWAY_MCP_CONFIG=/etc/modular-mcp/config.json
+export GATEWAY_MCP_CONFIG=/etc/dynamic-mcp/config.json
 
 # Secrets in separate env vars (substituted in config)
 export API_TOKEN=secret-token-here
@@ -218,8 +218,8 @@ export API_TOKEN=secret-token-here
 Potential improvements (not implemented):
 
 1. **Config Directory Search**
-   - Check `~/.config/modular-mcp/config.json`
-   - Check `/etc/modular-mcp/config.json`
+   - Check `~/.config/dynamic-mcp/config.json`
+   - Check `/etc/dynamic-mcp/config.json`
    - Fall back to default locations
 
 2. **Multiple Config Files**

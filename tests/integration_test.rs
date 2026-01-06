@@ -6,14 +6,16 @@ fn test_project_builds() {
         .args(&["build", "--quiet"])
         .output()
         .expect("Failed to build");
-    
+
     assert!(output.status.success(), "Build should succeed");
 }
 
 #[test]
 fn test_config_example_exists() {
-    assert!(std::path::Path::new("config.example.json").exists(), 
-            "config.example.json should exist");
+    assert!(
+        std::path::Path::new("config.example.json").exists(),
+        "config.example.json should exist"
+    );
 }
 
 #[test]
@@ -22,13 +24,15 @@ fn test_binary_exists_after_build() {
         .args(&["build"])
         .output()
         .expect("Failed to build");
-    
+
     let binary_path = if cfg!(windows) {
-        "target/debug/modular-mcp.exe"
+        "target/debug/dynamic-mcp.exe"
     } else {
-        "target/debug/modular-mcp"
+        "target/debug/dynamic-mcp"
     };
-    
-    assert!(std::path::Path::new(binary_path).exists(), 
-            "Binary should exist after build");
+
+    assert!(
+        std::path::Path::new(binary_path).exists(),
+        "Binary should exist after build"
+    );
 }

@@ -1,17 +1,17 @@
 [package]
-name = "modular-mcp"
+name = "dynamic-mcp"
 version = "0.1.0"
 edition = "2021"
 rust-version = "1.75"
 authors = ["Dynamic MCP Contributors"]
 license = "MIT"
-description = "Modular MCP Proxy Server - Reduce context overhead with on-demand tool loading"
-repository = "https://github.com/yourusername/modular-mcp"
+description = "Dynamic MCP Proxy Server - Reduce context overhead with on-demand tool loading"
+repository = "https://github.com/yourusername/dynamic-mcp"
 keywords = ["mcp", "model-context-protocol", "llm", "proxy", "tools"]
 categories = ["command-line-utilities", "development-tools"]
 
 [[bin]]
-name = "modular-mcp"
+name = "dynamic-mcp"
 path = "src/main.rs"
 
 [dependencies]

@@ -74,13 +74,13 @@
 - [ ] Transport abstraction layer
 
 ### Phase 3: OAuth Authentication
-- [ ] Token storage (~/.modular-mcp/)
+- [ ] Token storage (~/.dynamic-mcp/)
 - [ ] OAuth flow implementation
 - [ ] Browser-based authentication
 - [ ] Token refresh logic
 
 ### Phase 4: Migration Command
-- [ ] `modular-mcp migrate` subcommand
+- [ ] `dynamic-mcp migrate` subcommand
 - [ ] Interactive description prompts
 - [ ] Standard MCP config parsing
 - [ ] Config file transformation

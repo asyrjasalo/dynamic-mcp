@@ -5,7 +5,7 @@ echo "=== Phase 1 Complete Integration Test ==="
 echo ""
 
 echo "1. Building release binary..."
-cargo build --release 2>&1 | grep -E "(Compiling modular-mcp|Finished)" | head -2
+cargo build --release 2>&1 | grep -E "(Compiling dynamic-mcp|Finished)" | head -2
 echo "   ✅ Build successful"
 echo ""
 
