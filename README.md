@@ -86,9 +86,24 @@ cargo build --release
 
 ### Run
 
+You can specify the configuration file in two ways:
+
+**Option 1: Command line argument**
 ```bash
 cargo run -- config.example.json
+# or with the binary
+./target/release/modular-mcp config.example.json
 ```
+
+**Option 2: Environment variable**
+```bash
+export GATEWAY_MCP_CONFIG=config.example.json
+cargo run
+# or with the binary
+./target/release/modular-mcp
+```
+
+**Note**: Command line argument takes precedence over environment variable if both are provided.
 
 ### Configuration
 
