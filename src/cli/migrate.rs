@@ -1,1 +1,106 @@
-use crate::config::{ServerConfig, StandardServerConfig};
+use crate::config::{McpServerConfig, ServerConfig, StandardServerConfig};
+use anyhow::{Context, Result};
+use std::collections::HashMap;
+use std::io::{self, Write};
+use tokio::fs;
+
+pub async fn run_migration(input_path: &str, output_path: &str) -> Result<()> {
+    println!("🔄 Starting migration from standard MCP config to dynamic-mcp format");
+    println!("📖 Reading config from: {}", input_path);
+
+    let content = fs::read_to_string(input_path)
+        .await
+        .with_context(|| format!("Failed to read input file: {}", input_path))?;
+
+    let standard_config: StandardServerConfig = serde_json::from_str(&content)
+        .with_context(|| format!("Failed to parse standard MCP config: {}", input_path))?;
+
+    println!(
+        "\n✅ Found {} MCP server(s) to migrate\n",
+        standard_config.mcp_servers.len()
+    );
+
+    let mut migrated_servers: HashMap<String, McpServerConfig> = HashMap::new();
+
+    for (name, standard_server) in standard_config.mcp_servers {
+        println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+        println!("Server: {}", name);
+        println!("Type: {}", standard_server.r#type);
+
+        let mut config_value = standard_server.config.clone();
+        if let Some(obj) = config_value.as_object_mut() {
+            obj.insert(
+                "type".to_string(),
+                serde_json::Value::String(standard_server.r#type.clone()),
+            );
+        }
+
+        let description = prompt_for_description(&name, &config_value)?;
+
+        if let Some(obj) = config_value.as_object_mut() {
+            obj.insert(
+                "description".to_string(),
+                serde_json::Value::String(description),
+            );
+        }
+
+        let migrated_server: McpServerConfig =
+            serde_json::from_value(config_value).with_context(|| {
+                format!("Failed to convert server '{}' to dynamic-mcp format", name)
+            })?;
+
+        migrated_servers.insert(name, migrated_server);
+    }
+
+    let migrated_config = ServerConfig {
+        mcp_servers: migrated_servers,
+    };
+
+    let output_json = serde_json::to_string_pretty(&migrated_config)
+        .context("Failed to serialize migrated config")?;
+
+    fs::write(output_path, output_json)
+        .await
+        .with_context(|| format!("Failed to write output file: {}", output_path))?;
+
+    println!("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    println!("✅ Migration complete!");
+    println!("📝 Output saved to: {}", output_path);
+    println!("\nYou can now use this config with:");
+    println!("  dynamic-mcp {}", output_path);
+
+    Ok(())
+}
+
+fn prompt_for_description(server_name: &str, config: &serde_json::Value) -> Result<String> {
+    println!("\nConfig details:");
+    if let Some(obj) = config.as_object() {
+        for (key, value) in obj {
+            if key != "type" {
+                println!("  {}: {}", key, value);
+            }
+        }
+    }
+
+    print!(
+        "\n💬 Enter description for '{}' (what this server does): ",
+        server_name
+    );
+    io::stdout().flush()?;
+
+    let mut description = String::new();
+    io::stdin()
+        .read_line(&mut description)
+        .context("Failed to read description from stdin")?;
+
+    let description = description.trim().to_string();
+
+    if description.is_empty() {
+        anyhow::bail!(
+            "Description cannot be empty. Please provide a meaningful description for '{}'",
+            server_name
+        );
+    }
+
+    Ok(description)
+}

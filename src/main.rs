@@ -6,7 +6,7 @@ mod server;
 mod watcher;
 
 use anyhow::Result;
-use clap::Parser;
+use clap::{Parser, Subcommand};
 use proxy::ModularMcpClient;
 use server::ModularMcpServer;
 use std::sync::Arc;
@@ -19,7 +19,24 @@ use watcher::ConfigWatcher;
 #[command(version = env!("CARGO_PKG_VERSION"))]
 #[command(about = "Dynamic MCP Proxy Server - Reduce context overhead with on-demand tool loading")]
 struct Cli {
+    #[command(subcommand)]
+    command: Option<Commands>,
+
+    /// Configuration file path (when running as server without subcommand)
     config_path: Option<String>,
+}
+
+#[derive(Subcommand)]
+enum Commands {
+    /// Migrate standard MCP config to dynamic-mcp format
+    Migrate {
+        /// Path to standard MCP config file
+        mcp_config_path: String,
+
+        /// Output path for dynamic-mcp.json
+        #[arg(short, long, default_value = "dynamic-mcp.json")]
+        output: String,
+    },
 }
 
 fn get_config_path(cli_arg: Option<String>) -> Option<(String, &'static str)> {
@@ -34,30 +51,46 @@ fn get_config_path(cli_arg: Option<String>) -> Option<(String, &'static str)> {
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    // Disable logging when running as MCP server (stdio transport)
-    // Logging to stderr interferes with JSON-RPC communication
-    tracing_subscriber::fmt()
-        .with_env_filter(
-            EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("off")),
-        )
-        .init();
-
     let cli = Cli::parse();
 
-    let (config_path, config_source) = get_config_path(cli.config_path).unwrap_or_else(|| {
-        eprintln!("Error: No configuration file specified");
-        eprintln!();
-        eprintln!("Usage: dynamic-mcp <config-file>");
-        eprintln!("   or: GATEWAY_MCP_CONFIG=<config-file> dynamic-mcp");
-        eprintln!();
-        eprintln!("Example: dynamic-mcp config.example.json");
-        eprintln!("     or: GATEWAY_MCP_CONFIG=config.example.json dynamic-mcp");
-        std::process::exit(1);
-    });
+    match cli.command {
+        Some(Commands::Migrate {
+            mcp_config_path,
+            output,
+        }) => {
+            tracing_subscriber::fmt()
+                .with_env_filter(EnvFilter::new("info"))
+                .init();
+            cli::migrate::run_migration(&mcp_config_path, &output).await
+        }
+        None => {
+            tracing_subscriber::fmt()
+                .with_env_filter(
+                    EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("off")),
+                )
+                .init();
 
+            let (config_path, config_source) =
+                get_config_path(cli.config_path).unwrap_or_else(|| {
+                    eprintln!("Error: No configuration file specified");
+                    eprintln!();
+                    eprintln!("Usage: dynamic-mcp <config-file>");
+                    eprintln!("   or: GATEWAY_MCP_CONFIG=<config-file> dynamic-mcp");
+                    eprintln!();
+                    eprintln!("Example: dynamic-mcp config.example.json");
+                    eprintln!("     or: GATEWAY_MCP_CONFIG=config.example.json dynamic-mcp");
+                    std::process::exit(1);
+                });
+
+            run_server(config_path, config_source).await
+        }
+    }
+}
+
+async fn run_server(config_path: String, config_source: &str) -> Result<()> {
     tracing::info!(
         "Starting dynamic-mcp server with config: {} (from {})",
-        config_path,
+        &config_path,
         config_source
     );
 
