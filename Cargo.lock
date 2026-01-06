@@ -994,6 +994,7 @@ dependencies = [
  "bytes",
  "clap",
  "futures",
+ "libc",
  "notify",
  "regex",
  "reqwest",

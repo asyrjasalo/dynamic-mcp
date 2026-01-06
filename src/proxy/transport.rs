@@ -29,6 +29,17 @@ impl StdioTransport {
             .stdout(Stdio::piped())
             .stderr(Stdio::null());
         
+        #[cfg(unix)]
+        {
+            use std::os::unix::process::CommandExt;
+            unsafe {
+                cmd.pre_exec(|| {
+                    libc::setpgid(0, 0);
+                    Ok(())
+                });
+            }
+        }
+        
         let mut child = cmd.spawn()
             .with_context(|| format!("Failed to spawn command: {}", command))?;
         
@@ -76,6 +87,16 @@ impl StdioTransport {
     
     pub async fn close(&mut self) -> Result<()> {
         let mut child = self.child.lock().await;
+        
+        #[cfg(unix)]
+        {
+            if let Some(pid) = child.id() {
+                unsafe {
+                    libc::kill(-(pid as i32), libc::SIGTERM);
+                }
+            }
+        }
+        
         child.kill().await?;
         Ok(())
     }
@@ -84,6 +105,15 @@ impl StdioTransport {
 impl Drop for StdioTransport {
     fn drop(&mut self) {
         if let Ok(mut child) = self.child.try_lock() {
+            #[cfg(unix)]
+            {
+                if let Some(pid) = child.id() {
+                    unsafe {
+                        libc::kill(-(pid as i32), libc::SIGKILL);
+                    }
+                }
+            }
+            
             let _ = child.start_kill();
         }
     }

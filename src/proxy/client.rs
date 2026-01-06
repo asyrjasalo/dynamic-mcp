@@ -165,8 +165,10 @@ impl ModularMcpClient {
     }
 
     pub async fn disconnect_all(&mut self) -> Result<()> {
-        for (_, state) in self.groups.drain() {
+        tracing::info!("Disconnecting {} groups", self.groups.len());
+        for (name, state) in self.groups.drain() {
             if let GroupState::Connected { mut transport, .. } = state {
+                tracing::info!("Closing transport for group: {}", name);
                 let _ = transport.close().await;
             }
         }
