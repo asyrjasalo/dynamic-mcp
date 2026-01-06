@@ -8,6 +8,9 @@ use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::process::{Child, ChildStdin, ChildStdout, Command};
 use tokio::sync::Mutex;
 
+#[cfg(windows)]
+use std::os::windows::process::CommandExt;
+
 pub struct StdioTransport {
     child: Arc<Mutex<Child>>,
     stdin: Arc<Mutex<ChildStdin>>,
@@ -34,6 +37,7 @@ impl StdioTransport {
             .stdout(Stdio::piped())
             .stderr(Stdio::null());
 
+        // Create process in new process group for proper cleanup
         #[cfg(unix)]
         {
             unsafe {
@@ -42,6 +46,13 @@ impl StdioTransport {
                     Ok(())
                 });
             }
+        }
+
+        #[cfg(windows)]
+        {
+            // CREATE_NEW_PROCESS_GROUP = 0x00000200
+            // This allows us to send Ctrl+C/Ctrl+Break to the entire process tree
+            cmd.creation_flags(0x00000200);
         }
 
         let mut child = cmd
@@ -121,15 +132,33 @@ impl StdioTransport {
     pub async fn close(&mut self) -> Result<()> {
         let mut child = self.child.lock().await;
 
+        // Attempt graceful shutdown first, then force kill
         #[cfg(unix)]
         {
             if let Some(pid) = child.id() {
                 unsafe {
+                    // Send SIGTERM to the entire process group
                     libc::kill(-(pid as i32), libc::SIGTERM);
                 }
             }
         }
 
+        #[cfg(windows)]
+        {
+            if let Some(pid) = child.id() {
+                // Send Ctrl+C event to process group for graceful shutdown
+                unsafe {
+                    use windows_sys::Win32::System::Console::GenerateConsoleCtrlEvent;
+                    // CTRL_C_EVENT = 0, pid as process group ID
+                    let _ = GenerateConsoleCtrlEvent(0, pid);
+                }
+
+                // Give process brief time to handle Ctrl+C (100ms)
+                tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+            }
+        }
+
+        // Force kill if still running
         child.kill().await?;
         Ok(())
     }
@@ -138,11 +167,32 @@ impl StdioTransport {
 impl Drop for StdioTransport {
     fn drop(&mut self) {
         if let Ok(mut child) = self.child.try_lock() {
+            // Force kill on drop (cleanup)
             #[cfg(unix)]
             {
                 if let Some(pid) = child.id() {
                     unsafe {
+                        // Send SIGKILL to entire process group
                         libc::kill(-(pid as i32), libc::SIGKILL);
+                    }
+                }
+            }
+
+            #[cfg(windows)]
+            {
+                if let Some(pid) = child.id() {
+                    // Force terminate the process and its children
+                    unsafe {
+                        use windows_sys::Win32::Foundation::CloseHandle;
+                        use windows_sys::Win32::System::Threading::{
+                            OpenProcess, TerminateProcess, PROCESS_TERMINATE,
+                        };
+
+                        let handle = OpenProcess(PROCESS_TERMINATE, 0, pid);
+                        if handle != 0 {
+                            let _ = TerminateProcess(handle, 1);
+                            CloseHandle(handle);
+                        }
                     }
                 }
             }
