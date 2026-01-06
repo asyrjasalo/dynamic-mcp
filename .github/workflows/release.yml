@@ -18,7 +18,34 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Create Release
+      - name: Extract changelog entry
+        id: changelog
+        run: |
+          VERSION="${{ github.ref_name }}"
+          VERSION_NUM="${VERSION#v}"
+          
+          # Extract the changelog section for this version
+          awk "/^## \[${VERSION_NUM}\]/{flag=1; next} /^## \[/{flag=0} flag" CHANGELOG.md > release_notes.md
+          
+          # If no changelog entry found, use auto-generated notes
+          if [ ! -s release_notes.md ]; then
+            echo "No changelog entry found for ${VERSION_NUM}"
+            echo "use_auto_notes=true" >> $GITHUB_OUTPUT
+          else
+            echo "use_auto_notes=false" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Create Release with Changelog
+        if: steps.changelog.outputs.use_auto_notes == 'false'
+        run: |
+          gh release create ${{ github.ref_name }} \
+            --title "Release ${{ github.ref_name }}" \
+            --notes-file release_notes.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Create Release with Auto Notes
+        if: steps.changelog.outputs.use_auto_notes == 'true'
         run: |
           gh release create ${{ github.ref_name }} \
             --title "Release ${{ github.ref_name }}" \
