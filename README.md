@@ -1,7 +1,7 @@
 # dynamic-mcp
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Rust](https://img.shields.io/badge/rust-1.75%2B-orange.svg)](https://www.rust-lang.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A Rust implementation of dynamic-mcp - an MCP proxy server that reduces LLM context overhead by grouping tools from multiple upstream MCP servers and loading schemas on-demand.
 
@@ -252,5 +252,6 @@ MIT License - see [LICENSE](LICENSE) for details
 
 ## Acknowledgments
 
+- TypeScript implementation: [modular-mcp](https://github.com/d-kimuson/modular-mcp)
 - MCP Specification: [Model Context Protocol](https://modelcontextprotocol.io/)
 - Rust MCP Ecosystem: [rust-mcp-stack](https://github.com/rust-mcp-stack)
