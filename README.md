@@ -1,14 +1,16 @@
 # dynamic-mcp
 
-A Rust implementation of dynamic-mcp - an MCP proxy server that reduces LLM context overhead by grouping tools from multiple upstream MCP servers and loading schemas on-demand.
+MCP proxy server that reduces LLM context overhead with on-demand tool loading from multiple upstream MCP servers.
 
 ## Quick start
 
 ### Installation
 
-Download the binary from the [releases page](https://github.com/asyrjasalo/dynamic-mcp/releases) and put it your `PATH`.
+Download the binary for your operating system from the
+[releases page](https://github.com/asyrjasalo/dynamic-mcp/releases)
+and put it in your `PATH`.
 
-Alternatively, you can install from [crates.io](https://crates.io/crates/dynamic-mcp):
+Alternatively, you may install from [crates.io](https://crates.io/crates/dynamic-mcp):
 
     cargo install dynamic-mcp
 
@@ -16,7 +18,7 @@ Then the binary will be available at `~/.cargo/bin/dynamic-mcp`.
 
 ### Setup
 
-Once `dynamic-mcp` is in PATH, configure in your agent's MCP settings:
+Once `dynamic-mcp` is in `PATH`, take it into use in your agent's MCP settings:
 
 ```json
 {
@@ -29,15 +31,15 @@ Once `dynamic-mcp` is in PATH, configure in your agent's MCP settings:
 }
 ```
 
-Or you can set `DYNAMIC_MCP_CONFIG` environment variable and not use arguments.
+Or you can set `DYNAMIC_MCP_CONFIG` environment variable and not give arguments.
 
 ### Migrate from an existing MCP config
 
-If you have an existing MCP config without description, use the migration command.
+If you have an existing MCP config without descriptions, use `migrate` command.
 
 **Note**: There is no standard MCP json format. Not all formats are supported.
 
-Migrate from existing mcp config to dynamic-mcp format:
+Migrate from an existing mcp config to dynamic-mcp format:
 
     dynamic-mcp migrate mcp.json -o dynamic-mcp.json
 
@@ -74,18 +76,18 @@ You must pass a config file:
 
     dynamic-mcp examples/config.example.json
 
-Or set config file via environment variable:
+Or set the config file via environment variable:
 
     export DYNAMIC_MCP_CONFIG=examples/config.example.json
     dynamic-mcp
 
-**Note**: Commandline argument takes precedence over environment variable.
+**Note**: Commandline arguments takes precedence over environment variables.
 
 ## Config file
 
 ### Descriptions
 
-Create a `dynamic-mcp.json` file with description for each server:
+Create a `dynamic-mcp.json` file with `description` field for each server:
 
 ```json
 {
@@ -121,6 +123,7 @@ It supports `${VAR}` syntax for environment variable interpolation:
 ### Server Types
 
 #### stdio (Default)
+
 ```json
 {
   "description": "Server description for LLM",
@@ -133,6 +136,7 @@ It supports `${VAR}` syntax for environment variable interpolation:
 ```
 
 #### http
+
 ```json
 {
   "type": "http",
@@ -145,6 +149,7 @@ It supports `${VAR}` syntax for environment variable interpolation:
 ```
 
 #### sse
+
 ```json
 {
   "type": "sse",
@@ -157,6 +162,7 @@ It supports `${VAR}` syntax for environment variable interpolation:
 ```
 
 #### OAuth Authentication (HTTP/SSE)
+
 ```json
 {
   "type": "http",
