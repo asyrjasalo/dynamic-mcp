@@ -94,7 +94,7 @@
 | **Dependencies** | 114 crates |
 | **Tests** | 46 (37 unit + 9 integration) |
 | **Test Pass Rate** | 100% ✅ |
-| **Binary Releases** | 3 platforms (Linux x86_64, macOS ARM64, Windows x86_64) |
+| **Binary Releases** | 4 platforms (Linux x86_64, Linux ARM64, macOS ARM64, Windows x86_64) |
 | **Supported Transports** | stdio, HTTP, SSE |
 | **Authentication** | OAuth2 with PKCE |
 | **CI/CD** | GitHub Actions (test, lint, build, release) |
@@ -160,22 +160,20 @@ cargo test
 
 ### Available Binary Downloads
 - ✅ **Linux x86_64** (`x86_64-unknown-linux-gnu`) - Native build
+- ✅ **Linux ARM64** (`aarch64-unknown-linux-gnu`) - Cross-compiled with `cross` tool
 - ✅ **macOS ARM64** (`aarch64-apple-darwin`) - Native build for Apple Silicon
 - ✅ **Windows x86_64** (`x86_64-pc-windows-msvc`) - Native build
 
 ### Platform Limitations
 
-#### Not Available as Binary (Build from Source Required)
-- ⚠️ **Linux ARM64** (`aarch64-unknown-linux-gnu`) - OpenSSL cross-compilation complexity
-  - **Workaround**: Users can build natively with `cargo install dynamic-mcp`
-  - **Future**: Will be addressed in future release with vendored OpenSSL or alternative approach
+#### Not Available as Binary
+- ⚠️ **macOS Intel** (`x86_64-apple-darwin`) - GitHub Actions deprecated macOS-13 runners
+  - **Workaround**: Intel Mac users can use Rosetta 2 with ARM64 binary or build from source
 
 #### Planned for Future Release
 - 🔜 **Windows ARM64** (`aarch64-pc-windows-msvc`) - Planned for v1.1.0 or later
   - Native Windows ARM support becoming more common
   - Will be added once GitHub Actions runner support improves
-- 🔜 **Linux ARM64 binaries** - Planned for v1.1.0 or later
-  - Will use vendored OpenSSL or musl-based cross-compilation
 
 ### Potential Future Enhancements
 - [ ] WebSocket transport support
@@ -194,12 +192,9 @@ cargo test
 - **No Sandboxing**: Child processes run with full privileges
 
 ### Platform Binary Availability
-- **Linux ARM64**: Pre-built binaries not available due to OpenSSL cross-compilation complexity
-  - Users on ARM64 Linux systems (servers, Raspberry Pi, cloud instances) must build from source
-  - Use `cargo install dynamic-mcp` which builds natively
-- **Windows ARM64**: Not yet supported (planned for future release)
+- **Windows ARM64**: Not yet supported (planned for future release v1.1.0+)
 - **macOS Intel**: Not included in v1.0.0 (GitHub Actions deprecated macOS-13 runners)
-  - Intel Mac users can use Rosetta 2 with ARM64 binary or build from source
+  - Intel Mac users can use Rosetta 2 with ARM64 binary or build from source with `cargo install dynamic-mcp`
 
 ## 🔍 Code Quality
 

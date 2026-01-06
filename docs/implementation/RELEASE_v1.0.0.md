@@ -17,6 +17,7 @@ cargo install dynamic-mcp
 ### Pre-built Binaries
 Download from [GitHub Releases](https://github.com/asyrjasalo/dynamic-mcp/releases/tag/v1.0.0):
 - Linux x86_64: `dynamic-mcp-x86_64-unknown-linux-gnu.tar.gz`
+- Linux ARM64: `dynamic-mcp-aarch64-unknown-linux-gnu.tar.gz`
 - macOS ARM64: `dynamic-mcp-aarch64-apple-darwin.tar.gz` (Apple Silicon)
 - Windows x86_64: `dynamic-mcp-x86_64-pc-windows-msvc.zip`
 
@@ -47,18 +48,17 @@ Download from [GitHub Releases](https://github.com/asyrjasalo/dynamic-mcp/releas
 | Platform | Architecture | Target Triple | Status |
 |----------|-------------|---------------|--------|
 | Linux | x86_64 | `x86_64-unknown-linux-gnu` | ✅ Native build |
+| Linux | ARM64 | `aarch64-unknown-linux-gnu` | ✅ Cross-compiled (rustls) |
 | macOS | ARM64 | `aarch64-apple-darwin` | ✅ Native build (Apple Silicon) |
 | Windows | x86_64 | `x86_64-pc-windows-msvc` | ✅ Native build |
 
 ### Build from Source Required
 | Platform | Architecture | Target Triple | Reason | Workaround |
 |----------|-------------|---------------|--------|------------|
-| Linux | ARM64 | `aarch64-unknown-linux-gnu` | OpenSSL cross-compilation | `cargo install dynamic-mcp` |
-| macOS | Intel | `x86_64-apple-darwin` | GitHub Actions runner retired | Use Rosetta 2 or build from source |
+| macOS | Intel | `x86_64-apple-darwin` | GitHub Actions runner retired | Use Rosetta 2 or `cargo install dynamic-mcp` |
 
 ### Planned for Future Release
 - **Windows ARM64** (`aarch64-pc-windows-msvc`) - Planned for v1.1.0+
-- **Linux ARM64 binaries** - Planned for v1.1.0+ (with vendored OpenSSL)
 
 ## 🔧 Technical Details
 
@@ -78,9 +78,9 @@ Download from [GitHub Releases](https://github.com/asyrjasalo/dynamic-mcp/releas
 ## 📝 Known Limitations
 
 ### Platform Availability
-- ARM64 Linux pre-built binaries not available due to OpenSSL cross-compilation complexity
-- Windows ARM64 not yet supported (planned for future)
-- macOS Intel binaries not included (deprecated GitHub Actions runners)
+- Windows ARM64 not yet supported (planned for v1.1.0+)
+- macOS Intel binaries not included (GitHub Actions deprecated macOS-13 runners)
+  - Intel Mac users can use Rosetta 2 with ARM64 binary
 
 ### Runtime Limitations
 - Live reload works for config changes only (binary updates require restart)
