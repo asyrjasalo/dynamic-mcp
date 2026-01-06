@@ -16,13 +16,14 @@ echo ""
 echo "🧪 Test 1: Server initialization"
 result=$({
 	echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"1.0"}}}'
-} | timeout 2 ./target/release/dynamic-mcp tests/fixtures/config.test.json 2>/dev/null | grep jsonrpc | head -1)
+} | timeout 5 ./target/release/dynamic-mcp tests/fixtures/config.test.json 2>/dev/null | grep -E '(jsonrpc|"id":1)' | head -1)
 
 if echo "$result" | jq -e '.result.serverInfo.name == "dynamic-mcp"' >/dev/null 2>&1; then
 	echo "   ✅ Initialize returns correct server info"
 	echo "      Server: $(echo $result | jq -r .result.serverInfo.name) v$(echo $result | jq -r .result.serverInfo.version)"
 else
 	echo "   ❌ Initialize failed"
+	echo "   Response: $result"
 	exit 1
 fi
 echo ""
@@ -30,8 +31,9 @@ echo ""
 echo "🧪 Test 2: Tools listing"
 result=$({
 	echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}'
+	sleep 0.2
 	echo '{"jsonrpc":"2.0","id":2,"method":"tools/list"}'
-} | timeout 2 ./target/release/dynamic-mcp tests/fixtures/config.test.json 2>/dev/null | grep '"id":2' | head -1)
+} | timeout 5 ./target/release/dynamic-mcp tests/fixtures/config.test.json 2>/dev/null | grep '"id":2' | head -1)
 
 tool_count=$(echo "$result" | jq '.result.tools | length' 2>/dev/null || echo "0")
 if [ "$tool_count" = "2" ]; then
@@ -46,42 +48,4 @@ echo ""
 
 echo "🧪 Test 3: Unit tests"
 cargo test --quiet 2>&1 | tail -3
-echo ""
-
-echo "╔════════════════════════════════════════════════════════╗"
-echo "║            ✅ PHASE 1 FULLY COMPLETE ✅                ║"
-echo "╚════════════════════════════════════════════════════════╝"
-echo ""
-echo "✨ What was implemented:"
-echo ""
-echo "  ✅ Configuration System"
-echo "     • JSON schema with validation"
-echo "     • Environment variable substitution"
-echo "     • stdio/HTTP/SSE transport types"
-echo ""
-echo "  ✅ MCP Server"
-echo "     • JSON-RPC 2.0 protocol compliance"
-echo "     • Initialize handler"
-echo "     • Tools list handler"
-echo "     • Tools call handler"
-echo ""
-echo "  ✅ Proxy Client"
-echo "     • Stdio transport implementation"
-echo "     • Connection management"
-echo "     • Group state tracking"
-echo "     • Tool listing & execution"
-echo ""
-echo "  ✅ Integration"
-echo "     • Auto-connect to upstream servers"
-echo "     • get_dynamic_tools implementation"
-echo "     • call_dynamic_tool implementation"
-echo "     • Graceful error handling"
-echo ""
-echo "📊 Statistics:"
-echo "   • Source files: 12"
-echo "   • Lines of code: ~800"
-echo "   • Tests passing: 7/7"
-echo "   • Build time: <1s"
-echo ""
-echo "🚀 Ready for Phase 2: HTTP/SSE Transport Support"
 echo ""

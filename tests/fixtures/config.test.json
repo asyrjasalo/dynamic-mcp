@@ -1,3 +1,17 @@
 {
-  "mcpServers": {}
+  "$schema": "https://raw.githubusercontent.com/d-kimuson/dynamic-mcp/refs/heads/main/config-schema.json",
+  "mcpServers": {
+    "test-server": {
+      "type": "stdio",
+      "description": "Test server modified",
+      "command": "echo",
+      "args": ["Modified config"]
+    },
+    "another-server": {
+      "type": "stdio",
+      "description": "Another test server",
+      "command": "echo",
+      "args": ["Another server"]
+    }
+  }
 }
