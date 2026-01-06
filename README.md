@@ -9,7 +9,9 @@ A Rust implementation of Modular MCP - an MCP proxy server that reduces LLM cont
 
 - **[Architecture](docs/ARCHITECTURE.md)** - System design, data flows, and component details
 - **[Migration Guide](docs/MIGRATION.md)** - Migrate from standard MCP to dynamic-mcp
-- **[Development](DEVELOPMENT.md)** - Project status, roadmap, and implementation docs
+- **[Contributing](CONTRIBUTING.md)** - Development setup and contribution guidelines
+- **[Development Status](docs/implementation/DEVELOPMENT.md)** - Project status, roadmap, and metrics
+- **[Agent Guidelines](AGENTS.md)** - For AI coding agents: how to maintain documentation
 - **[TypeScript Reference](https://github.com/d-kimuson/dynamic-mcp)** - Original implementation
 
 ## 🏗️ Architecture
@@ -279,7 +281,7 @@ RUST_LOG=debug dynamic-mcp config.json
 
 Contributions are welcome! Please see:
 - **[CONTRIBUTING.md](CONTRIBUTING.md)** - Development setup, testing, and contribution guidelines
-- **[DEVELOPMENT.md](DEVELOPMENT.md)** - Project status, roadmap, and implementation details
+- **[docs/implementation/DEVELOPMENT.md](docs/implementation/DEVELOPMENT.md)** - Project status, roadmap, and metrics
 
 ## 📄 License
 
