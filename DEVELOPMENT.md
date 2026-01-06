@@ -78,10 +78,14 @@
 
 Detailed implementation documentation is available in `docs/implementation/`:
 
+### Current Status
+- **[STATUS.md](docs/implementation/STATUS.md)** - Current implementation status and metrics
+
+### Planning & Research
 - **[PLAN.md](docs/implementation/PLAN.md)** - Complete 6-phase implementation roadmap
 - **[RESEARCH.md](docs/implementation/RESEARCH.md)** - Rust MCP SDK ecosystem research
-- **[IMPLEMENTATION_STATUS.md](docs/implementation/IMPLEMENTATION_STATUS.md)** - Current implementation status
-- **[COMPLETION_SUMMARY.md](docs/implementation/COMPLETION_SUMMARY.md)** - Summary of completed work
+
+### Feature Documentation
 - **[TESTING.md](docs/implementation/TESTING.md)** - Testing strategy and coverage
 - **[ENV_VAR_CONFIG.md](docs/implementation/ENV_VAR_CONFIG.md)** - Environment variable implementation
 - **[LIVE_RELOAD.md](docs/implementation/LIVE_RELOAD.md)** - Live reload implementation details
