@@ -6,6 +6,7 @@ rust-version = "1.75"
 authors = ["Anssi Syrjäsalo"]
 license = "MIT"
 description = "Dynamic MCP Proxy Server - Reduce context overhead with on-demand tool loading"
+readme = "README.md"
 repository = "https://github.com/asyrjasalo/dynamic-mcp"
 keywords = ["mcp", "model-context-protocol", "llm", "proxy", "tools"]
 categories = ["command-line-utilities", "development-tools"]
