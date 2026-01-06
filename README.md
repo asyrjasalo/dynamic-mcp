@@ -1,1 +1,231 @@
-# dynamic-mcp
+# Modular MCP (Rust Implementation)
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Rust](https://img.shields.io/badge/rust-1.75%2B-orange.svg)](https://www.rust-lang.org/)
+
+A Rust implementation of Modular MCP - an MCP proxy server that reduces LLM context overhead by grouping tools from multiple upstream MCP servers and loading schemas on-demand.
+
+## 🎯 Project Status
+
+**Current Phase**: Phase 1 (Foundation) ✅  
+**Next Phase**: Phase 2 (Full Implementation)
+
+### ✅ Completed
+- Project structure and build system
+- Configuration schema with JSON support
+- Environment variable substitution (`${VAR}` syntax)
+- Module organization (config, proxy, server, cli)
+- Type definitions for MCP protocol
+- Example configuration files
+- Comprehensive documentation
+
+### 🚧 In Progress
+- MCP server implementation with two-tool API
+- Stdio transport for upstream servers
+- Client connection management
+
+### 📅 Roadmap
+- [ ] Phase 1: Core proxy with stdio transport (90% complete)
+- [ ] Phase 2: HTTP/SSE transport support
+- [ ] Phase 3: OAuth authentication
+- [ ] Phase 4: Migration command
+- [ ] Phase 5: Tests & documentation
+- [ ] Phase 6: Production release
+
+## 📖 Documentation
+
+- **[Implementation Plan](docs/PLAN.md)** - Complete 6-phase implementation roadmap
+- **[Research](docs/RESEARCH.md)** - Rust MCP SDK ecosystem research
+- **[TypeScript Reference](https://github.com/d-kimuson/modular-mcp)** - Original implementation
+
+## 🏗️ Architecture
+
+```
+modular-mcp/
+├── src/
+│   ├── main.rs              # CLI entry point
+│   ├── server.rs            # MCP server (exposes 2 tools)
+│   ├── config/              # Configuration management
+│   │   ├── schema.rs        # Config data structures
+│   │   ├── loader.rs        # File loading & validation
+│   │   └── env_sub.rs       # Environment variable substitution
+│   ├── proxy/               # Upstream server management
+│   │   ├── types.rs         # Shared types
+│   │   ├── client.rs        # Group state management
+│   │   └── transport.rs     # Transport creation
+│   └── cli/                 # CLI commands
+│       └── migrate.rs       # Config migration
+├── docs/                    # Documentation
+├── config.example.json      # Example configuration
+└── Cargo.toml              # Dependencies
+```
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Rust 1.75 or higher
+- Cargo
+
+### Build
+
+```bash
+cargo build --release
+```
+
+### Run
+
+```bash
+cargo run -- config.example.json
+```
+
+### Configuration
+
+Create a `modular-mcp.json` file:
+
+```json
+{
+  "mcpServers": {
+    "filesystem": {
+      "type": "stdio",
+      "description": "Use when you need to read, write, or search files.",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/tmp"]
+    }
+  }
+}
+```
+
+### Environment Variables
+
+Supports `${VAR}` syntax for environment variable interpolation:
+
+```json
+{
+  "mcpServers": {
+    "example": {
+      "type": "stdio",
+      "description": "Example with env vars",
+      "command": "node",
+      "args": ["${HOME}/.local/bin/server.js"],
+      "env": {
+        "API_KEY": "${MY_API_KEY}"
+      }
+    }
+  }
+}
+```
+
+## 🔧 Configuration Schema
+
+### Server Types
+
+#### stdio (Default)
+```json
+{
+  "type": "stdio",
+  "description": "Server description for LLM",
+  "command": "npx",
+  "args": ["-y", "package-name"],
+  "env": {
+    "KEY": "value"
+  }
+}
+```
+
+#### http
+```json
+{
+  "type": "http",
+  "description": "HTTP server",
+  "url": "https://api.example.com",
+  "headers": {
+    "Authorization": "Bearer ${TOKEN}"
+  }
+}
+```
+
+#### sse
+```json
+{
+  "type": "sse",
+  "description": "SSE server",
+  "url": "https://api.example.com/sse",
+  "headers": {
+    "Authorization": "Bearer ${TOKEN}"
+  }
+}
+```
+
+## 🧪 Testing
+
+```bash
+# Run tests
+cargo test
+
+# Run with test coverage
+cargo test -- --test-threads=1
+
+# Run specific test
+cargo test test_substitute_env_vars
+```
+
+## 📝 Development
+
+### Code Structure
+
+- **config/**: Configuration loading, validation, and environment variable substitution
+- **proxy/**: MCP client management, group state tracking, transport creation
+- **server/**: MCP server that exposes the two-tool API
+- **cli/**: Command-line interface and migration tools
+
+### Key Features
+
+1. **Environment Variable Substitution**
+   - Supports `${VAR}` syntax only
+   - Warns on undefined variables
+   - Preserves placeholders for undefined vars
+
+2. **Type Safety**
+   - Serde-based JSON validation
+   - JSON Schema support
+   - Strongly-typed configurations
+
+3. **Modular Design**
+   - Clean separation of concerns
+   - Easy to extend with new transports
+   - Testable components
+
+## 🤝 Contributing
+
+This is a work in progress! Contributions are welcome.
+
+### Development Setup
+
+1. Clone the repository
+2. Install Rust (1.75+)
+3. Run `cargo build`
+4. Make changes
+5. Run `cargo test`
+6. Submit PR
+
+## 📄 License
+
+MIT License - see [LICENSE](LICENSE) for details
+
+## 🙏 Acknowledgments
+
+- Original TypeScript implementation: [d-kimuson/modular-mcp](https://github.com/d-kimuson/modular-mcp)
+- MCP Specification: [Model Context Protocol](https://modelcontextprotocol.io/)
+- Rust MCP Ecosystem: [rust-mcp-stack](https://github.com/rust-mcp-stack)
+
+## 📊 Project Metrics
+
+- **Lines of Code**: ~800 (Rust)
+- **Dependencies**: 20+ crates
+- **Test Coverage**: Building...
+- **Documentation**: Comprehensive
+
+---
+
+**Status**: 🚧 Under Active Development | Phase 1 (Foundation) Complete

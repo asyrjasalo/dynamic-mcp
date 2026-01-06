@@ -1,0 +1,60 @@
+[package]
+name = "modular-mcp"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.75"
+authors = ["Dynamic MCP Contributors"]
+license = "MIT"
+description = "Modular MCP Proxy Server - Reduce context overhead with on-demand tool loading"
+repository = "https://github.com/yourusername/modular-mcp"
+keywords = ["mcp", "model-context-protocol", "llm", "proxy", "tools"]
+categories = ["command-line-utilities", "development-tools"]
+
+[[bin]]
+name = "modular-mcp"
+path = "src/main.rs"
+
+[dependencies]
+# MCP Protocol Types
+rust-mcp-schema = "0.9"
+
+# Async runtime
+tokio = { version = "1", features = ["full"] }
+async-trait = "0.1"
+futures = "0.3"
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Configuration validation
+schemars = { version = "0.8", features = ["preserve_order"] }
+
+# CLI
+clap = { version = "4", features = ["derive"] }
+
+# Error handling
+anyhow = "1.0"
+thiserror = "1.0"
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# Utilities
+regex = "1"
+uuid = { version = "1.0", features = ["v4", "serde"] }
+
+# Process management  
+tokio-util = { version = "0.7", features = ["codec"] }
+bytes = "1.0"
+
+[dev-dependencies]
+tempfile = "3"
+tokio-test = "0.4"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true
