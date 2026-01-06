@@ -269,6 +269,10 @@ The binary will be available at `./target/release/dynamic-mcp`.
 
 For more details on development setup, testing, and contributing, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
+## Release History
+
+See [CHANGELOG.md](CHANGELOG.md) for version history and release notes.
+
 ## Acknowledgments
 
 - TypeScript implementation: [modular-mcp](https://github.com/d-kimuson/modular-mcp)
