@@ -123,6 +123,7 @@ Download from [GitHub Releases](https://github.com/asyrjasalo/dynamic-mcp/releas
 ## 📚 Documentation
 
 - [README](../../README.md) - Quick start and configuration
+- [CHANGELOG](../../CHANGELOG.md) - Version history and changes
 - [CONTRIBUTING](../../CONTRIBUTING.md) - Development setup
 - [SECURITY](../../SECURITY.md) - Security considerations
 - [ARCHITECTURE](../ARCHITECTURE.md) - System design
