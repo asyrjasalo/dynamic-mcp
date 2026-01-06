@@ -10,7 +10,7 @@ readme = "README.md"
 repository = "https://github.com/asyrjasalo/dynamic-mcp"
 homepage = "https://github.com/asyrjasalo/dynamic-mcp"
 documentation = "https://docs.rs/dynamic-mcp"
-keywords = ["mcp", "llm", "proxy", "model-context-protocol", "ai"]
+keywords = ["mcp", "proxy", "server", "llm", "ai"]
 categories = ["command-line-utilities", "development-tools", "api-bindings"]
 exclude = [
     ".github/*",
