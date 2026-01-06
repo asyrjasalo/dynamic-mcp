@@ -30,24 +30,23 @@ jobs:
     name: Build Release
     needs: create-release
     strategy:
+      fail-fast: false
       matrix:
         include:
+          # Native builds
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
-            artifact_name: dynamic-mcp
-            asset_name: dynamic-mcp-linux-x86_64
-          - os: macos-13
-            target: x86_64-apple-darwin
-            artifact_name: dynamic-mcp
-            asset_name: dynamic-mcp-macos-x86_64
+            use_cross: false
           - os: macos-latest
             target: aarch64-apple-darwin
-            artifact_name: dynamic-mcp
-            asset_name: dynamic-mcp-macos-aarch64
+            use_cross: false
           - os: windows-latest
             target: x86_64-pc-windows-msvc
-            artifact_name: dynamic-mcp.exe
-            asset_name: dynamic-mcp-windows-x86_64.exe
+            use_cross: false
+          # Cross-compiled builds
+          - os: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
+            use_cross: true
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -57,35 +56,48 @@ jobs:
         with:
           targets: ${{ matrix.target }}
       
+      - name: Install cross
+        if: matrix.use_cross
+        run: cargo install cross --git https://github.com/cross-rs/cross
+      
       - name: Build
-        run: cargo build --release --target ${{ matrix.target }}
+        run: |
+          if [ "${{ matrix.use_cross }}" = "true" ]; then
+            cross build --release --target ${{ matrix.target }}
+          else
+            cargo build --release --target ${{ matrix.target }}
+          fi
+        shell: bash
       
-      - name: Strip binary (Linux/macOS)
+      - name: Prepare binary name
+        id: binary
+        run: |
+          if [ "${{ matrix.os }}" = "windows-latest" ]; then
+            echo "name=dynamic-mcp.exe" >> $GITHUB_OUTPUT
+            echo "archive=dynamic-mcp-${{ matrix.target }}.zip" >> $GITHUB_OUTPUT
+          else
+            echo "name=dynamic-mcp" >> $GITHUB_OUTPUT
+            echo "archive=dynamic-mcp-${{ matrix.target }}.tar.gz" >> $GITHUB_OUTPUT
+          fi
+        shell: bash
+      
+      - name: Strip binary (Unix)
         if: matrix.os != 'windows-latest'
-        run: strip target/${{ matrix.target }}/release/${{ matrix.artifact_name }} || true
+        run: strip target/${{ matrix.target }}/release/${{ steps.binary.outputs.name }} || true
       
-      - name: Create archive (Linux/macOS)
+      - name: Create archive (Unix)
         if: matrix.os != 'windows-latest'
         run: |
           cd target/${{ matrix.target }}/release
-          tar czf ${{ matrix.asset_name }}.tar.gz ${{ matrix.artifact_name }}
-          mv ${{ matrix.asset_name }}.tar.gz ../../..
+          tar czf ../../../${{ steps.binary.outputs.archive }} ${{ steps.binary.outputs.name }}
       
       - name: Create archive (Windows)
         if: matrix.os == 'windows-latest'
         run: |
           cd target/${{ matrix.target }}/release
-          7z a ${{ matrix.asset_name }}.zip ${{ matrix.artifact_name }}
-          move ${{ matrix.asset_name }}.zip ../../..
+          7z a ../../../${{ steps.binary.outputs.archive }} ${{ steps.binary.outputs.name }}
       
-      - name: Upload Release Asset (Linux/macOS)
-        if: matrix.os != 'windows-latest'
-        run: gh release upload ${{ github.ref_name }} ${{ matrix.asset_name }}.tar.gz
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      
-      - name: Upload Release Asset (Windows)
-        if: matrix.os == 'windows-latest'
-        run: gh release upload ${{ github.ref_name }} ${{ matrix.asset_name }}.zip
+      - name: Upload Release Asset
+        run: gh release upload ${{ github.ref_name }} ${{ steps.binary.outputs.archive }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
