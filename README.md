@@ -5,78 +5,11 @@
 
 A Rust implementation of Modular MCP - an MCP proxy server that reduces LLM context overhead by grouping tools from multiple upstream MCP servers and loading schemas on-demand.
 
-## 🎯 Project Status
-
-**Current Phase**: Phase 5 (Tests & Documentation) ✅ **COMPLETE**  
-**Next Phase**: Phase 6 (Production Release)
-
-### ✅ Phase 1 Completed (100%)
-- Project structure and build system
-- Configuration schema with JSON support
-- Environment variable substitution (`${VAR}` syntax)
-- Module organization (config, proxy, server, cli)
-- Type definitions for MCP protocol
-- **MCP server with JSON-RPC 2.0 protocol**
-- **Stdio transport for upstream servers**
-- **Client connection management**
-- **Two-tool API (get-modular-tools, call-modular-tool)**
-- **Parallel upstream server connections**
-- **Error handling and graceful degradation**
-- Example configuration files
-- Comprehensive documentation
-- Integration tests
-
-### ✅ Phase 2 Completed (100%)
-- **HTTP transport support** using rmcp StreamableHttpClientTransport
-- **SSE transport support** using rmcp StreamableHttpClientTransport
-- **Unified Transport enum** supporting stdio, HTTP, and SSE
-- **Native Rust implementation** (no npx/mcp-remote dependency)
-- **Header support** for HTTP/SSE (Authorization, custom headers)
-- **Async request/response** handling for all transport types
-- Integration with rmcp v0.12 official MCP Rust SDK
-
-### ✅ Phase 3 Completed (100%)
-- **OAuth2 authentication** with PKCE flow
-- **Automatic token discovery** via `/.well-known/oauth-authorization-server`
-- **Secure token storage** in `~/.dynamic-mcp/oauth-servers/`
-- **Automatic token refresh** before expiry
-- **Browser-based authorization** flow
-- **Token injection** into HTTP/SSE transport headers
-- Support for custom OAuth scopes
-
-### ✅ Phase 4 Completed (100%)
-- **Migration command** (`dynamic-mcp migrate`)
-- **Interactive description prompts** for each server
-- **Config transformation** from standard MCP to dynamic-mcp format
-- **Preserves all server settings** (command, args, env, headers, OAuth)
-- **JSON output** with proper formatting
-
-### ✅ Phase 5 Completed (100%)
-- **Comprehensive test suite**
-  - 37 unit tests covering all modules
-  - 9 integration tests for CLI and workflows
-  - Test coverage: Config (100%), Auth (100%), Server (100%), Transport (100%)
-- **Complete documentation**
-  - Module-level Rust documentation (cargo doc)
-  - Architecture documentation with diagrams
-  - Migration guide with examples
-  - Troubleshooting guide
-  - Enhanced README with practical examples
-
-### 📅 Roadmap
-- [x] Phase 1: Core proxy with stdio transport ✅ **COMPLETE**
-- [x] Phase 2: HTTP/SSE transport support ✅ **COMPLETE**
-- [x] Phase 3: OAuth authentication ✅ **COMPLETE**
-- [x] Phase 4: Migration command ✅ **COMPLETE**
-- [x] Phase 5: Tests & documentation ✅ **COMPLETE**
-- [ ] Phase 6: Production release
-
 ## 📖 Documentation
 
-- **[Implementation Plan](docs/PLAN.md)** - Complete 6-phase implementation roadmap
 - **[Architecture](docs/ARCHITECTURE.md)** - System design, data flows, and component details
 - **[Migration Guide](docs/MIGRATION.md)** - Migrate from standard MCP to dynamic-mcp
-- **[Research](docs/RESEARCH.md)** - Rust MCP SDK ecosystem research
+- **[Development](DEVELOPMENT.md)** - Project status, roadmap, and implementation docs
 - **[TypeScript Reference](https://github.com/d-kimuson/dynamic-mcp)** - Original implementation
 
 ## 🏗️ Architecture
@@ -103,16 +36,16 @@ dynamic-mcp/
 
 ## 🚀 Quick Start
 
-### Prerequisites
-
-- Rust 1.75 or higher
-- Cargo
-
-### Build
+### Installation
 
 ```bash
+# Clone and build
+git clone https://github.com/yourusername/dynamic-mcp.git
+cd dynamic-mcp
 cargo build --release
 ```
+
+For development setup and testing, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ### Migration from Standard MCP Config
 
@@ -148,26 +81,18 @@ Config details:
 📝 Output saved to: dynamic-mcp.json
 ```
 
-### Run
+### Usage
 
-You can specify the configuration file in two ways:
-
-**Option 1: Command line argument**
 ```bash
-cargo run -- config.example.json
-# or with the binary
+# Run with config file
 ./target/release/dynamic-mcp config.example.json
-```
 
-**Option 2: Environment variable**
-```bash
+# Or use environment variable
 export GATEWAY_MCP_CONFIG=config.example.json
-cargo run
-# or with the binary
 ./target/release/dynamic-mcp
 ```
 
-**Note**: Command line argument takes precedence over environment variable if both are provided.
+**Note**: Command line argument takes precedence over environment variable.
 
 ### Configuration
 
@@ -264,18 +189,7 @@ Supports `${VAR}` syntax for environment variable interpolation:
 - Automatic token refresh before expiry
 - Token injected as `Authorization: Bearer <token>` header
 
-## 🧪 Testing
 
-```bash
-# Run tests
-cargo test
-
-# Run with test coverage
-cargo test -- --test-threads=1
-
-# Run specific test
-cargo test test_substitute_env_vars
-```
 
 ## 🔧 Troubleshooting
 
@@ -361,61 +275,11 @@ RUST_LOG=debug dynamic-mcp config.json
 - Failed groups use minimal memory
 - Large tool schemas contribute to memory usage
 
-## 📝 Development
-
-### Code Structure
-
-- **config/**: Configuration loading, validation, and environment variable substitution
-- **proxy/**: MCP client management, group state tracking, transport creation
-- **server/**: MCP server that exposes the two-tool API
-- **cli/**: Command-line interface and migration tools
-- **auth/**: OAuth2 authentication and token management
-
-### Key Features
-
-1. **Environment Variable Substitution**
-   - Supports `${VAR}` syntax only
-   - Warns on undefined variables
-   - Preserves placeholders for undefined vars
-
-2. **Type Safety**
-   - Serde-based JSON validation
-   - JSON Schema support
-   - Strongly-typed configurations
-
-3. **Modular Design**
-   - Clean separation of concerns
-   - Easy to extend with new transports
-   - Testable components
-
-### Running Tests
-
-```bash
-# All tests
-cargo test
-
-# Specific module
-cargo test config::
-
-# With output
-cargo test -- --nocapture
-
-# Integration tests only
-cargo test --test integration_test
-```
-
 ## 🤝 Contributing
 
-This is a work in progress! Contributions are welcome.
-
-### Development Setup
-
-1. Clone the repository
-2. Install Rust (1.75+)
-3. Run `cargo build`
-4. Make changes
-5. Run `cargo test`
-6. Submit PR
+Contributions are welcome! Please see:
+- **[CONTRIBUTING.md](CONTRIBUTING.md)** - Development setup, testing, and contribution guidelines
+- **[DEVELOPMENT.md](DEVELOPMENT.md)** - Project status, roadmap, and implementation details
 
 ## 📄 License
 
@@ -426,15 +290,3 @@ MIT License - see [LICENSE](LICENSE) for details
 - Original TypeScript implementation: [d-kimuson/dynamic-mcp](https://github.com/d-kimuson/dynamic-mcp)
 - MCP Specification: [Model Context Protocol](https://modelcontextprotocol.io/)
 - Rust MCP Ecosystem: [rust-mcp-stack](https://github.com/rust-mcp-stack)
-
-## 📊 Project Metrics
-
-- **Lines of Code**: ~2,500 (Rust)
-- **Dependencies**: 114 crates (including rmcp and HTTP/SSE stack)
-- **Tests**: 46 passing (37 unit + 9 integration)
-- **Test Coverage**: Config: 100%, Auth: 100%, Server: 100%, Transport: 100%
-- **Documentation**: Architecture diagrams, migration guide, API docs, troubleshooting
-
----
-
-**Status**: ✅ Phase 5 Complete | Ready for Phase 6 (Production Release)
