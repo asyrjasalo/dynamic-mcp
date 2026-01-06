@@ -37,7 +37,9 @@ impl ModularMcpClient {
 
         let description = config.description().to_string();
 
-        let transport = Transport::new(&config, &group_name)
+        // Try to create transport
+        let mut config_to_use = config.clone();
+        let mut transport = Transport::new(&config_to_use, &group_name)
             .await
             .with_context(|| format!("Failed to create transport for group: {}", group_name))?;
 
@@ -50,6 +52,7 @@ impl ModularMcpClient {
             }
         }));
 
+        // Streamable HTTP transport handles both JSON and SSE responses automatically
         transport
             .send_request(&init_request)
             .await

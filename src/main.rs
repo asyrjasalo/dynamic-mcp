@@ -113,7 +113,7 @@ async fn run_server(config_path: String, config_source: &str) -> Result<()> {
                     tracing::info!("✅ Successfully connected to MCP group: {}", group_name);
                 }
                 Err(e) => {
-                    tracing::error!("❌ Failed to connect to {}: {}", group_name, e);
+                    tracing::error!("❌ Failed to connect to {}: {:#}", group_name, e);
                     client_lock.record_failed_connection(group_name, server_config, e);
                 }
             }

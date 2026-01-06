@@ -190,13 +190,78 @@ impl HttpTransport {
             .await
             .context("Failed to send HTTP request")?;
 
+        let status = response.status();
+
+        // Check Content-Type header for SSE detection
+        let content_type = response
+            .headers()
+            .get("content-type")
+            .and_then(|v| v.to_str().ok())
+            .unwrap_or("")
+            .to_lowercase();
+
         let response_text = response
             .text()
             .await
             .context("Failed to read HTTP response")?;
 
-        let json_response: JsonRpcResponse = serde_json::from_str(&response_text)
-            .with_context(|| format!("Failed to parse HTTP response as JSON: {}", response_text))?;
+        if !status.is_success() {
+            anyhow::bail!(
+                "HTTP request failed with status {}: {}",
+                status,
+                response_text
+            );
+        }
+
+        // Handle both JSON and SSE responses according to MCP Streamable HTTP spec
+        // Server can return either Content-Type: application/json or Content-Type: text/event-stream
+        let json_response: JsonRpcResponse = if content_type.contains("text/event-stream")
+            || response_text.trim_start().starts_with("event:")
+            || response_text.trim_start().starts_with("data:")
+        {
+            // Parse SSE format: event: message\ndata: {...}
+            let mut data_content = String::new();
+            
+            for line in response_text.lines() {
+                let line = line.trim();
+                if line.is_empty() {
+                    continue;
+                }
+                
+                if let Some(data) = line.strip_prefix("data: ") {
+                    data_content.push_str(data);
+                } else if line.starts_with("event:") {
+                    // Skip event lines
+                    continue;
+                } else if line.starts_with("data:") {
+                    // Handle data without space after colon
+                    if let Some(data) = line.strip_prefix("data:") {
+                        data_content.push_str(data.trim());
+                    }
+                }
+            }
+
+            if data_content.is_empty() {
+                anyhow::bail!("No data found in SSE response: {}", response_text);
+            }
+
+            // Parse the JSON data from SSE
+            serde_json::from_str(&data_content)
+                .with_context(|| format!("Failed to parse SSE data as JSON: {}", data_content))?
+        } else {
+            // Parse plain JSON response
+            serde_json::from_str(&response_text)
+                .with_context(|| format!("Failed to parse HTTP response as JSON: {}", response_text))?
+        };
+
+        // Check for JSON-RPC errors in the response
+        if let Some(error) = &json_response.error {
+            anyhow::bail!(
+                "JSON-RPC error (code {}): {}",
+                error.code,
+                error.message
+            );
+        }
 
         Ok(json_response)
     }
@@ -207,7 +272,9 @@ impl HttpTransport {
 }
 
 pub struct SseTransport {
-    transport: Arc<Mutex<rmcp::transport::StreamableHttpClientTransport<reqwest::Client>>>,
+    client: reqwest::Client,
+    url: String,
+    headers: std::collections::HashMap<String, String>,
 }
 
 impl SseTransport {
@@ -215,51 +282,93 @@ impl SseTransport {
         url: &str,
         headers: Option<&std::collections::HashMap<String, String>>,
     ) -> Result<Self> {
-        let mut config =
-            rmcp::transport::streamable_http_client::StreamableHttpClientTransportConfig::with_uri(
-                url,
-            );
-
-        if let Some(headers_map) = headers {
-            if let Some(auth) = headers_map.get("Authorization") {
-                config.auth_header = Some(auth.clone());
-            }
-        }
+        let headers_map = headers.cloned().unwrap_or_default();
 
         Ok(Self {
-            transport: Arc::new(Mutex::new(
-                rmcp::transport::StreamableHttpClientTransport::with_client(
-                    reqwest::Client::new(),
-                    config,
-                ),
-            )),
+            client: reqwest::Client::new(),
+            url: url.to_string(),
+            headers: headers_map,
         })
     }
 
+    fn parse_sse_response(&self, sse_text: &str) -> Result<JsonRpcResponse> {
+        // Parse SSE format: event: message\ndata: {...}
+        let mut data_content = String::new();
+
+        for line in sse_text.lines() {
+            let line = line.trim();
+            if line.is_empty() {
+                continue;
+            }
+
+            if let Some(data) = line.strip_prefix("data: ") {
+                data_content.push_str(data);
+            } else if line.starts_with("event:") {
+                // Skip event lines
+                continue;
+            } else if line.starts_with("data:") {
+                // Handle data without space after colon
+                if let Some(data) = line.strip_prefix("data:") {
+                    data_content.push_str(data.trim());
+                }
+            }
+        }
+
+        if data_content.is_empty() {
+            anyhow::bail!("No data found in SSE response: {}", sse_text);
+        }
+
+        // Parse the JSON data
+        let json_response: JsonRpcResponse = serde_json::from_str(&data_content)
+            .with_context(|| format!("Failed to parse SSE data as JSON: {}", data_content))?;
+
+        Ok(json_response)
+    }
+
     pub async fn send_request(&self, request: &JsonRpcRequest) -> Result<JsonRpcResponse> {
-        use rmcp::transport::Transport as RmcpTransport;
+        let mut req = self
+            .client
+            .post(&self.url)
+            .header("Content-Type", "application/json")
+            .header("Accept", "application/json, text/event-stream");
 
-        let message = serde_json::to_value(request)?;
-        let client_message: rmcp::model::ClientJsonRpcMessage = serde_json::from_value(message)?;
+        for (key, value) in &self.headers {
+            req = req.header(key, value);
+        }
 
-        let response_message = {
-            let mut transport = self.transport.lock().await;
+        let response = req
+            .json(request)
+            .send()
+            .await
+            .context("Failed to send SSE request")?;
 
-            transport
-                .send(client_message)
-                .await
-                .context("Failed to send request via SSE transport")?;
+        let status = response.status();
+        let response_text = response
+            .text()
+            .await
+            .context("Failed to read SSE response")?;
 
-            transport
-                .receive()
-                .await
-                .ok_or_else(|| anyhow::anyhow!("Transport closed unexpectedly"))?
-        };
+        if !status.is_success() {
+            anyhow::bail!(
+                "SSE request failed with status {}: {}",
+                status,
+                response_text
+            );
+        }
 
-        let response_value = serde_json::to_value(response_message)?;
-        let response: JsonRpcResponse = serde_json::from_value(response_value)?;
+        // Parse SSE format
+        let json_response = self.parse_sse_response(&response_text)?;
 
-        Ok(response)
+        // Check for JSON-RPC errors in the response
+        if let Some(error) = &json_response.error {
+            anyhow::bail!(
+                "JSON-RPC error (code {}): {}",
+                error.code,
+                error.message
+            );
+        }
+
+        Ok(json_response)
     }
 
     pub async fn close(&mut self) -> Result<()> {
