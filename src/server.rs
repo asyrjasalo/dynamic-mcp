@@ -172,33 +172,89 @@ Example usage:
                     };
                 }
 
-                JsonRpcResponse {
-                    jsonrpc: "2.0".to_string(),
-                    id: request.id,
-                    result: Some(json!({
-                        "content": [
-                            {
-                                "type": "text",
-                                "text": format!("Tools for group '{}' would be listed here (not yet implemented)", group.unwrap())
+                let client = self.client.lock().await;
+                match client.list_tools(group.unwrap()) {
+                    Ok(tools) => {
+                        let tools_json: Vec<_> = tools.iter().map(|tool| {
+                            let mut schema = tool.input_schema.clone();
+                            if let Some(obj) = schema.as_object_mut() {
+                                obj.remove("$schema");
                             }
-                        ]
-                    })),
-                    error: None,
+                            json!({
+                                "name": tool.name,
+                                "description": tool.description,
+                                "inputSchema": schema
+                            })
+                        }).collect();
+                        
+                        JsonRpcResponse {
+                            jsonrpc: "2.0".to_string(),
+                            id: request.id,
+                            result: Some(json!({
+                                "content": [
+                                    {
+                                        "type": "text",
+                                        "text": serde_json::to_string_pretty(&tools_json).unwrap_or_else(|_| "[]".to_string())
+                                    }
+                                ]
+                            })),
+                            error: None,
+                        }
+                    }
+                    Err(e) => {
+                        JsonRpcResponse {
+                            jsonrpc: "2.0".to_string(),
+                            id: request.id,
+                            result: None,
+                            error: Some(JsonRpcError {
+                                code: -32603,
+                                message: format!("Failed to list tools: {}", e),
+                                data: None,
+                            }),
+                        }
+                    }
                 }
             }
             "call-modular-tool" => {
-                JsonRpcResponse {
-                    jsonrpc: "2.0".to_string(),
-                    id: request.id,
-                    result: Some(json!({
-                        "content": [
-                            {
-                                "type": "text",
-                                "text": "Tool execution not yet implemented"
-                            }
-                        ]
-                    })),
-                    error: None,
+                let group = arguments.get("group").and_then(|v| v.as_str());
+                let name = arguments.get("name").and_then(|v| v.as_str());
+                let args = arguments.get("args").cloned().unwrap_or(json!({}));
+                
+                if group.is_none() || name.is_none() {
+                    return JsonRpcResponse {
+                        jsonrpc: "2.0".to_string(),
+                        id: request.id,
+                        result: None,
+                        error: Some(JsonRpcError {
+                            code: -32602,
+                            message: "Missing required parameters: group and name".to_string(),
+                            data: None,
+                        }),
+                    };
+                }
+
+                let client = self.client.lock().await;
+                match client.call_tool(group.unwrap(), name.unwrap(), args).await {
+                    Ok(result) => {
+                        JsonRpcResponse {
+                            jsonrpc: "2.0".to_string(),
+                            id: request.id,
+                            result: Some(result),
+                            error: None,
+                        }
+                    }
+                    Err(e) => {
+                        JsonRpcResponse {
+                            jsonrpc: "2.0".to_string(),
+                            id: request.id,
+                            result: None,
+                            error: Some(JsonRpcError {
+                                code: -32603,
+                                message: format!("Tool execution failed: {}", e),
+                                data: None,
+                            }),
+                        }
+                    }
                 }
             }
             _ => JsonRpcResponse {

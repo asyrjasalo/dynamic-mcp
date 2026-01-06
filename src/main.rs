@@ -31,9 +31,34 @@ async fn main() -> Result<()> {
     if let Some(config_path) = cli.config_path {
         tracing::info!("Starting modular-mcp server with config: {}", config_path);
         
-        let _config = config::load_config(&config_path).await?;
+        let config = config::load_config(&config_path).await?;
         
-        let client = ModularMcpClient::new();
+        let mut client = ModularMcpClient::new();
+        
+        for (group_name, server_config) in config.mcp_servers {
+            match client.connect(group_name.clone(), server_config.clone()).await {
+                Ok(_) => {
+                    tracing::info!("✅ Successfully connected to MCP group: {}", group_name);
+                }
+                Err(e) => {
+                    tracing::error!("❌ Failed to connect to {}: {}", group_name, e);
+                    client.record_failed_connection(group_name, server_config, e);
+                }
+            }
+        }
+        
+        let groups = client.list_groups();
+        let failed = client.list_failed_groups();
+        
+        if failed.is_empty() {
+            tracing::info!("Successfully connected {} MCP groups. All groups are valid.", groups.len());
+        } else {
+            tracing::warn!(
+                "Some MCP groups failed to connect. success_groups=[{}], failed_groups=[{}]",
+                groups.iter().map(|g| &g.name).cloned().collect::<Vec<_>>().join(", "),
+                failed.iter().map(|g| &g.name).cloned().collect::<Vec<_>>().join(", ")
+            );
+        }
         
         let server = ModularMcpServer::new(
             client,
