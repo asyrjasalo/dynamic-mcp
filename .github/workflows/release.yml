@@ -187,10 +187,14 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
       
+      - name: Authenticate with crates.io via OIDC
+        uses: rust-lang/crates-io-auth-action@v1
+        id: auth
+      
       - name: Publish to crates.io
         run: cargo publish
         env:
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+          CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
 
   publish-to-pypi:
     name: Publish to PyPI
