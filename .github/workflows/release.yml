@@ -177,6 +177,22 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+  publish-to-crates-io:
+    name: Publish to crates.io
+    needs: create-release
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+      
+      - name: Publish to crates.io
+        run: cargo publish
+        continue-on-error: true
+
   publish-to-pypi:
     name: Publish to PyPI
     needs: build-python-wheels
