@@ -16,7 +16,8 @@ exclude = [
     ".github/",
     "benches/",
     "docs/implementation/",
-    "AGENTS.md"
+    "AGENTS.md",
+    "pyproject.toml"
 ]
 
 [[bin]]
