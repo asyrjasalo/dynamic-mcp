@@ -20,7 +20,7 @@ exclude = [
 ]
 
 [[bin]]
-name = "dynamic-mcp"
+name = "dmcp"
 path = "src/main.rs"
 
 [[bench]]

@@ -113,7 +113,7 @@
    ```bash
    # Run as dedicated user with minimal permissions
    useradd -r -s /bin/false dynamic-mcp
-   sudo -u dynamic-mcp /usr/local/bin/dynamic-mcp config.json
+   sudo -u dynamic-mcp /usr/local/bin/dmcp config.json
    ```
 
 2. **File Permissions**:
@@ -136,16 +136,17 @@
 4. **Monitoring**:
    ```bash
    # Enable debug logging
-   RUST_LOG=debug dynamic-mcp config.json
+   RUST_LOG=debug dmcp config.json
 
    # Monitor for anomalies
-   tail -f /var/log/dynamic-mcp.log | grep -E 'ERROR|WARN'
+   tail -f /var/log/dmcp.log | grep -E 'ERROR|WARN'
    ```
 
 5. **Regular Updates**:
    ```bash
    # Check for updates regularly
-   cargo install dynamic-mcp --force
+   pip install --upgrade dmcp
+   # or: cargo install dynamic-mcp --force
    ```
 
 ### For Developers

@@ -11,32 +11,50 @@ It maintains full functionality for upstream MCP servers and supports stdio, HTT
 
 ### Installation
 
-Download the binary for your operating system from the
-[releases page](https://github.com/asyrjasalo/dynamic-mcp/releases)
-and put it in your `PATH`.
+**Option 1: Python package**
 
-Alternatively, you may install from [crates.io](https://crates.io/crates/dynamic-mcp):
+It is available in [PyPI](https://pypi.org/project/dmcp/).
 
-    cargo install dynamic-mcp
-
-Then the binary will be available at `~/.cargo/bin/dynamic-mcp`.
-
-### Setup
-
-Once `dynamic-mcp` is in `PATH`, take it into use in your agent's MCP settings:
+Use `uvx` to install and run that package in your agent's MCP settings:
 
 ```json
 {
   "mcpServers": {
     "dynamic-mcp": {
-      "command": "dynamic-mcp",
-      "args": ["/path/to/your/dynamic-mcp.json"]
+      "command": "uvx",
+      "args": ["dmcp", "/path/to/your/dynamic-mcp.json"]
     }
   }
 }
 ```
 
-Or you can set `DYNAMIC_MCP_CONFIG` environment variable and not give arguments.
+You can also set `DYNAMIC_MCP_CONFIG=` environment variable and omit the path.
+
+**Option 2: Native binary**
+
+Download the binary for your operating system from the
+[releases page](https://github.com/asyrjasalo/dynamic-mcp/releases)
+and put it in your `PATH`:
+
+```json
+{
+  "mcpServers": {
+    "dynamic-mcp": {
+      "command": "dmcp"
+    }
+  }
+}
+```
+
+Set `DYNAMIC_MCP_CONFIG=` environment variable and omit the `args` altogether.
+
+**Option 3: Compile from source**
+
+Install it from [crates.io](https://crates.io/crates/dynamic-mcp):
+
+    cargo install dynamic-mcp
+
+The binary will be available at `~/.cargo/bin/dmcp`.
 
 ### Migrate from an existing MCP config
 
@@ -46,7 +64,7 @@ If you have an existing MCP config without descriptions, use `migrate` command.
 
 Migrate from an existing mcp config to dynamic-mcp format:
 
-    dynamic-mcp migrate mcp.json -o dynamic-mcp.json
+    dmcp migrate mcp.json -o dynamic-mcp.json
 
 The command will interactively prompt for descriptions for each server.
 
@@ -191,13 +209,13 @@ By default, errors and warnings are logged to terminal. For more verbose output:
 
 ```bash
 # Debug mode (all logs including debug-level details)
-RUST_LOG=debug dynamic-mcp config.json
+RUST_LOG=debug dmcp config.json
 
 # Info mode (includes informational messages)
-RUST_LOG=info dynamic-mcp config.json
+RUST_LOG=info dmcp config.json
 
 # Default mode (errors and warnings only, no RUST_LOG needed)
-dynamic-mcp config.json
+dmcp config.json
 ```
 
 ### OAuth Authentication Problems
@@ -277,7 +295,7 @@ cd dynamic-mcp
 cargo build --release
 ```
 
-The binary will be available at `./target/release/dynamic-mcp`.
+The binary will be available at `./target/release/dmcp`.
 
 For more details on development setup, testing, and contributing, see [CONTRIBUTING.md](CONTRIBUTING.md).
 

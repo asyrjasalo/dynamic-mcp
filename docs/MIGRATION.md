@@ -17,7 +17,7 @@ Standard MCP clients load all tool schemas from all servers upfront, consuming s
 Use the built-in migration command:
 
 ```bash
-dynamic-mcp migrate ~/.config/mcp/config.json -o dynamic-mcp.json
+dmcp migrate ~/.config/mcp/config.json -o dynamic-mcp.json
 ```
 
 **What it does**:
@@ -328,7 +328,7 @@ After migration, verify the config works:
 
 ```bash
 # Test the config
-dynamic-mcp dynamic-mcp.json
+dmcp dynamic-mcp.json
 ```
 
 You should see:
@@ -403,16 +403,16 @@ After successful migration:
 cp ~/.config/mcp/config.json ~/.config/mcp/config.json.backup
 
 # 2. Run migration
-dynamic-mcp migrate ~/.config/mcp/config.json -o dynamic-mcp.json
+dmcp migrate ~/.config/mcp/config.json -o dynamic-mcp.json
 
 # 3. Review migrated config
 cat dynamic-mcp.json
 
 # 4. Test the config
-dynamic-mcp dynamic-mcp.json
+dmcp dynamic-mcp.json
 
-# 5. If successful, update Claude/LLM config to use dynamic-mcp
-# (Replace direct MCP server config with dynamic-mcp proxy)
+# 5. If successful, update Claude/LLM config to use dmcp
+# (Replace direct MCP server config with dmcp proxy)
 
 # 6. Restart your LLM client
 ```
@@ -423,5 +423,5 @@ If you encounter issues:
 
 1. Check [ARCHITECTURE.md](ARCHITECTURE.md) for system details
 2. Review [README.md](../README.md) for configuration examples
-3. Enable debug logging: `RUST_LOG=debug dynamic-mcp config.json`
+3. Enable debug logging: `RUST_LOG=debug dmcp config.json`
 4. Open an issue with error logs and config (redact secrets!)

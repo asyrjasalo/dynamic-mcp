@@ -36,7 +36,7 @@ Simply edit your configuration file while the server is running:
 
 ```bash
 # Start the server
-./target/release/dynamic-mcp config.json
+./target/release/dmcp config.json
 
 # In another terminal, edit the config
 vim config.json
@@ -67,7 +67,7 @@ To manually test the live reload feature:
 
 2. Start the server with a test config:
    ```bash
-   ./target/release/dynamic-mcp config.example.json
+   ./target/release/dmcp config.example.json
    ```
 
 3. In another terminal, modify the config file:

@@ -19,19 +19,19 @@ Added support for specifying the configuration file via the `DYNAMIC_MCP_CONFIG`
 
 #### Command Line (Explicit)
 ```bash
-dynamic-mcp config.json
+dmcp config.json
 ```
 
 #### Environment Variable
 ```bash
 export DYNAMIC_MCP_CONFIG=config.json
-dynamic-mcp
+dmcp
 ```
 
 #### Override (CLI wins)
 ```bash
 export DYNAMIC_MCP_CONFIG=default.json
-dynamic-mcp custom.json  # Uses custom.json, ignores env var
+dmcp custom.json  # Uses custom.json, ignores env var
 ```
 
 ### Error Messages
@@ -40,11 +40,11 @@ When no configuration is provided:
 ```
 Error: No configuration file specified
 
-Usage: dynamic-mcp <config-file>
-   or: DYNAMIC_MCP_CONFIG=<config-file> dynamic-mcp
+Usage: dmcp <config-file>
+   or: DYNAMIC_MCP_CONFIG=<config-file> dmcp
 
-Example: dynamic-mcp config.example.json
-     or: DYNAMIC_MCP_CONFIG=config.example.json dynamic-mcp
+Example: dmcp config.example.json
+     or: DYNAMIC_MCP_CONFIG=config.example.json dmcp
 ```
 
 ## Code Changes
@@ -87,14 +87,14 @@ Total: 17 tests passing (14 unit + 3 integration)
 ### Docker/Container Usage
 ```dockerfile
 ENV DYNAMIC_MCP_CONFIG=/etc/dynamic-mcp/config.json
-CMD ["/usr/local/bin/dynamic-mcp"]
+CMD ["/usr/local/bin/dmcp"]
 ```
 
 ### Systemd Service
 ```ini
 [Service]
 Environment="DYNAMIC_MCP_CONFIG=/etc/dynamic-mcp/config.json"
-ExecStart=/usr/local/bin/dynamic-mcp
+ExecStart=/usr/local/bin/dmcp
 ```
 
 ### Development
@@ -103,14 +103,14 @@ ExecStart=/usr/local/bin/dynamic-mcp
 export DYNAMIC_MCP_CONFIG=config.dev.json
 
 # Switch to test config
-dynamic-mcp config.test.json
+dmcp config.test.json
 ```
 
 ### CI/CD
 ```yaml
 env:
   DYNAMIC_MCP_CONFIG: config.ci.json
-run: dynamic-mcp
+run: dmcp
 ```
 
 ## Design Decisions
@@ -171,7 +171,7 @@ This helps with debugging configuration issues.
 
 Existing usage continues to work:
 ```bash
-dynamic-mcp config.json
+dmcp config.json
 ```
 
 The env var is purely additive functionality.
