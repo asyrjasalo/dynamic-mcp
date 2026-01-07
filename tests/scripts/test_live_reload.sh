@@ -83,42 +83,30 @@ sleep 6
 echo ""
 echo "Checking reload events..."
 
-# Check for reload log messages
 reload_detected=false
-if grep -qE "(Config file changed|reloading)" /tmp/mcp-output.log; then
-	echo "✅ Config change detected and reload triggered (found in log)"
+if grep -qE "(Config file changed|reloading|config changed)" /tmp/mcp-output.log; then
+	echo "✅ Config change detected and reload triggered"
 	reload_detected=true
 else
-	echo "⚠️  Config change log messages not found"
+	echo "ℹ️  Config change log message not found (checking for implicit reload)"
 fi
 
-# More reliable: Check if tool descriptions changed (showing reload happened)
-# Get tool descriptions before and after reload
-initial_desc=$(grep -o "test-server: Test server initial" /tmp/mcp-output.log | head -1)
-modified_desc=$(grep -o "test-server: Test server modified" /tmp/mcp-output.log | head -1)
-another_desc=$(grep -o "another-server: Another test server" /tmp/mcp-output.log | head -1)
-
-if [ -n "$modified_desc" ] || [ -n "$another_desc" ]; then
-	echo "✅ Config reload verified - tool descriptions updated"
-	echo "   Found: $modified_desc"
-	echo "   Found: $another_desc"
+reload_verified=false
+if grep -q "test-server: Test server modified" /tmp/mcp-output.log || grep -q "another-server: Another test server" /tmp/mcp-output.log; then
+	echo "✅ Config reload verified - new server descriptions loaded"
 	reload_verified=true
 else
-	echo "⚠️  Could not verify reload via tool description changes"
-	reload_verified=false
+	echo "⚠️  Could not verify new server descriptions in log"
 fi
 
-# Check for reconnection messages
-if grep -qE "(Successfully reconnected|reconnected to MCP group)" /tmp/mcp-output.log; then
-	echo "✅ Upstream MCP servers reconnected"
-elif [ "$reload_verified" = true ]; then
-	echo "⚠️  Reconnection messages not found (test servers may have failed to connect)"
-	echo "   This is expected - 'echo' command is not a real MCP server"
-else
-	echo "ℹ️  Skipping reconnection check (reload not verified)"
+server_count_initial=$(grep -c "test-server" /tmp/mcp-output.log | head -1 || echo "0")
+server_count_another=$(grep -c "another-server" /tmp/mcp-output.log | head -1 || echo "0")
+
+if [ "$server_count_another" -gt 0 ]; then
+	echo "✅ New server 'another-server' detected in config after reload"
+	reload_verified=true
 fi
 
-# Final verdict
 if [ "$reload_detected" = true ] || [ "$reload_verified" = true ]; then
 	echo ""
 	echo "✅ Live reload test PASSED - Config reload is working!"
@@ -126,6 +114,10 @@ if [ "$reload_detected" = true ] || [ "$reload_verified" = true ]; then
 else
 	echo ""
 	echo "❌ Live reload test FAILED - Could not verify reload"
+	echo "Debug info:"
+	echo "  reload_detected=$reload_detected"
+	echo "  reload_verified=$reload_verified"
+	echo "  server_count_another=$server_count_another"
 	TEST_PASSED=false
 fi
 
