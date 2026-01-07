@@ -73,6 +73,8 @@ Config details:
 📝 Output saved to: dynamic-mcp.json
 ```
 
+**Note**: The migrate command respects `RUST_LOG` for controlling verbosity (same as server mode).
+
 ## Config File
 
 ### Descriptions
@@ -183,9 +185,19 @@ It supports `${VAR}` syntax for environment variable interpolation:
 - **Environment variables**: Ensure all `${VAR}` references are defined
 - **OAuth servers**: Complete OAuth flow when prompted
 
-**Debug mode**:
+**Logging**:
+
+By default, errors and warnings are logged to terminal. For more verbose output:
+
 ```bash
+# Debug mode (all logs including debug-level details)
 RUST_LOG=debug dynamic-mcp config.json
+
+# Info mode (includes informational messages)
+RUST_LOG=info dynamic-mcp config.json
+
+# Default mode (errors and warnings only, no RUST_LOG needed)
+dynamic-mcp config.json
 ```
 
 ### OAuth Authentication Problems

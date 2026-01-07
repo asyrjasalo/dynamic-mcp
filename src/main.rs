@@ -63,14 +63,16 @@ async fn main() -> Result<()> {
             output,
         }) => {
             tracing_subscriber::fmt()
-                .with_env_filter(EnvFilter::new("info"))
+                .with_env_filter(
+                    EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("warn")),
+                )
                 .init();
             cli::migrate::run_migration(&mcp_config_path, &output).await
         }
         None => {
             tracing_subscriber::fmt()
                 .with_env_filter(
-                    EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("off")),
+                    EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("warn")),
                 )
                 .init();
 
