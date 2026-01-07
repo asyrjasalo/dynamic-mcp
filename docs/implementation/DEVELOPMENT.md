@@ -73,7 +73,7 @@
 - **Dependencies**: 114 crates (including rmcp and HTTP/SSE stack)
 - **Tests**: 46 passing (37 unit + 9 integration)
 - **Test Coverage**: Config: 100%, Auth: 100%, Server: 100%, Transport: 100%
-- **Build Targets**: 5 platforms (Linux x2, macOS x2, Windows)
+- **Build Targets**: 4 platforms (Linux x86_64, Linux ARM64, macOS ARM64, Windows x86_64)
 - **Documentation**: Architecture diagrams, migration guide, API docs, security policy
 
 ## 📖 Implementation Documentation
@@ -133,4 +133,4 @@ For development setup, testing guidelines, and contribution workflow, see **[CON
 
 ---
 
-**Status**: ✅ Phase 6 Complete | Production Release v1.0.0 Ready (not yet published)
+**Status**: ✅ Phase 6 Complete | Production Release v1.0.0 Published
