@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-01-07
+
+### Added
+- Python package distribution via PyPI with maturin bindings
+- Windows ARM64 platform support in release binaries
+- CHANGELOG.md included in GitHub release notes
+
+### Changed
+- Binary renamed from `dynamic-mcp` to `dmcp` for consistency with Python package
+- Default logging level changed to `warn` (from `info`) for cleaner output
+- Improved test reliability with better config fixtures and race condition handling
+
+### Fixed
+- Migrate command now respects `RUST_LOG` environment variable
+- Removed duplicate wheel upload step in release workflow
+- Updated dependencies: switched from native-tls to rustls for better ARM64 cross-compilation
+- Snake_case tool names for better MCP protocol compliance
+- Cross-platform process group handling for graceful shutdown
+
+### Documentation
+- Comprehensive AGENTS.md guide for AI-assisted development
+- Expanded release process documentation
+- Clearer installation instructions with uvx usage examples
+- Updated README with restructured quick start and configuration sections
+
 ## [1.0.0] - 2026-01-06
 
 ### Added
@@ -64,4 +89,5 @@ cargo install dynamic-mcp
 - **Documentation**: https://docs.rs/dynamic-mcp
 - **Release Notes**: [docs/implementation/RELEASE_v1.0.0.md](docs/implementation/RELEASE_v1.0.0.md)
 
+[1.1.0]: https://github.com/asyrjasalo/dynamic-mcp/releases/tag/v1.1.0
 [1.0.0]: https://github.com/asyrjasalo/dynamic-mcp/releases/tag/v1.0.0
