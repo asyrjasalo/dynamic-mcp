@@ -43,7 +43,7 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for detailed system design.
 - **Phase**: Phase 6 Complete ✅
 - **LOC**: ~2,900 Rust
 - **Tests**: 46 (37 unit + 9 integration), 100% pass rate
-- **Platforms**: Linux (x86_64, ARM64), macOS (ARM64), Windows (x86_64)
+- **Platforms**: Linux (x86_64, ARM64), macOS (ARM64), Windows (x86_64, ARM64)
 - **Published**: [crates.io](https://crates.io/crates/dynamic-mcp), [GitHub Releases](https://github.com/asyrjasalo/dynamic-mcp/releases)
 
 ---

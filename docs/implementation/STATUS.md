@@ -94,7 +94,7 @@
 | **Dependencies** | 114 crates |
 | **Tests** | 46 (37 unit + 9 integration) |
 | **Test Pass Rate** | 100% ✅ |
-| **Binary Releases** | 4 platforms (Linux x86_64, Linux ARM64, macOS ARM64, Windows x86_64) |
+| **Binary Releases** | 5 platforms (Linux x86_64, Linux ARM64, macOS ARM64, Windows x86_64, Windows ARM64) |
 | **Supported Transports** | stdio, HTTP, SSE |
 | **Authentication** | OAuth2 with PKCE |
 | **CI/CD** | GitHub Actions (test, lint, build, release) |
@@ -163,6 +163,7 @@ cargo test
 - ✅ **Linux ARM64** (`aarch64-unknown-linux-gnu`) - Cross-compiled with `cross` tool
 - ✅ **macOS ARM64** (`aarch64-apple-darwin`) - Native build for Apple Silicon
 - ✅ **Windows x86_64** (`x86_64-pc-windows-msvc`) - Native build
+- ✅ **Windows ARM64** (`aarch64-pc-windows-msvc`) - Cross-compiled with `cross` tool
 
 ### Platform Limitations
 
@@ -170,18 +171,12 @@ cargo test
 - ⚠️ **macOS Intel** (`x86_64-apple-darwin`) - GitHub Actions deprecated macOS-13 runners
   - **Workaround**: Intel Mac users can use Rosetta 2 with ARM64 binary or build from source
 
-#### Planned for Future Release
-- 🔜 **Windows ARM64** (`aarch64-pc-windows-msvc`) - Planned for v1.1.0 or later
-  - Native Windows ARM support becoming more common
-  - Will be added once GitHub Actions runner support improves
-
 ### Potential Future Enhancements
 - [ ] WebSocket transport support
 - [ ] Configuration validation command
 - [ ] Health check endpoint
 - [ ] Metrics/observability
 - [ ] Plugin system for custom transports
-- [ ] Additional platform binaries (ARM64 Linux, Windows ARM64)
 
 ## 📝 Known Limitations
 
@@ -192,8 +187,7 @@ cargo test
 - **No Sandboxing**: Child processes run with full privileges
 
 ### Platform Binary Availability
-- **Windows ARM64**: Not yet supported (planned for future release v1.1.0+)
-- **macOS Intel**: Not included in v1.0.0 (GitHub Actions deprecated macOS-13 runners)
+- **macOS Intel**: Not included (GitHub Actions deprecated macOS-13 runners)
   - Intel Mac users can use Rosetta 2 with ARM64 binary or build from source with `cargo install dynamic-mcp`
 
 ## 🔍 Code Quality
