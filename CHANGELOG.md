@@ -46,8 +46,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - OAuth tokens stored as plain text in `~/.dynamic-mcp/oauth-servers/`
 - No built-in rate limiting for tool calls
 - Child processes inherit full privileges (no sandboxing)
-- macOS Intel not supported (use Rosetta 2 or build from source)
-- Windows ARM64 not yet supported (planned for future release)
+- macOS Intel binaries are not released (build from source)
+- Windows ARM64 binaries are not yet released (planned for future release)
 
 ### Installation
 ```bash

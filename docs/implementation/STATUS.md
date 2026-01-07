@@ -167,9 +167,9 @@ cargo test
 
 ### Platform Limitations
 
-#### Not Available as Binary
-- ⚠️ **macOS Intel** (`x86_64-apple-darwin`) - GitHub Actions deprecated macOS-13 runners
-  - **Workaround**: Intel Mac users can use Rosetta 2 with ARM64 binary or build from source
+#### Not Supported
+- ❌ **macOS Intel** (`x86_64-apple-darwin`) - Not supported
+  - Intel Mac users must build from source with `cargo install dynamic-mcp`
 
 ### Potential Future Enhancements
 - [ ] WebSocket transport support
@@ -187,8 +187,8 @@ cargo test
 - **No Sandboxing**: Child processes run with full privileges
 
 ### Platform Binary Availability
-- **macOS Intel**: Not included (GitHub Actions deprecated macOS-13 runners)
-  - Intel Mac users can use Rosetta 2 with ARM64 binary or build from source with `cargo install dynamic-mcp`
+- **macOS Intel**: Not supported
+  - Intel Mac users must build from source with `cargo install dynamic-mcp`
 
 ## 🔍 Code Quality
 
