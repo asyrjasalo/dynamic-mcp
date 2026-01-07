@@ -9,6 +9,8 @@ Thank you for your interest in contributing to dynamic-mcp! This document provid
 - Rust 1.75 or higher
 - Cargo
 - Git
+- Python 3.9+ (for Python package development)
+- Maturin (for building Python wheels)
 
 ### Development Setup
 
@@ -23,12 +25,17 @@ Thank you for your interest in contributing to dynamic-mcp! This document provid
    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
    ```
 
-3. **Build the project**
+3. **Install Python tools** (optional, for Python package work)
+   ```bash
+   pip install maturin build
+   ```
+
+4. **Build the project**
    ```bash
    cargo build
    ```
 
-4. **Run tests to verify setup**
+5. **Run tests to verify setup**
    ```bash
    cargo test
    ```
@@ -90,6 +97,33 @@ cargo bench --bench performance
 # - Tool list caching performance
 # - Parallel connection simulation
 ```
+
+### Python Package Development
+
+For working on the Python package:
+
+```bash
+# Build Python wheel
+maturin build --release
+
+# Install locally for testing
+pip install --force-reinstall target/wheels/dmcp-*.whl
+
+# Test with uvx (without installing)
+uvx --from target/wheels/dmcp-*.whl dmcp --help
+
+# Run with config
+uvx --from target/wheels/dmcp-*.whl dmcp config.json
+
+# Build for all platforms (requires cross-compilation setup)
+# See .github/workflows/release.yml for CI configuration
+```
+
+**Note**: The Python package uses maturin with `bindings = "bin"` mode, which:
+- Compiles the Rust binary directly into the wheel
+- Auto-generates the `dmcp` entry point
+- Creates platform-specific wheels (one per OS/architecture)
+- Requires no Python wrapper code
 
 ## Testing Guidelines
 

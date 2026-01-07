@@ -287,7 +287,9 @@ uvx dmcp config.json
 
 ## Building from source
 
-To build `dynamic-mcp` from source:
+### Rust Binary
+
+To build the Rust binary directly:
 
 ```bash
 git clone https://github.com/asyrjasalo/dynamic-mcp.git
@@ -296,6 +298,23 @@ cargo build --release
 ```
 
 The binary will be available at `./target/release/dmcp`.
+
+### Python Package
+
+To build the Python package (wheel):
+
+```bash
+# Install maturin
+pip install maturin
+
+# Build wheel
+maturin build --release
+
+# Install locally
+pip install target/wheels/dmcp-*.whl
+```
+
+The Python package uses **maturin** with `bindings = "bin"` to compile the Rust binary directly into the wheel.
 
 For more details on development setup, testing, and contributing, see [CONTRIBUTING.md](CONTRIBUTING.md).
 

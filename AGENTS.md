@@ -343,7 +343,7 @@ version = "1.x.x"
 
 **3. Commit and Tag**
 ```bash
-git add Cargo.toml CHANGELOG.md docs/implementation/STATUS.md
+git add Cargo.toml pyproject.toml CHANGELOG.md docs/implementation/STATUS.md
 git commit -m "chore: bump version to 1.x.x"
 git tag -a v1.x.x -m "Release v1.x.x"
 git push origin main --tags
@@ -351,14 +351,18 @@ git push origin main --tags
 
 **4. GitHub Actions Handles**
 - Automated tests on all platforms
-- Cross-platform binary builds (Linux x86_64/ARM64, macOS ARM64, Windows x86_64)
-- GitHub Release creation with binaries attached
-- crates.io publication (if configured)
+- Cross-platform binary builds (Linux x86_64/ARM64, macOS ARM64, Windows x86_64/ARM64)
+- Cross-platform Python wheel builds (5 platforms via maturin)
+- GitHub Release creation with binaries and wheels attached
+- crates.io publication (Rust package)
+- PyPI publication (Python package)
 
 **5. Verify Release**
 - [ ] GitHub Release created: https://github.com/asyrjasalo/dynamic-mcp/releases/tag/vX.X.X
-- [ ] Binaries available for download (4 platforms)
+- [ ] Binaries available for download (5 platforms)
+- [ ] Python wheels available (5 platforms)
 - [ ] crates.io updated: https://crates.io/crates/dynamic-mcp
+- [ ] PyPI updated: https://pypi.org/project/dmcp/
 - [ ] Documentation rendered correctly
 
 ### Post-Release
