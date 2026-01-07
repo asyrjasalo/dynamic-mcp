@@ -130,14 +130,25 @@ RUST_LOG=debug cargo run -- examples/config.example.json
 
 ### 3. Testing Requirements
 
+**⚠️ CRITICAL: Tests are MANDATORY for ALL new features. No exceptions.**
+
+**A feature is NOT complete until it has comprehensive tests.**
+
 **All features must include:**
 
 | Test Type | Location | When Required |
 |-----------|----------|---------------|
-| **Unit Tests** | Same file as code (`#[cfg(test)]` module) | Always for new functions/logic |
-| **Integration Tests** | `tests/` directory | For CLI commands, end-to-end workflows |
-| **Error Cases** | With unit tests | Always test failure scenarios |
-| **Edge Cases** | With unit tests | Boundary conditions, empty inputs, etc. |
+| **Unit Tests** | Same file as code (`#[cfg(test)]` module) | ✅ **MANDATORY** for new functions/logic |
+| **Integration Tests** | `tests/` directory | ✅ **MANDATORY** for CLI commands, end-to-end workflows |
+| **Error Cases** | With unit tests | ✅ **MANDATORY** - Always test failure scenarios |
+| **Edge Cases** | With unit tests | ✅ **MANDATORY** - Boundary conditions, empty inputs, etc. |
+
+**No Pull Request will be accepted without:**
+- [ ] Unit tests for all new functions/logic
+- [ ] Integration tests for user-facing features
+- [ ] Error case coverage
+- [ ] Edge case coverage
+- [ ] All tests passing (`cargo test` 100% pass rate)
 
 **Example test structure:**
 ```rust
@@ -432,14 +443,26 @@ Update ARCHITECTURE.md (if needed):
 
 ### 2. Fixing a Bug
 
+**⚠️ CRITICAL: Regression tests are MANDATORY for ALL bug fixes. No exceptions.**
+
+**A bug fix is NOT complete until it has tests that verify:**
+- [ ] The bug is actually fixed (test that previously failed now passes)
+- [ ] The fix doesn't break existing functionality (all existing tests still pass)
+- [ ] The bug cannot easily regress (test covers the specific failure case)
+
 **Required Updates:**
 1. ⚠️ **README.md** - Only if changes user-facing behavior
 2. ⚠️ **STATUS.md** - Only if removes known limitation
-3. ✅ **TESTING.md** - If adds regression tests
+3. ✅ **TESTING.md** - Always when adding regression tests (which is MANDATORY)
 
 **Example:**
 ```markdown
 Fix: OAuth token refresh failing
+
+Add regression test:
+- Write test that reproduces the original bug
+- Verify test fails without the fix
+- Verify test passes with the fix
 
 Update STATUS.md:
 - Remove "OAuth refresh token rotation not implemented" from Known Limitations
