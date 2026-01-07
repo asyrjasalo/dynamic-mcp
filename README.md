@@ -2,10 +2,9 @@
 
 MCP proxy server that reduces LLM context overhead by grouping tools from multiple upstream MCP servers and loading tool schemas on-demand.
 
-Instead of you exposing all MCP servers upfront (which can consume thousands
-of tokens), dynamic-mcp exposes only two MCP tools initially.
+Instead of requiring you to expose all MCP servers upfront (which can consume thousands of tokens), dynamic-mcp exposes only two MCP tools initially.
 
-It maintains full functionality for upstream MCP servers and supports stdio, HTTP (and SSE) transports, handles OAuth, and automatically retries failed connections.
+It maintains full functionality of upstream MCP servers, supports stdio, HTTP, and SSE transports, handles OAuth, and automatically retries failed connections.
 
 ## Quick Start
 
@@ -13,9 +12,7 @@ It maintains full functionality for upstream MCP servers and supports stdio, HTT
 
 **Option 1: Python package**
 
-It is available in [PyPI](https://pypi.org/project/dmcp/).
-
-Use `uvx` to install and run that package in your agent's MCP settings:
+Use `uvx` to run the [PyPI package](https://pypi.org/project/dmcp/) in your agent's MCP settings:
 
 ```json
 {
@@ -28,13 +25,12 @@ Use `uvx` to install and run that package in your agent's MCP settings:
 }
 ```
 
-You can also set `DYNAMIC_MCP_CONFIG=` environment variable and omit the path.
+You can set the `DYNAMIC_MCP_CONFIG` environment variable and omit the config path.
 
 **Option 2: Native binary**
 
-Download the binary for your operating system from the
-[releases page](https://github.com/asyrjasalo/dynamic-mcp/releases)
-and put it in your `PATH`:
+Download a [release](https://github.com/asyrjasalo/dynamic-mcp/releases) for
+your operating system and put `dmcp` in your `PATH`:
 
 ```json
 {
@@ -46,29 +42,30 @@ and put it in your `PATH`:
 }
 ```
 
-Set `DYNAMIC_MCP_CONFIG=` environment variable and omit the `args` altogether.
+Set the `DYNAMIC_MCP_CONFIG` environment variable and omit the `args` altogether.
 
 **Option 3: Compile from source**
 
-Install it from [crates.io](https://crates.io/crates/dynamic-mcp):
+Install from [crates.io](https://crates.io/crates/dynamic-mcp):
 
     cargo install dynamic-mcp
 
-The binary will be available at `~/.cargo/bin/dmcp`.
+The binary is then available at `~/.cargo/bin/dmcp` (`$CARGO_HOME/bin/dmcp`).
 
 ### Migrate from an existing MCP config
 
-If you have an existing MCP config without descriptions, use `migrate` command.
+If you have an existing MCP config without descriptions, use the `migrate` command.
 
-**Note**: There is no standard MCP json format. Not all formats are supported.
+**Note**: There is no standard MCP config format. Not all IDEs or agents are supported.
 
-Migrate from an existing mcp config to dynamic-mcp format:
+Migrate from an existing MCP config to the dynamic-mcp format:
 
     uvx dmcp migrate mcp.json -o dynamic-mcp.json
 
-The command will interactively prompt for descriptions for each server.
+The command will interactively prompt for descriptions for each upstream server.
 
 Example migration session:
+
 ```
 🔄 Starting migration from standard MCP config to dynamic-mcp format
 📖 Reading config from: mcp.json
@@ -91,13 +88,11 @@ Config details:
 📝 Output saved to: dynamic-mcp.json
 ```
 
-**Note**: The migrate command respects `RUST_LOG` for controlling verbosity (same as server mode).
+## Dynamic MCP format
 
-## Config File
+### Calling upstream servers on demand
 
-### Descriptions
-
-Create a `dynamic-mcp.json` file with `description` field for each server:
+Create a `dynamic-mcp.json` file with a `description` field for each server:
 
 ```json
 {
@@ -113,7 +108,7 @@ Create a `dynamic-mcp.json` file with `description` field for each server:
 
 ### Environment Variables
 
-It supports `${VAR}` syntax for environment variable interpolation:
+It supports the `${VAR}` syntax for environment variable interpolation:
 
 ```json
 {
@@ -131,6 +126,8 @@ It supports `${VAR}` syntax for environment variable interpolation:
 ```
 
 ### Server Types
+
+It supports all [standard MCP transport mechanisms](https://modelcontextprotocol.io/specification/2025-03-26/basic/transports).
 
 #### stdio (Default)
 
@@ -184,10 +181,11 @@ It supports `${VAR}` syntax for environment variable interpolation:
 ```
 
 **OAuth Flow:**
-- On first connect, browser opens for authorization
-- Access token stored in `~/.dynamic-mcp/oauth-servers/<server-name>.json`
+
+- On first connection, a browser opens for authorization
+- Access tokens are stored in `~/.dynamic-mcp/oauth-servers/<server-name>.json`
 - Automatic token refresh before expiry (with RFC 6749 token rotation support)
-- Token injected as `Authorization: Bearer <token>` header
+- The token is injected as an `Authorization: Bearer <token>` header
 
 ## Troubleshooting
 
@@ -196,16 +194,17 @@ It supports `${VAR}` syntax for environment variable interpolation:
 **Problem**: `❌ Failed to connect to <server>`
 
 **Solutions**:
-- **Automatic retry**: System retries up to 3 times with exponential backoff (2s, 4s, 8s)
+
+- **Automatic retry**: The system retries up to 3 times with exponential backoff (2s, 4s, 8s)
 - **Periodic retry**: Failed servers are retried every 30 seconds in the background
 - **Stdio servers**: Verify command exists (`which <command>`)
-- **HTTP/SSE servers**: Check server is running and URL is correct
+- **HTTP/SSE servers**: Check that the server is running and the URL is correct
 - **Environment variables**: Ensure all `${VAR}` references are defined
 - **OAuth servers**: Complete OAuth flow when prompted
 
 **Logging**:
 
-By default, errors and warnings are logged to terminal. For more verbose output:
+By default, errors and warnings are logged to the terminal. For more verbose output:
 
 ```bash
 # Debug mode (all logs including debug-level details)
@@ -220,16 +219,18 @@ uvx dmcp config.json
 
 ### OAuth Authentication Problems
 
-**Problem**: Browser doesn't open for OAuth
+**Problem**: The browser doesn't open for OAuth
 
 **Solutions**:
-- Manually open the URL shown in console
-- Check firewall allows localhost connections
+
+- Manually open the URL shown in the console
+- Check that the firewall allows localhost connections
 - Verify `oauth_client_id` is correct for the server
 
 **Problem**: Token refresh fails
 
 **Solutions**:
+
 - Delete cached token: `rm ~/.dynamic-mcp/oauth-servers/<server-name>.json`
 - Re-authenticate on next connection
 
@@ -238,6 +239,7 @@ uvx dmcp config.json
 **Problem**: Config shows `${VAR}` instead of value
 
 **Solutions**:
+
 - Use `${VAR}` syntax, not `$VAR`
 - Export variable: `export VAR=value`
 - Variable names are case-sensitive
@@ -248,15 +250,17 @@ uvx dmcp config.json
 **Problem**: `Invalid JSON in config file`
 
 **Solutions**:
+
 - Validate JSON syntax (use `jq . config.json`)
 - Check for trailing commas
-- Ensure all required fields present (`description`; `type` required only for http/sse, optional for stdio)
+- Ensure all required fields are present (`description` is always required; `type` is required only for http/sse servers)
 
 **Problem**: `Failed to resolve config path`
 
 **Solutions**:
-- Use absolute path or path relative to working directory
-- Check file exists and has read permissions
+
+- Use an absolute path or a path relative to the working directory
+- Check that the file exists and has read permissions
 - Try: `ls -la <config-path>`
 
 ### Tool Call Failures
@@ -264,9 +268,10 @@ uvx dmcp config.json
 **Problem**: Tool call returns error
 
 **Debugging**:
-1. Test tool directly with upstream server
-2. Check tool name and arguments match schema
-3. Verify group name is correct
+
+1. Test the tool directly with the upstream server
+2. Check that the tool name and arguments match the schema
+3. Verify the group name is correct
 4. Enable debug logging to see JSON-RPC messages
 
 ### Performance Issues
@@ -274,6 +279,7 @@ uvx dmcp config.json
 **Problem**: Slow startup
 
 **Solutions**:
+
 - Parallel connections already enabled
 - Check network latency for HTTP/SSE servers
 - Some servers may be slow to initialize (normal)
@@ -281,6 +287,7 @@ uvx dmcp config.json
 **Problem**: High memory usage
 
 **Solutions**:
+
 - Tools are cached in memory (expected)
 - Failed groups use minimal memory
 - Large tool schemas contribute to memory usage
@@ -297,18 +304,15 @@ cd dynamic-mcp
 cargo build --release
 ```
 
-The binary will be available at `./target/release/dmcp`.
+The binary is then available at `./target/release/dmcp`.
 
 ### Python Package
 
 To build the Python package (wheel):
 
 ```bash
-# Install maturin
-pip install maturin
-
 # Build wheel
-maturin build --release
+uvx maturin build --release
 
 # Install locally
 pip install target/wheels/dmcp-*.whl
@@ -316,7 +320,9 @@ pip install target/wheels/dmcp-*.whl
 
 The Python package uses **maturin** with `bindings = "bin"` to compile the Rust binary directly into the wheel.
 
-For more details on development setup, testing, and contributing, see [CONTRIBUTING.md](CONTRIBUTING.md).
+## Contributing
+
+For instructions on development setup, testing, and contributing, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Release History
 
