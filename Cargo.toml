@@ -5,18 +5,18 @@ edition = "2021"
 rust-version = "1.75"
 authors = ["Anssi Syrjäsalo"]
 license = "MIT"
-description = "MCP proxy server that reduces LLM context overhead with on-demand tool loading from multiple upstream servers"
+description = "MCP proxy server that reduces LLM context overhead with on-demand tool loading from multiple upstream servers."
 readme = "README.md"
 repository = "https://github.com/asyrjasalo/dynamic-mcp"
 homepage = "https://github.com/asyrjasalo/dynamic-mcp"
 documentation = "https://docs.rs/dynamic-mcp"
 keywords = ["mcp", "proxy", "server", "llm", "ai"]
-categories = ["command-line-utilities", "development-tools", "api-bindings"]
+categories = ["command-line-utilities", "development-tools", "network-programming"]
 exclude = [
-    ".github/*",
-    "benches/*",
-    "examples/*",
-    "docs/implementation/*"
+    ".github/",
+    "benches/",
+    "docs/implementation/",
+    "AGENTS.md"
 ]
 
 [[bin]]
@@ -40,8 +40,6 @@ futures = "0.3"
 
 # HTTP client for rmcp
 reqwest = { version = "0.12", default-features = false, features = ["json", "stream", "rustls-tls"] }
-
-
 
 # Serialization
 serde = { version = "1.0", features = ["derive"] }
