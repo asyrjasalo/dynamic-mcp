@@ -103,11 +103,11 @@ jobs:
         id: binary
         run: |
           if [ "${{ matrix.os }}" = "windows-latest" ]; then
-            echo "name=dynamic-mcp.exe" >> $GITHUB_OUTPUT
-            echo "archive=dynamic-mcp-${{ matrix.target }}.zip" >> $GITHUB_OUTPUT
+            echo "name=dmcp.exe" >> $GITHUB_OUTPUT
+            echo "archive=dmcp-${{ matrix.target }}.zip" >> $GITHUB_OUTPUT
           else
-            echo "name=dynamic-mcp" >> $GITHUB_OUTPUT
-            echo "archive=dynamic-mcp-${{ matrix.target }}.tar.gz" >> $GITHUB_OUTPUT
+            echo "name=dmcp" >> $GITHUB_OUTPUT
+            echo "archive=dmcp-${{ matrix.target }}.tar.gz" >> $GITHUB_OUTPUT
           fi
         shell: bash
       
