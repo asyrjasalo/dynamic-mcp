@@ -13,7 +13,7 @@ echo "   ✅ Build successful"
 echo ""
 
 echo "2. Testing initialize..."
-result=$(echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"1.0"}}}' | timeout 5 ./target/release/dynamic-mcp tests/fixtures/config.test.json 2>/dev/null | grep jsonrpc | head -1)
+result=$(echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"1.0"}}}' | timeout 5 ./target/release/dmcp tests/fixtures/config.test.json 2>/dev/null | grep jsonrpc | head -1)
 if echo "$result" | grep -q '"protocolVersion".*"2024-11-05"'; then
     echo "   ✅ Initialize successful"
     echo "   Response: $(echo $result | jq -c .result.serverInfo 2>/dev/null || echo 'N/A')"
@@ -30,7 +30,7 @@ result=$({
     sleep 0.1
     echo '{"jsonrpc":"2.0","id":2,"method":"tools/list"}';
     sleep 0.5
-} | timeout 5 ./target/release/dynamic-mcp tests/fixtures/config.test.json 2>/dev/null | grep jsonrpc | tail -1)
+} | timeout 5 ./target/release/dmcp tests/fixtures/config.test.json 2>/dev/null | grep jsonrpc | tail -1)
 
 if echo "$result" | grep -q 'get_dynamic_tools'; then
     echo "   ✅ Tools list successful"

@@ -64,7 +64,7 @@ If you have an existing MCP config without descriptions, use `migrate` command.
 
 Migrate from an existing mcp config to dynamic-mcp format:
 
-    dmcp migrate mcp.json -o dynamic-mcp.json
+    uvx dmcp migrate mcp.json -o dynamic-mcp.json
 
 The command will interactively prompt for descriptions for each server.
 

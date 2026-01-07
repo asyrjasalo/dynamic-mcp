@@ -16,7 +16,7 @@ echo ""
 echo "🧪 Test 1: Server initialization"
 result=$({
 	echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"1.0"}}}'
-} | timeout 5 ./target/release/dynamic-mcp tests/fixtures/config.test.json 2>/dev/null | grep -E '(jsonrpc|"id":1)' | head -1)
+} | timeout 5 ./target/release/dmcp tests/fixtures/config.test.json 2>/dev/null | grep -E '(jsonrpc|"id":1)' | head -1)
 
 if echo "$result" | jq -e '.result.serverInfo.name == "dynamic-mcp"' >/dev/null 2>&1; then
 	echo "   ✅ Initialize returns correct server info"
@@ -33,7 +33,7 @@ result=$({
 	echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}'
 	sleep 0.2
 	echo '{"jsonrpc":"2.0","id":2,"method":"tools/list"}'
-} | timeout 5 ./target/release/dynamic-mcp tests/fixtures/config.test.json 2>/dev/null | grep '"id":2' | head -1)
+} | timeout 5 ./target/release/dmcp tests/fixtures/config.test.json 2>/dev/null | grep '"id":2' | head -1)
 
 tool_count=$(echo "$result" | jq '.result.tools | length' 2>/dev/null || echo "0")
 if [ "$tool_count" = "2" ]; then

@@ -28,9 +28,9 @@ fn test_binary_exists_after_build() {
         .expect("Failed to build");
 
     let binary_path = if cfg!(windows) {
-        "target/debug/dynamic-mcp.exe"
+        "target/debug/dmcp.exe"
     } else {
-        "target/debug/dynamic-mcp"
+        "target/debug/dmcp"
     };
 
     assert!(

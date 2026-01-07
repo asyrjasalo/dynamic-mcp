@@ -38,7 +38,7 @@ echo "Starting dynamic-mcp in background..."
 		sleep 1
 		echo '{"jsonrpc":"2.0","id":999,"method":"tools/list"}' 2>/dev/null || break
 	done
-) | ./target/release/dynamic-mcp "$TEST_CONFIG" >/tmp/mcp-output.log 2>&1 &
+) | ./target/release/dmcp "$TEST_CONFIG" >/tmp/mcp-output.log 2>&1 &
 MCP_PID=$!
 
 echo "MCP started with PID: $MCP_PID"
