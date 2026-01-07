@@ -8,7 +8,6 @@ license = "MIT"
 description = "MCP proxy server that reduces LLM context overhead with on-demand tool loading from multiple upstream servers."
 readme = "README.md"
 repository = "https://github.com/asyrjasalo/dynamic-mcp"
-homepage = "https://github.com/asyrjasalo/dynamic-mcp"
 documentation = "https://docs.rs/dynamic-mcp"
 keywords = ["mcp", "proxy", "server", "llm", "ai"]
 categories = ["command-line-utilities", "development-tools", "network-programming"]
