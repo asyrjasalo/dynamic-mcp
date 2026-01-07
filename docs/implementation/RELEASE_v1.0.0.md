@@ -1,6 +1,6 @@
 # Release v1.0.0 - Production Release
 
-**Release Date**: January 6, 2026  
+**Release Date**: January 6, 2026
 **Status**: ✅ Published
 
 ## 🎉 Highlights
@@ -55,7 +55,7 @@ Download from [GitHub Releases](https://github.com/asyrjasalo/dynamic-mcp/releas
 ### Build from Source Required
 | Platform | Architecture | Target Triple | Reason | Workaround |
 |----------|-------------|---------------|--------|------------|
-| macOS | Intel | `x86_64-apple-darwin` | GitHub Actions runner retired | Use Rosetta 2 or `cargo install dynamic-mcp` |
+| macOS | Intel | `x86_64-apple-darwin` | GitHub Actions runner retired | Use `cargo install dynamic-mcp` |
 
 ### Planned for Future Release
 - **Windows ARM64** (`aarch64-pc-windows-msvc`) - Planned for v1.1.0+
@@ -80,7 +80,7 @@ Download from [GitHub Releases](https://github.com/asyrjasalo/dynamic-mcp/releas
 ### Platform Availability
 - Windows ARM64 not yet supported (planned for v1.1.0+)
 - macOS Intel binaries not included (GitHub Actions deprecated macOS-13 runners)
-  - Intel Mac users can use Rosetta 2 with ARM64 binary
+  - Intel Mac users can build from source
 
 ### Runtime Limitations
 - Live reload works for config changes only (binary updates require restart)
