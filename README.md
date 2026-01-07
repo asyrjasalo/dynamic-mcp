@@ -209,13 +209,13 @@ By default, errors and warnings are logged to terminal. For more verbose output:
 
 ```bash
 # Debug mode (all logs including debug-level details)
-RUST_LOG=debug dmcp config.json
+RUST_LOG=debug uvx dmcp config.json
 
 # Info mode (includes informational messages)
-RUST_LOG=info dmcp config.json
+RUST_LOG=info uvx dmcp config.json
 
 # Default mode (errors and warnings only, no RUST_LOG needed)
-dmcp config.json
+uvx dmcp config.json
 ```
 
 ### OAuth Authentication Problems
