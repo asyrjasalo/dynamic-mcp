@@ -42,7 +42,7 @@
 ### ✅ Phase 4 Completed (100%)
 - **Import command** (`dynamic-mcp import`)
 - **Interactive description prompts** for each server
-- **Config transformation** from standard MCP to dynamic-mcp format
+- **Config import** from AI coding tools to dynamic-mcp format
 - **Preserves all server settings** (command, args, env, headers, OAuth)
 - **JSON output** with proper formatting
 

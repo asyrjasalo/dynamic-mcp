@@ -40,7 +40,7 @@
 ### Phase 4: Import Command
 - [x] `dynamic-mcp import` subcommand
 - [x] Interactive description prompts for each server
-- [x] Config transformation from standard MCP to dynamic-mcp format
+- [x] Config import from AI coding tools to dynamic-mcp format
 - [x] Preserves all server settings (command, args, env, headers, OAuth)
 - [x] JSON output with proper formatting
 

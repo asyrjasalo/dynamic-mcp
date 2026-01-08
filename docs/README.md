@@ -5,7 +5,7 @@ This directory contains comprehensive documentation for dynamic-mcp.
 ## Documentation Index
 
 - **[Architecture](ARCHITECTURE.md)** - System design, data flows, and component details
-- **[Import Guide](IMPORT.md)** - Import from standard MCP to dynamic-mcp
+- **[Import Guide](IMPORT.md)** - Import from AI coding tools to dynamic-mcp
 - **[Contributing](../CONTRIBUTING.md)** - Development setup and contribution guidelines
 - **[Development Status](implementation/DEVELOPMENT.md)** - Project status, roadmap, and metrics
 - **[Agent Guidelines](../AGENTS.md)** - For AI coding agents: how to maintain documentation

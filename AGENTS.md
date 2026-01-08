@@ -16,7 +16,7 @@
 - **Authentication**: OAuth2 with PKCE, automatic token refresh, RFC 6749 compliant
 - **Reliability**: Automatic retry with exponential backoff, periodic reconnection for failed servers
 - **Live Reload**: Configuration file watching with automatic reconnection
-- **Import**: Interactive command to import from standard MCP configs
+- **Import**: Interactive command to import from AI coding tools
 
 ### Architecture
 ```
@@ -255,7 +255,7 @@ cargo test -- --test-threads=1
 
 **Architecture Documentation (docs/)**
 - **ARCHITECTURE.md**: System design, data flows, component details
-- **IMPORT.md**: Import guide from standard MCP
+- **IMPORT.md**: Import guide from AI coding tools
 
 **Implementation Documentation (docs/implementation/)**
 - **STATUS.md**: Current metrics, features, limitations
@@ -403,7 +403,7 @@ git push origin main --tags
 | File | Purpose | Update When |
 |------|---------|-------------|
 | **ARCHITECTURE.md** | System design, data flows, component details | Adding new modules, changing core architecture, modifying data flows |
-| **IMPORT.md** | Import guide from standard MCP | Changing config format, adding new import features |
+| **IMPORT.md** | Import guide from AI coding tools | Changing config format, adding new import features |
 
 ### Implementation Documentation (docs/implementation/)
 
@@ -533,7 +533,7 @@ Update docs/implementation/STATUS.md:
 
 **Required Updates:**
 1. ✅ **README.md** - Update configuration examples
-2. ✅ **IMPORT.md** - If affects import from standard MCP
+2. ✅ **IMPORT.md** - If affects import from AI coding tools
 3. ⚠️ **STATUS.md** - If adds significant new capability
 
 **Example:**
@@ -657,8 +657,16 @@ Legend: ✅ Always update | ⚠️ Update if applicable | ❌ Usually no update
 - **Historical phase completion docs** (PHASE1-5_COMPLETE.md)
 - **PLAN.md** - Original planning document
 - **RESEARCH.md** - Initial research document
+- **Previous release entries in CHANGELOG.md** - Only add new releases at the top, never modify historical entries
 
 These are historical records and should remain unchanged.
+
+**CHANGELOG.md Guidelines:**
+- ✅ Add new release entries at the top (after the header)
+- ✅ Follow [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format
+- ❌ NEVER modify entries for previous releases (1.0.0, 1.1.0, etc.)
+- ❌ NEVER update historical descriptions even if they're outdated
+- Historical accuracy is more important than current correctness for past releases
 
 ## 🔍 Verification Checklist
 

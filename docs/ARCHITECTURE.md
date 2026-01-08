@@ -173,7 +173,7 @@ config.json → load_config() → substitute_env_vars() → ServerConfig
 
 **Commands**:
 - `dynamic-mcp <config.json>`: Start server with config
-- `dynamic-mcp import <input.json> -o <output.json>`: Import standard MCP config
+- `dynamic-mcp import <tool-name>`: Import MCP configs from AI coding tools
 
 **Import Process**:
 ```

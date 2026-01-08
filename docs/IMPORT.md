@@ -417,7 +417,7 @@ Some MCP groups failed to connect. success_groups=[...], failed_groups=[...]
 
 If import causes issues, you can:
 
-1. **Keep both configs**: Use standard config with standard MCP client
+1. **Keep both configs**: Use original tool config with the original MCP client
 2. **Revert**: Delete `dynamic-mcp.json`, use original config
 3. **Fix forward**: Adjust descriptions or types in importd config
 
