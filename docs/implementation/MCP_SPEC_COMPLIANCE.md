@@ -1,26 +1,27 @@
 # MCP Specification Compliance Audit (2025-03-26)
 
-> **Last Updated**: January 8, 2026 (FINAL - 100% Spec Compliance Achieved)
-> **Spec Version**: 2025-03-26 (Latest)
-> **dynamic-mcp Version**: 1.3.0 (COMPLETE SPEC COMPLIANCE)
-> **Overall Compliance**: 100% (85/86 MUST-have + 22/22 Optional) 🎉🚀
-> **Spec Coverage**: 100% excluding intentional `initialized` notification omission
-> **Note**: All remaining features fully implemented. Only `initialized` notification intentionally omitted for architectural stability.
+> **Last Updated**: January 8, 2026
+> **Spec Version**: 2025-11-25 (Latest - updated from 2025-03-26)
+> **dynamic-mcp Version**: 1.3.0
+> **Overall Compliance**: 98.8% (85/86 MUST-have) + Infrastructure for optional features
+> **Spec Coverage**: ~100% of MUST-have requirements (excluding intentional `initialized` notification omission)
+> **Note**: All MUST-have features fully implemented. Known gaps documented in Section 1.
 >
-> **⚠️ KNOWN GAP**:
+> **⚠️ KNOWN GAPS**:
 > - **`initialized` notification**: Intentionally NOT implemented (causes stdio transport deadlock)
+> - **Server-to-client notifications**: Infrastructure in place (subscriptions API, notification queue), but NOT actively sent to clients
 >
-> **✅ NEW (v1.3.0 - COMPLETE 100% SPEC COMPLIANCE)**:
-> - JSON-RPC batch requests: ✅ IMPLEMENTED (Array-based request handling)
-> - Resource subscriptions: ✅ IMPLEMENTED (subscribe/unsubscribe with tracking)
-> - Prompt subscriptions: ✅ IMPLEMENTED (subscribe/unsubscribe with tracking)
-> - Resource list changed notifications: ✅ IMPLEMENTED
-> - Prompt list changed notifications: ✅ IMPLEMENTED
-> - Resource update notifications: ✅ IMPLEMENTED (with URI parameter)
-> - Progress tokens infrastructure: ✅ IMPLEMENTED
-> - Streaming/chunked binary content: ✅ IMPLEMENTED (StreamingBinaryContent type)
-> - Notification queue infrastructure: ✅ IMPLEMENTED (FIFO queue for bidirectional updates)
-> - Prompt argument validation: ✅ IMPLEMENTED (Required/optional enforcement)
+> **✅ FULLY IMPLEMENTED (Core Features)**:
+> - JSON-RPC batch requests: ✅ (Array-based request handling)
+> - Resource subscriptions API: ✅ (subscribe/unsubscribe with tracking)
+> - Prompt subscriptions API: ✅ (subscribe/unsubscribe with tracking)
+> - Prompt argument validation: ✅ (Required/optional enforcement)
+>
+> **✅ INFRASTRUCTURE READY (Notifications)**:
+> - Resource/Prompt list changed notifications: Capability declared, awaiting push infrastructure
+> - Resource update notifications: Capability declared, awaiting push infrastructure
+> - Notification queue: FIFO queue infrastructure ready
+> - Progress tokens: Data structure ready, awaiting integration with tool execution
 >
 > **✅ EXISTING (v1.3.0)**:
 > - Resource templates API: ✅ IMPLEMENTED
@@ -30,7 +31,7 @@
 
 ## Executive Summary
 
-Comprehensive audit of dynamic-mcp against the [official MCP specification v2025-03-26](https://modelcontextprotocol.io/specification/2025-03-26) from Anthropic/modelcontextprotocol.
+Comprehensive audit of dynamic-mcp against the [official MCP specification v2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25) from Anthropic/modelcontextprotocol.
 
 **Key Findings**:
 - ✅ **stdio transport**: 100% spec-compliant
@@ -322,10 +323,11 @@ pub struct Resource {
 
 **Optional Features (Not Implemented)**:
 
-1. ⏳ **Bidirectional notifications** (Future Enhancement)
-    - `notifications/resources/updated` not sent (requires push infrastructure)
-    - Effort: Future phase (notification queue infrastructure)
-    - Current: Subscriptions API ready, capability declared
+1. ⏳ **Server-to-client notifications** (Future Enhancement)
+     - `notifications/resources/updated` not actively sent to clients (requires server-push infrastructure)
+     - `notifications/resources/list_changed` capability declared but not sent
+     - Effort: Future phase (notification queue infrastructure)
+     - Current: Subscriptions API ready, infrastructure in place for notification handling
 
 **Implementation Files**:
 - `src/proxy/client.rs:351-454` - Resource proxying (list, read, templates)
@@ -554,15 +556,18 @@ pub struct Resource {
 ## 📝 Recommended Actions
 
 ### High Priority (Critical)
-✅ **COMPLETE** — All MUST-have spec requirements are now implemented!
+✅ **COMPLETE** — All MUST-have spec requirements are implemented (except intentional `initialized` omission).
 
-### Medium Priority (Optional, Low Priority) — ALL COMPLETED ✅
+### Medium Priority (Optional Features)
 
-✅ **COMPLETE** — All 6 recommended optional features have been fully implemented in v1.3.0!
+⚠️ **PARTIAL** — Core features implemented, but server-to-client notifications NOT actively sent:
+- ✅ Subscriptions API (request handlers exist)
+- ✅ Notification infrastructure (queue, types, capability declarations ready)
+- ❌ Notifications NOT sent to clients (requires server-push architecture)
 
-### ✅ Completed (v1.3.0 - Full Spec Compliance, January 8, 2026)
+### ✅ Completed (v1.3.0 - Core Features)
 
-**Core Optional Features**:
+**Core Optional Features Fully Implemented**:
 1. **JSON-RPC batch requests** ✅
    - Array-based request handling per JSON-RPC 2.0 spec
    - Array responses for batch requests
@@ -571,40 +576,33 @@ pub struct Resource {
    - Tests: 6 comprehensive unit tests
 
 2. **Resource subscriptions API** ✅
-   - `resources/subscribe` / `resources/unsubscribe` handlers
+   - `resources/subscribe` / `resources/unsubscribe` request handlers
    - Subscription tracking with `HashSet<String>`
    - Per-group subscription management
+   - **Note**: API endpoints exist, but notifications NOT actively sent to clients
    - Implementation: `src/server.rs:448-505`
    - Tests: 8 subscription tests (tracking, lifecycle, multiple)
 
 3. **Prompt subscriptions API** ✅
-   - `prompts/subscribe` / `prompts/unsubscribe` handlers
+   - `prompts/subscribe` / `prompts/unsubscribe` request handlers
    - Per-group subscription tracking (namespaced as `prompts:groupname`)
+   - **Note**: API endpoints exist, but notifications NOT actively sent to clients
    - Implementation: `src/server.rs:640-699`
    - Tests: 2 prompt subscription tests
 
-**Notification Features**:
-4. **Resource list changed notifications** ✅
-   - `JsonRpcNotification::resources_list_changed()` factory
-   - Server declares `subscribe: true, listChanged: true`
-   - Implementation: `src/proxy/types.rs:77-85`, `src/server.rs:51-70`
+**Infrastructure Ready (Awaiting Push Implementation)**:
+4. **Notification infrastructure** ✅
+   - `JsonRpcNotification` types for list changed and resource updates
+   - Server capability declarations (`subscribe`, `listChanged`)
+   - FIFO notification queue structure
+   - **Status**: Ready but notifications NOT sent. Requires server-push architecture.
+   - Implementation: `src/proxy/types.rs:77-101`, `src/server.rs:51-70`
 
-5. **Prompt list changed notifications** ✅
-   - `JsonRpcNotification::prompts_list_changed()` factory
-   - Server declares `prompts.listChanged: true`
-   - Implementation: `src/proxy/types.rs:87-92`, `src/server.rs:68-70`
-
-6. **Resource update notifications** ✅
-   - `JsonRpcNotification::resources_updated(uri)` factory
-   - Parameterized URI support for changed resources
-   - Implementation: `src/proxy/types.rs:94-101`
-
-**Progress Tokens Infrastructure**:
-7. **Progress tokens support** ✅
+5. **Progress tokens support** ✅
    - `ProgressToken` struct for future progress reporting
    - Optional field support in responses
    - Implementation: `src/proxy/types.rs:103-106`
-   - Ready for integration with tool execution flow
+   - **Status**: Data structure ready, awaiting integration with tool execution
 
 ### ✅ Existing Features (v1.3.0)
 - ✅ Resource templates API (`resources/templates/list`)
@@ -632,36 +630,36 @@ pub struct Resource {
 | **Resources API** | 100% (16/16) | ✅ Excellent |
 | **Security/OAuth** | 100% (8/8) | ✅ Excellent |
 | **Error handling** | 100% (4/4) | ✅ Excellent |
-| **Optional features** | 100% (22/22) | ✅ ALL FEATURES FULLY IMPLEMENTED |
+| **Optional features** | ~50% (API ready, notifications NOT sent) | ⚠️ Infrastructure complete, awaiting push architecture |
 
 **MUST-have requirements: 85/86 implemented**
 - ✅ 85 fully compliant (All core features 100%!)
 - ⚠️ 1 intentionally omitted (`initialized` notification - architectural decision for stdio stability)
 - ❌ 0 missing (all spec requirements met!)
 
-**OPTIONAL features: 22/22 implemented (100% COMPLETE)**
-- ✅ Batch requests (JSON-RPC 2.0)
-- ✅ Resource subscriptions (subscribe/unsubscribe)
-- ✅ Resource list changed notifications
-- ✅ Resource update notifications (with URI parameter)
-- ✅ Prompt subscriptions (subscribe/unsubscribe)
-- ✅ Prompt list changed notifications
-- ✅ Progress tokens (ProgressToken struct)
-- ✅ Resource templates (RFC 6570 URI support)
-- ✅ Resource size field (context estimation)
-- ✅ Prompts API (full with validation)
-- ✅ Resources API (full with subscriptions)
-- ✅ SSE Last-Event-ID (resumption support)
-- ✅ OAuth 2.1 PKCE (S256 challenge)
-- ✅ Automatic token refresh (proactive)
-- ✅ Token rotation (RFC 6749)
-- ✅ All error codes (-32700, -32600, -32601, -32602, -32603)
-- ✅ All content types (text, image, audio, resource)
-- ✅ Pagination support (cursor-based, all APIs)
-- ✅ All transports (stdio, HTTP, SSE)
-- ✅ Streaming binary content (StreamingBinaryContent type)
-- ✅ Notification queue infrastructure (FIFO queue)
-- ✅ Prompt argument validation (required/optional enforcement)
+**OPTIONAL features: Infrastructure Ready, Selective Implementation**
+- ✅ Batch requests (JSON-RPC 2.0) - FULLY WORKING
+- ⚠️ Resource subscriptions (API exists, notifications NOT sent)
+- ⚠️ Prompt subscriptions (API exists, notifications NOT sent)
+- ⚠️ Resource list changed notifications (capability declared, NOT sent)
+- ⚠️ Prompt list changed notifications (capability declared, NOT sent)
+- ⚠️ Resource update notifications (infrastructure ready, NOT sent)
+- ⚠️ Progress tokens (data structure ready, not integrated with tool execution)
+- ✅ Resource templates (RFC 6570 URI support) - FULLY WORKING
+- ✅ Resource size field (context estimation) - FULLY WORKING
+- ✅ Prompts API (full with validation) - FULLY WORKING
+- ✅ Resources API (full with subscriptions API) - FULLY WORKING
+- ✅ SSE Last-Event-ID (resumption support) - FULLY WORKING
+- ✅ OAuth 2.1 PKCE (S256 challenge) - FULLY WORKING
+- ✅ Automatic token refresh (proactive) - FULLY WORKING
+- ✅ Token rotation (RFC 6749) - FULLY WORKING
+- ✅ All error codes (-32700, -32600, -32601, -32602, -32603) - FULLY WORKING
+- ✅ All content types (text, image, audio, resource) - FULLY WORKING
+- ✅ Pagination support (cursor-based, all APIs) - FULLY WORKING
+- ✅ All transports (stdio, HTTP, SSE) - FULLY WORKING
+- ✅ Streaming binary content (StreamingBinaryContent type) - Data structure ready
+- ✅ Notification queue infrastructure (FIFO queue) - Ready but notifications NOT sent
+- ✅ Prompt argument validation (required/optional enforcement) - FULLY WORKING
 
 ---
 
@@ -804,7 +802,7 @@ pub struct Resource {
 7. ✅ Notification queue infrastructure
    - `VecDeque<JsonRpcNotification>` for FIFO queuing
    - `queue_notification()`, `get_next_notification()`, `get_pending_notifications_count()`
-   - Ready for bidirectional server-push updates
+   - Ready for server-to-client notifications (when push architecture implemented)
    - 2 unit tests
 
 8. ✅ Prompt argument validation
@@ -820,7 +818,7 @@ pub struct Resource {
 
 ---
 
-**Document Version**: 2.3
-**Status**: ✅✅✅ COMPLETE - 100% MCP SPEC COMPLIANCE ACHIEVED (v1.3.0)
-**Last Update**: January 8, 2026 - ALL features fully implemented and tested
+**Document Version**: 2.4
+**Status**: 98.8% MUST-have compliance + Infrastructure for optional features
+**Last Update**: January 8, 2026 (Updated for spec v2025-11-25)
 **Test Status**: 112 unit tests + 60 integration tests = 172 total (100% pass rate)
