@@ -6,6 +6,11 @@
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-filesystem", "/tmp"]
     },
+    "everything": {
+      "description": "Comprehensive MCP server with tools, resources, and advanced capabilities for testing and demonstration.",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-everything"]
+    },
     "example-echo": {
       "description": "Example echo server for testing purposes.",
       "command": "echo",

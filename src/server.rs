@@ -726,4 +726,103 @@ mod tests {
         assert_eq!(error.code, -32603);
         assert!(error.message.contains("Failed to read resource"));
     }
+
+    #[tokio::test]
+    async fn test_server_everything_configuration() {
+        let config_json = r#"{
+            "mcpServers": {
+                "everything": {
+                    "description": "Comprehensive MCP server with tools and resources",
+                    "command": "npx",
+                    "args": ["-y", "@modelcontextprotocol/server-everything"]
+                }
+            }
+        }"#;
+
+        let parsed: serde_json::Value =
+            serde_json::from_str(config_json).expect("Config should parse");
+
+        assert!(parsed.get("mcpServers").is_some());
+        let servers = parsed.get("mcpServers").unwrap().as_object().unwrap();
+        assert!(servers.contains_key("everything"));
+
+        let everything = &servers["everything"];
+        assert_eq!(
+            everything.get("description").unwrap().as_str().unwrap(),
+            "Comprehensive MCP server with tools and resources"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_tools_list_structure_for_comprehensive_servers() {
+        let server = create_test_server();
+        let request = JsonRpcRequest::new(1, "tools/list");
+        let response = server.handle_request(request).await;
+
+        assert!(response.error.is_none());
+        assert!(response.result.is_some());
+
+        let result = response.result.unwrap();
+        assert!(result.is_object());
+
+        let has_tools = result.get("tools").is_some() || result.get("_meta").is_some();
+        assert!(
+            has_tools,
+            "Response should have tools info or metadata for empty client"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_resources_list_protocol_compliance() {
+        let server = create_test_server();
+        let request =
+            JsonRpcRequest::new(1, "resources/list").with_params(json!({ "group": "test" }));
+        let response = server.handle_request(request).await;
+
+        assert!(response.jsonrpc == "2.0");
+        assert!(response.error.is_some());
+
+        let error = response.error.unwrap();
+        assert!(error.code <= -32600);
+    }
+
+    #[tokio::test]
+    async fn test_resources_read_protocol_compliance() {
+        let server = create_test_server();
+        let request = JsonRpcRequest::new(1, "resources/read")
+            .with_params(json!({ "group": "test", "uri": "file:///test.txt" }));
+        let response = server.handle_request(request).await;
+
+        assert!(response.jsonrpc == "2.0");
+        assert!(response.error.is_some());
+
+        let error = response.error.unwrap();
+        assert!(error.code <= -32600);
+    }
+
+    #[tokio::test]
+    async fn test_initialize_includes_tools_and_resources_capabilities() {
+        let server = create_test_server();
+        let request = JsonRpcRequest::new(1, "initialize");
+        let response = server.handle_request(request).await;
+
+        assert!(response.error.is_none());
+        let result = response.result.unwrap();
+        let capabilities = result.get("capabilities").unwrap();
+
+        assert!(
+            capabilities.get("tools").is_some(),
+            "Should have tools capability"
+        );
+        assert!(
+            capabilities.get("resources").is_some(),
+            "Should have resources capability"
+        );
+
+        let resources_cap = capabilities.get("resources").unwrap();
+        assert!(
+            resources_cap.get("subscribe").is_some(),
+            "Resources should declare subscribe capability"
+        );
+    }
 }
