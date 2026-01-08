@@ -34,7 +34,7 @@ echo "Starting dynamic-mcp in background..."
 	# Send initialize to establish connection
 	echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"1.0"}}}'
 	# Keep connection alive with periodic messages (enough for the test duration)
-	for i in {1..15}; do
+	for _ in {1..15}; do
 		sleep 0.5
 		echo '{"jsonrpc":"2.0","id":999,"method":"tools/list"}' 2>/dev/null || break
 	done
@@ -99,7 +99,6 @@ else
 	echo "⚠️  Could not verify new server descriptions in log"
 fi
 
-server_count_initial=$(grep -c "test-server" /tmp/mcp-output.log | head -1 || echo "0")
 server_count_another=$(grep -c "another-server" /tmp/mcp-output.log | head -1 || echo "0")
 
 if [ "$server_count_another" -gt 0 ]; then
@@ -137,14 +136,11 @@ wait $MCP_PID 2>/dev/null || true
 if [ "$TEST_PASSED" = true ]; then
 	exit 0
 else
+	echo ""
+	echo "Test output log:"
+	echo "===================="
+	cat /tmp/mcp-output.log
+	echo "===================="
+	echo ""
 	exit 1
 fi
-
-echo ""
-echo "Test output log:"
-echo "===================="
-cat /tmp/mcp-output.log
-echo "===================="
-
-echo ""
-echo "Test complete!"

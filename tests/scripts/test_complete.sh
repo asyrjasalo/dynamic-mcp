@@ -20,7 +20,7 @@ result=$({
 
 if echo "$result" | jq -e '.result.serverInfo.name == "dynamic-mcp"' >/dev/null 2>&1; then
 	echo "   ✅ Initialize returns correct server info"
-	echo "      Server: $(echo $result | jq -r .result.serverInfo.name) v$(echo $result | jq -r .result.serverInfo.version)"
+	echo "      Server: $(echo "$result" | jq -r .result.serverInfo.name) v$(echo "$result" | jq -r .result.serverInfo.version)"
 else
 	echo "   ❌ Initialize failed"
 	echo "   Response: $result"
