@@ -11,10 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Multi-Tool Import Support** - Automatically import configs from 10 AI coding tools
   - Cursor, OpenCode, Claude Desktop, Claude Code CLI, VS Code
   - Cline, KiloCode, Codex CLI, Gemini CLI, Google Antigravity
-- **Tool Detection Module** - Smart path resolution for project/global configs per tool
-- **Config Parser Module** - Support for JSON, JSONC (with comments), and TOML formats
-- **Environment Variable Normalization** - Automatic conversion of tool-specific env var patterns
 - **Enhanced CLI** - `--global` flag for user-level configs, `--force` flag to skip prompts
+- **Environment Variable Normalization** - Automatic conversion of tool-specific env var patterns
+- **Config Parser Module** - Support for JSON, JSONC (with comments), and TOML formats
+- **Tool Detection Module** - Smart path resolution for project/global configs per tool
 
 ### Changed
 - Import command now uses tool names instead of file paths: `dmcp import cursor`

@@ -662,6 +662,7 @@ These are historical records and should remain unchanged.
 - ✅ Add new release entries at the top (after the header)
 - ✅ Follow [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format
 - ✅ Focus on **user-facing changes**: features, bug fixes, breaking changes
+- ✅ **Order matters**: List user-facing changes FIRST, technical details LAST within each section
 - ❌ NEVER document technical metrics (LOC, test counts, dependencies)
 - ❌ NEVER document internal implementation details (refactorings, module structure)
 - ❌ NEVER modify entries for previous releases (1.0.0, 1.1.0, etc.)
@@ -673,6 +674,18 @@ These are historical records and should remain unchanged.
 - ✅ Bug fixes affecting users ("Fixed token refresh failing after expiry")
 - ✅ Breaking changes ("Removed support for legacy config format")
 - ✅ Deprecation notices ("Deprecated `--old-flag`, use `--new-flag` instead")
+
+**Ordering within each section**:
+1. **User-facing changes FIRST** (CLI flags, new commands, behavior changes)
+2. **Technical modules LAST** (internal modules, parsers, detection logic)
+
+**Example**:
+```markdown
+### Added
+- **Multi-Tool Import Support** - Main user-facing feature
+- **Enhanced CLI** - --global and --force flags
+- **Config Parser Module** - Technical implementation detail (goes last)
+```
 
 **What NOT to include** (goes in STATUS.md instead):
 - ❌ Technical metrics ("LOC increased to 4,765", "Added 12 tests")
