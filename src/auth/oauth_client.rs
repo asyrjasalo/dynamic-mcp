@@ -98,7 +98,7 @@ impl OAuthClient {
         let metadata = Self::discover_oauth_endpoints(server_url).await?;
 
         let tokens = self
-            .perform_oauth_flow(server_name, &metadata, client_id, scopes)
+            .perform_oauth_flow(server_name, server_url, &metadata, client_id, scopes)
             .await?;
 
         self.store.save_token(server_name, &tokens).await?;
@@ -108,6 +108,7 @@ impl OAuthClient {
     async fn perform_oauth_flow(
         &self,
         server_name: &str,
+        server_url: &str,
         metadata: &OAuthServerMetadata,
         client_id: &str,
         scopes: Option<Vec<String>>,
@@ -127,7 +128,8 @@ impl OAuthClient {
 
         let mut auth_request = oauth_client
             .authorize_url(CsrfToken::new_random)
-            .set_pkce_challenge(pkce_challenge);
+            .set_pkce_challenge(pkce_challenge)
+            .add_extra_param("resource", server_url);
 
         if let Some(scope_list) = scopes {
             for scope in scope_list {

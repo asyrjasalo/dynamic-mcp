@@ -19,6 +19,7 @@ Detailed implementation documentation is available in `docs/implementation/`:
 - **[STATUS.md](implementation/STATUS.md)** - Current implementation status and metrics
 - **[TESTING.md](implementation/TESTING.md)** - Testing strategy and coverage
 - **[DEVELOPMENT.md](implementation/DEVELOPMENT.md)** - Project status, roadmap, and metrics
+- **[MCP_SPEC_COMPLIANCE.md](implementation/MCP_SPEC_COMPLIANCE.md)** - MCP specification compliance audit
 
 ### Feature Documentation
 - **[ENV_VAR_CONFIG.md](implementation/ENV_VAR_CONFIG.md)** - Environment variable implementation

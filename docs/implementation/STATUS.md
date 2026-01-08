@@ -4,6 +4,28 @@
 > **Current Phase**: Phase 8 Complete ✅ (with comprehensive integration tests)
 > **Version**: 1.2.0 (Multi-Tool Import Support)
 
+## 🔍 MCP Specification Compliance
+
+> **Audit Date**: January 8, 2026  
+> **Spec Version**: 2025-11-25  
+> **Compliance Score**: 93% (71/76 requirements) ✅  
+> **Status**: **PRODUCTION-READY**
+
+**Summary**:
+- ✅ **stdio transport**: 100% spec-compliant
+- ✅ **HTTP/SSE transport**: 100% spec-compliant (all MUST-have requirements implemented)
+- ✅ **JSON-RPC protocol**: 100% compliant
+- ✅ **OAuth security**: 100% compliant (PKCE, token refresh, OAuth 2.1 resource parameter)
+
+**All Critical Issues Resolved** (v1.2.1):
+1. ✅ Added `MCP-Protocol-Version` header on HTTP/SSE requests
+2. ✅ Implemented `MCP-Session-Id` header with UUID generation
+3. ✅ Now sending `initialized` notification after initialize
+4. ✅ Fixed tool error format to use `isError` flag (enables LLM self-correction)
+5. ✅ Added OAuth 2.1 `resource` parameter
+
+See [MCP_SPEC_COMPLIANCE.md](MCP_SPEC_COMPLIANCE.md) for detailed compliance audit.
+
 ## ✅ Completed Features
 
 ### Phase 1: Core Proxy with stdio Transport

@@ -80,11 +80,8 @@ async fn main() -> Result<()> {
             cli::import::run_import_from_tool(&tool_name, global, force, &output).await
         }
         None => {
-            tracing_subscriber::fmt()
-                .with_env_filter(
-                    EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("warn")),
-                )
-                .init();
+            // Disable all logging for stdio mode to avoid corrupting JSON-RPC communication
+            // Logging would write to stderr which interferes with the MCP protocol
 
             let (config_path, config_source) =
                 get_config_path(cli.config_path).unwrap_or_else(|| {
@@ -115,58 +112,45 @@ async fn run_server(config_path: String, config_source: &str) -> Result<()> {
 
     let client = Arc::new(RwLock::new(ModularMcpClient::new()));
 
-    // Initial load
-    {
-        let config = config::load_config(&config_path).await?;
-        let mut client_lock = client.write().await;
+    // Initial load - spawn in background to avoid blocking stdio
+    let client_init = client.clone();
+    let config_path_init = config_path.clone();
+    tokio::spawn(async move {
+        if let Ok(config) = config::load_config(&config_path_init).await {
+            let servers: Vec<_> = config.mcp_servers.into_iter().collect();
 
-        for (group_name, server_config) in config.mcp_servers {
-            match client_lock
-                .connect(group_name.clone(), server_config.clone())
-                .await
-            {
-                Ok(_) => {
-                    tracing::info!("✅ Successfully connected to MCP group: {}", group_name);
-                }
-                Err(e) => {
-                    tracing::error!("❌ Failed to connect to {}: {:#}", group_name, e);
-                    client_lock.record_failed_connection(group_name, server_config, e);
-                }
+            let handles: Vec<_> = servers
+                .into_iter()
+                .map(|(group_name, server_config)| {
+                    let client = client_init.clone();
+                    tokio::spawn(async move {
+                        let res = {
+                            let mut client_lock = client.write().await;
+                            client_lock
+                                .connect(group_name.clone(), server_config.clone())
+                                .await
+                        };
+                        match res {
+                            Ok(_) => Ok(group_name),
+                            Err(e) => {
+                                let mut client_lock = client.write().await;
+                                client_lock.record_failed_connection(
+                                    group_name.clone(),
+                                    server_config,
+                                    e,
+                                );
+                                Err(group_name)
+                            }
+                        }
+                    })
+                })
+                .collect();
+
+            for handle in handles {
+                let _ = handle.await;
             }
         }
-
-        let groups = client_lock.list_groups();
-        let failed = client_lock.list_failed_groups();
-
-        if failed.is_empty() {
-            tracing::info!(
-                "Successfully connected {} MCP groups. All groups are valid.",
-                groups.len()
-            );
-        } else {
-            tracing::warn!(
-                "Some MCP groups failed to connect. success_groups=[{}], failed_groups=[{}]",
-                groups
-                    .iter()
-                    .map(|g| &g.name)
-                    .cloned()
-                    .collect::<Vec<_>>()
-                    .join(", "),
-                failed
-                    .iter()
-                    .map(|g| &g.name)
-                    .cloned()
-                    .collect::<Vec<_>>()
-                    .join(", ")
-            );
-
-            tracing::info!("Attempting to retry failed connections...");
-            let retried = client_lock.retry_failed_connections().await;
-            if !retried.is_empty() {
-                tracing::info!("Successfully reconnected to: {}", retried.join(", "));
-            }
-        }
-    }
+    });
 
     // Spawn periodic retry handler for failed connections
     let client_retry = client.clone();

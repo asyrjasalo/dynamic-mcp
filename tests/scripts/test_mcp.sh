@@ -33,7 +33,7 @@ echo
 echo "2. Testing tools/list request:"
 result=$({
 	echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test-client","version":"1.0.0"}}}'
-	sleep 0.2
+	sleep 0.1
 	echo '{"jsonrpc":"2.0","id":2,"method":"tools/list"}'
 } | timeout 5 ./target/release/dmcp "$TEST_CONFIG" 2>&1 | grep -v "ERROR\|WARN" | tail -1)
 

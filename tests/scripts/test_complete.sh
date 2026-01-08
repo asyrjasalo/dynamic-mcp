@@ -31,7 +31,7 @@ echo ""
 echo "🧪 Test 2: Tools listing"
 result=$({
 	echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}'
-	sleep 0.2
+	sleep 0.1
 	echo '{"jsonrpc":"2.0","id":2,"method":"tools/list"}'
 } | timeout 5 ./target/release/dmcp tests/fixtures/config.test.json 2>/dev/null | grep '"id":2' | head -1)
 

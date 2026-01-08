@@ -40,14 +40,17 @@ impl ModularMcpClient {
 
         let description = config.description().to_string();
 
-        // Try to create transport
         let config_to_use = config.clone();
-        let transport = Transport::new(&config_to_use, &group_name)
-            .await
-            .with_context(|| format!("Failed to create transport for group: {}", group_name))?;
+        let transport = tokio::time::timeout(
+            Duration::from_secs(5),
+            Transport::new(&config_to_use, &group_name),
+        )
+        .await
+        .with_context(|| format!("Transport creation timed out for group: {}", group_name))?
+        .with_context(|| format!("Failed to create transport for group: {}", group_name))?;
 
         let init_request = JsonRpcRequest::new(1, "initialize").with_params(json!({
-            "protocolVersion": "2024-11-05",
+            "protocolVersion": "2025-06-18",
             "capabilities": {},
             "clientInfo": {
                 "name": "dynamic-mcp-client",
@@ -55,17 +58,75 @@ impl ModularMcpClient {
             }
         }));
 
-        // Streamable HTTP transport handles both JSON and SSE responses automatically
-        transport
-            .send_request(&init_request)
-            .await
-            .with_context(|| format!("Failed to initialize connection to: {}", group_name))?;
+        let response = tokio::time::timeout(
+            Duration::from_secs(5),
+            transport.send_request(&init_request),
+        )
+        .await
+        .with_context(|| format!("Initialize request timed out for: {}", group_name))?
+        .with_context(|| format!("Failed to initialize connection to: {}", group_name))?;
 
-        let list_tools_request = JsonRpcRequest::new(2, "tools/list");
-        let tools_response = transport
-            .send_request(&list_tools_request)
+        if let Some(error) = &response.error {
+            anyhow::bail!(
+                "Server {} rejected initialization: {}",
+                group_name,
+                error.message
+            );
+        }
+
+        let server_version = response
+            .result
+            .as_ref()
+            .and_then(|r| r.get("protocolVersion"))
+            .and_then(|v| v.as_str())
+            .unwrap_or("2025-06-18");
+
+        if server_version != "2025-06-18" {
+            let retry_request = JsonRpcRequest::new(2, "initialize").with_params(json!({
+                "protocolVersion": server_version,
+                "capabilities": {},
+                "clientInfo": {
+                    "name": "dynamic-mcp-client",
+                    "version": env!("CARGO_PKG_VERSION")
+                }
+            }));
+
+            let retry_response = tokio::time::timeout(
+                Duration::from_secs(5),
+                transport.send_request(&retry_request),
+            )
             .await
-            .with_context(|| format!("Failed to list tools from: {}", group_name))?;
+            .with_context(|| format!("Initialize retry timed out for: {}", group_name))?
+            .with_context(|| {
+                format!(
+                    "Failed to initialize with server version: {}",
+                    server_version
+                )
+            })?;
+
+            if let Some(error) = &retry_response.error {
+                anyhow::bail!(
+                    "Server {} rejected version {}: {}",
+                    group_name,
+                    server_version,
+                    error.message
+                );
+            }
+        }
+
+        transport.set_protocol_version(server_version.to_string());
+
+        let session_id = uuid::Uuid::new_v4().to_string();
+        transport.set_session_id(session_id);
+
+        let list_tools_request = JsonRpcRequest::new(3, "tools/list");
+        let tools_response = tokio::time::timeout(
+            Duration::from_secs(5),
+            transport.send_request(&list_tools_request),
+        )
+        .await
+        .with_context(|| format!("List tools request timed out for: {}", group_name))?
+        .with_context(|| format!("Failed to list tools from: {}", group_name))?;
 
         let tools = if let Some(result) = tools_response.result {
             if let Some(tools_array) = result.get("tools").and_then(|v| v.as_array()) {
@@ -163,8 +224,6 @@ impl ModularMcpClient {
 
     pub async fn retry_failed_connections(&mut self) -> Vec<String> {
         const MAX_RETRIES: u32 = 3;
-        let mut successfully_retried = Vec::new();
-        let mut failed_to_retry = Vec::new();
 
         let failed_groups: Vec<_> = self
             .groups
@@ -187,6 +246,12 @@ impl ModularMcpClient {
             })
             .collect();
 
+        if failed_groups.is_empty() {
+            return Vec::new();
+        }
+
+        let mut retry_handles = Vec::new();
+
         for (group_name, config, retry_count) in failed_groups {
             let backoff_secs = 2u64.pow(retry_count);
             tracing::info!(
@@ -197,16 +262,28 @@ impl ModularMcpClient {
                 backoff_secs
             );
 
-            tokio::time::sleep(Duration::from_secs(backoff_secs)).await;
+            let handle = tokio::spawn(async move {
+                tokio::time::sleep(Duration::from_secs(backoff_secs)).await;
+                (group_name, config, retry_count)
+            });
 
-            match self.connect(group_name.clone(), config.clone()).await {
-                Ok(_) => {
-                    tracing::info!("✅ Successfully reconnected to MCP group: {}", group_name);
-                    successfully_retried.push(group_name);
-                }
-                Err(e) => {
-                    tracing::warn!("❌ Retry failed for {}: {:#}", group_name, e);
-                    failed_to_retry.push((group_name, config, e));
+            retry_handles.push(handle);
+        }
+
+        let mut successfully_retried = Vec::new();
+        let mut failed_to_retry = Vec::new();
+
+        for handle in retry_handles {
+            if let Ok((group_name, config, _retry_count)) = handle.await {
+                match self.connect(group_name.clone(), config.clone()).await {
+                    Ok(_) => {
+                        tracing::info!("✅ Successfully reconnected to MCP group: {}", group_name);
+                        successfully_retried.push(group_name);
+                    }
+                    Err(e) => {
+                        tracing::warn!("❌ Retry failed for {}: {:#}", group_name, e);
+                        failed_to_retry.push((group_name, config, e));
+                    }
                 }
             }
         }
@@ -249,7 +326,11 @@ impl ModularMcpClient {
                         "arguments": arguments
                     }));
 
-                let response = transport.send_request(&request).await?;
+                let response =
+                    tokio::time::timeout(Duration::from_secs(30), transport.send_request(&request))
+                        .await
+                        .with_context(|| format!("Tool call timed out: {}", tool_name))?
+                        .with_context(|| format!("Tool call failed: {}", tool_name))?;
 
                 if let Some(error) = response.error {
                     return Err(anyhow::anyhow!("Tool call failed: {}", error.message));

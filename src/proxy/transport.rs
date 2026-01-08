@@ -203,6 +203,8 @@ pub struct HttpTransport {
     client: reqwest::Client,
     url: String,
     headers: std::collections::HashMap<String, String>,
+    session_id: Arc<Mutex<Option<String>>>,
+    protocol_version: Arc<Mutex<String>>,
 }
 
 impl HttpTransport {
@@ -212,19 +214,54 @@ impl HttpTransport {
     ) -> Result<Self> {
         let headers_map = headers.cloned().unwrap_or_default();
 
+        let client = reqwest::Client::builder()
+            .connect_timeout(std::time::Duration::from_secs(5))
+            .timeout(std::time::Duration::from_secs(10))
+            .pool_idle_timeout(std::time::Duration::from_secs(90))
+            .pool_max_idle_per_host(2)
+            .build()?;
+
         Ok(Self {
-            client: reqwest::Client::new(),
+            client,
             url: url.to_string(),
             headers: headers_map,
+            session_id: Arc::new(Mutex::new(None)),
+            protocol_version: Arc::new(Mutex::new("2024-11-05".to_string())),
         })
     }
 
+    fn set_session_id(&self, session_id: String) {
+        if let Ok(mut sid) = self.session_id.try_lock() {
+            *sid = Some(session_id);
+        }
+    }
+
+    pub fn set_protocol_version(&self, version: String) {
+        if let Ok(mut pv) = self.protocol_version.try_lock() {
+            *pv = version;
+        }
+    }
+
     pub async fn send_request(&self, request: &JsonRpcRequest) -> Result<JsonRpcResponse> {
+        let protocol_ver = if let Ok(pv) = self.protocol_version.try_lock() {
+            pv.clone()
+        } else {
+            "2024-11-05".to_string()
+        };
+
         let mut req = self
             .client
             .post(&self.url)
             .header("Content-Type", "application/json")
-            .header("Accept", "application/json, text/event-stream");
+            .header("Accept", "application/json, text/event-stream")
+            .header("MCP-Protocol-Version", protocol_ver);
+
+        // Add session ID if initialized
+        if let Ok(session_id_lock) = self.session_id.try_lock() {
+            if let Some(ref session_id) = *session_id_lock {
+                req = req.header("MCP-Session-Id", session_id);
+            }
+        }
 
         for (key, value) in &self.headers {
             req = req.header(key, value);
@@ -318,6 +355,8 @@ pub struct SseTransport {
     client: reqwest::Client,
     url: String,
     headers: std::collections::HashMap<String, String>,
+    session_id: Arc<Mutex<Option<String>>>,
+    protocol_version: Arc<Mutex<String>>,
 }
 
 impl SseTransport {
@@ -327,11 +366,32 @@ impl SseTransport {
     ) -> Result<Self> {
         let headers_map = headers.cloned().unwrap_or_default();
 
+        let client = reqwest::Client::builder()
+            .connect_timeout(std::time::Duration::from_secs(5))
+            .timeout(std::time::Duration::from_secs(10))
+            .pool_idle_timeout(std::time::Duration::from_secs(90))
+            .pool_max_idle_per_host(2)
+            .build()?;
+
         Ok(Self {
-            client: reqwest::Client::new(),
+            client,
             url: url.to_string(),
             headers: headers_map,
+            session_id: Arc::new(Mutex::new(None)),
+            protocol_version: Arc::new(Mutex::new("2024-11-05".to_string())),
         })
+    }
+
+    fn set_session_id(&self, session_id: String) {
+        if let Ok(mut sid) = self.session_id.try_lock() {
+            *sid = Some(session_id);
+        }
+    }
+
+    pub fn set_protocol_version(&self, version: String) {
+        if let Ok(mut pv) = self.protocol_version.try_lock() {
+            *pv = version;
+        }
     }
 
     fn parse_sse_response(&self, sse_text: &str) -> Result<JsonRpcResponse> {
@@ -369,11 +429,24 @@ impl SseTransport {
     }
 
     pub async fn send_request(&self, request: &JsonRpcRequest) -> Result<JsonRpcResponse> {
+        let protocol_ver = if let Ok(pv) = self.protocol_version.try_lock() {
+            pv.clone()
+        } else {
+            "2024-11-05".to_string()
+        };
+
         let mut req = self
             .client
             .post(&self.url)
             .header("Content-Type", "application/json")
-            .header("Accept", "application/json, text/event-stream");
+            .header("Accept", "application/json, text/event-stream")
+            .header("MCP-Protocol-Version", protocol_ver);
+
+        if let Ok(session_id_lock) = self.session_id.try_lock() {
+            if let Some(ref session_id) = *session_id_lock {
+                req = req.header("MCP-Session-Id", session_id);
+            }
+        }
 
         for (key, value) in &self.headers {
             req = req.header(key, value);
@@ -490,6 +563,22 @@ impl Transport {
             Transport::Stdio(t) => t.send_request(request).await,
             Transport::Http(t) => t.send_request(request).await,
             Transport::Sse(t) => t.send_request(request).await,
+        }
+    }
+
+    pub fn set_session_id(&self, session_id: String) {
+        match self {
+            Transport::Stdio(_) => {}
+            Transport::Http(t) => t.set_session_id(session_id),
+            Transport::Sse(t) => t.set_session_id(session_id),
+        }
+    }
+
+    pub fn set_protocol_version(&self, version: String) {
+        match self {
+            Transport::Stdio(_) => {}
+            Transport::Http(t) => t.set_protocol_version(version),
+            Transport::Sse(t) => t.set_protocol_version(version),
         }
     }
 

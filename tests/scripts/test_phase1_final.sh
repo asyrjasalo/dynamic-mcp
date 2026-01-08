@@ -27,9 +27,9 @@ echo ""
 echo "3. Testing tools/list..."
 result=$({
     echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"1.0"}}}';
-    sleep 0.1
+    sleep 0.05
     echo '{"jsonrpc":"2.0","id":2,"method":"tools/list"}';
-    sleep 0.5
+    sleep 0.2
 } | timeout 5 ./target/release/dmcp tests/fixtures/config.test.json 2>/dev/null | grep jsonrpc | tail -1)
 
 if echo "$result" | grep -q 'get_dynamic_tools'; then

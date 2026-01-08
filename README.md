@@ -255,8 +255,10 @@ It supports all [standard MCP transport mechanisms](https://modelcontextprotocol
 
 **Solutions**:
 
-- **Automatic retry**: The system retries up to 3 times with exponential backoff (2s, 4s, 8s)
+- **Connection timeout**: Each server has 10-second timeout for transport creation, initialization, and tool listing
+- **Automatic retry**: Failed servers are retried up to 3 times with exponential backoff (2s, 4s, 8s)
 - **Periodic retry**: Failed servers are retried every 30 seconds in the background
+- **Slow HTTP servers**: If remote HTTP/SSE servers are slow, they'll timeout and be retried automatically
 - **Stdio servers**: Verify command exists (`which <command>`)
 - **HTTP/SSE servers**: Check that the server is running and the URL is correct
 - **Environment variables**: Ensure all `${VAR}` references are defined

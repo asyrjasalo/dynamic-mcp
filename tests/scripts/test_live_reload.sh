@@ -35,14 +35,14 @@ echo "Starting dynamic-mcp in background..."
 	echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"1.0"}}}'
 	# Keep connection alive with periodic messages (enough for the test duration)
 	for i in {1..15}; do
-		sleep 1
+		sleep 0.5
 		echo '{"jsonrpc":"2.0","id":999,"method":"tools/list"}' 2>/dev/null || break
 	done
 ) | ./target/release/dmcp "$TEST_CONFIG" >/tmp/mcp-output.log 2>&1 &
 MCP_PID=$!
 
 echo "MCP started with PID: $MCP_PID"
-sleep 4
+sleep 2
 
 echo ""
 echo "Checking initial config load..."
@@ -78,7 +78,7 @@ cat >"$TEST_CONFIG" <<EOF
 EOF
 
 echo "Waiting for reload (file watcher needs time to detect changes)..."
-sleep 6
+sleep 2
 
 echo ""
 echo "Checking reload events..."
@@ -127,7 +127,7 @@ echo "Stopping MCP server..."
 kill -TERM $MCP_PID 2>/dev/null || true
 # Kill any child processes
 pkill -P $MCP_PID 2>/dev/null || true
-sleep 1
+sleep 0.5
 # Force kill if still running
 pkill -f "dynamic-mcp.*config.test.json" 2>/dev/null || true
 kill -KILL $MCP_PID 2>/dev/null || true

@@ -248,12 +248,14 @@ Example usage:
                     Err(e) => JsonRpcResponse {
                         jsonrpc: "2.0".to_string(),
                         id: request.id,
-                        result: None,
-                        error: Some(JsonRpcError {
-                            code: -32603,
-                            message: format!("Tool execution failed: {}", e),
-                            data: None,
-                        }),
+                        result: Some(json!({
+                            "content": [{
+                                "type": "text",
+                                "text": format!("Tool execution failed: {}", e),
+                                "isError": true
+                            }]
+                        })),
+                        error: None,
                     },
                 }
             }

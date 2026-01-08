@@ -3,36 +3,36 @@
 echo "=== Testing all upstream servers ==="
 echo ""
 
-# Start server in background
-RUST_LOG=info ./target/release/dmcp > /tmp/mcp-test.log 2>&1 &
-SERVER_PID=$!
-sleep 4
+response=$( (
+	echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"1.0"}}}'
+	sleep 3
+	echo '{"jsonrpc":"2.0","id":2,"method":"tools/list"}'
+) | timeout 15 ./target/release/dmcp 2>/dev/null)
 
-# Test each server by getting tools
-for group in context7 gh-grep exa tavily utcp ht; do
-    echo "Testing $group:"
+groups=$(echo "$response" | jq -r 'select(.id==2) | .result.tools[0].inputSchema.properties.group.enum[]' 2>/dev/null | sort)
 
-    # Get tools from this group
-    response=$(echo "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"tools/call\",\"params\":{\"name\":\"get_dynamic_tools\",\"arguments\":{\"group\":\"$group\"}}}" | timeout 3 ./target/release/dmcp 2>/dev/null)
+for group in $groups; do
+	echo "Testing $group:"
 
-    if echo "$response" | jq -e '.error' > /dev/null 2>&1; then
-        error_msg=$(echo "$response" | jq -r '.error.message' 2>/dev/null)
-        echo "  ❌ FAILED: $error_msg"
-    else
-        tools=$(echo "$response" | jq -r '.result.content[0].text' 2>/dev/null | jq 'length' 2>/dev/null)
-        if [ -n "$tools" ] && [ "$tools" != "null" ]; then
-            echo "  ✅ SUCCESS: Found $tools tools"
-        else
-            echo "  ✅ SUCCESS: Connected (tools retrieved)"
-        fi
-    fi
-    echo ""
+	result=$( (
+		echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"1.0"}}}'
+		sleep 3
+		echo "{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"tools/call\",\"params\":{\"name\":\"get_dynamic_tools\",\"arguments\":{\"group\":\"$group\"}}}"
+	) | timeout 15 ./target/release/dmcp 2>/dev/null)
+
+	if echo "$result" | jq -e 'select(.id==2) | .error' >/dev/null 2>&1; then
+		error_msg=$(echo "$result" | jq -r 'select(.id==2) | .error.message' 2>/dev/null)
+		echo "  ❌ FAILED: $error_msg"
+	else
+		tools=$(echo "$result" | jq -r 'select(.id==2) | .result.content[0].text' 2>/dev/null | jq 'length' 2>/dev/null)
+		if [ "$tools" != "" ] && [ "$tools" != "null" ]; then
+			echo "  ✅ SUCCESS: Found $tools tools"
+		else
+			echo "  ✅ SUCCESS: Connected"
+		fi
+	fi
+	echo ""
 done
-
-# Cleanup
-kill $SERVER_PID 2>/dev/null
-wait $SERVER_PID 2>/dev/null
 
 echo "=== Connection Summary ==="
 grep -E "(Successfully connected|Auto-detected|Failed to connect)" /tmp/mcp-test.log | tail -10
-
