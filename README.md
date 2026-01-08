@@ -125,7 +125,7 @@ Config details:
   - macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
   - Windows: `%APPDATA%\Claude\claude_desktop_config.json`
   - Linux: `~/.config/Claude/claude_desktop_config.json`
-- **Claude Code CLI**: Supports both `.mcp.json` (project root) and `~/.claude/mcp.json` (global)
+- **Claude Code CLI**: Supports both `.mcp.json` (project root) and `~/.claude.json` (user/global)
 - **Gemini CLI**: Supports both `.gemini/settings.json` (project) and `~/.gemini/settings.json` (global)
 - **VS Code**: Supports both `.vscode/mcp.json` (project) and user-level config (OS-specific paths)
 - **OpenCode**: Supports both JSON and JSONC formats (JSON with comments)

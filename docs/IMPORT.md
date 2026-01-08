@@ -42,7 +42,7 @@ The import command currently supports the following AI coding tools:
 | **Cursor** | `cursor` | Project: `.cursor/mcp.json`<br>Global: `~/.cursor/mcp.json` |
 | **OpenCode** | `opencode` | Project: `.opencode/opencode.json(c)`<br>Global: `~/.config/opencode/opencode.json(c)` |
 | **Claude Desktop** | `claude-desktop` | Global only (OS-specific paths) |
-| **Claude Code CLI** | `claude` | Project: `.mcp.json`<br>Global: `~/.claude/mcp.json` |
+| **Claude Code CLI** | `claude` | Project: `.mcp.json`<br>User: `~/.claude.json` |
 | **Visual Studio Code** | `vscode` | Project: `.vscode/mcp.json`<br>Global: OS-specific |
 | **Cline** | `cline` | Project: `.cline/mcp.json`<br>Global: VS Code extension settings |
 | **KiloCode** | `kilocode` | Project: `.kilocode/mcp.json`<br>Global: Extension settings |
@@ -523,7 +523,7 @@ dmcp import --global claude
 
 **Config Locations**:
 - Project: `.mcp.json` (in project root - shared with team, version-controlled)
-- Global: `~/.claude/mcp.json`
+- User: `~/.claude.json` (cross-project, private to you)
 
 **Import**:
 ```bash
@@ -538,11 +538,14 @@ dmcp import --global claude
 **Environment Variables**: Uses `${VAR}` format (already compatible).
 
 **Special Notes**:
-- Uses `.mcp.json` in project root (NOT `.claude/mcp.json`)
+- Uses `.mcp.json` in project root (shared/version-controlled)
+- User scope uses `~/.claude.json` (cross-project, private)
 - Different from Claude Desktop (which uses `~/Library/Application Support/Claude/`)
-- Supports multiple scopes: project (`.mcp.json`), local (`~/.claude.json` per project), user (global)
+- Supports multiple scopes per [official docs](https://code.claude.com/docs/en/mcp#mcp-installation-scopes):
+  - Local: `~/.claude.json` under project path (private, project-specific)
+  - Project: `.mcp.json` in project root (shared, version-controlled)
+  - User: `~/.claude.json` (private, cross-project)
 - Ideal for developers using Claude Code via CLI
-- Project config can be version-controlled and shared with team
 
 ---
 

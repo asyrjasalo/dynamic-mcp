@@ -85,7 +85,7 @@ impl Tool {
         let path = match self {
             Tool::Cursor => PathBuf::from(home).join(".cursor/mcp.json"),
             Tool::OpenCode => PathBuf::from(home).join(".config/opencode/opencode.jsonc"),
-            Tool::ClaudeCodeCli => PathBuf::from(home).join(".claude/mcp.json"),
+            Tool::ClaudeCodeCli => PathBuf::from(home).join(".claude.json"),
             Tool::ClaudeDesktop => {
                 if cfg!(target_os = "macos") {
                     PathBuf::from(home)
