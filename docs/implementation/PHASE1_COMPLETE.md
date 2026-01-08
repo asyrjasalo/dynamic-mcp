@@ -134,7 +134,7 @@ dynamic-mcp/
 │   │   └── transport.rs            ✅ Transport stub
 │   └── cli/
 │       ├── mod.rs                  ✅ CLI module
-│       └── migrate.rs              ✅ Migration stub
+│       └── import.rs              ✅ Import stub
 ├── tests/
 │   └── integration_test.rs         ✅ 3 integration tests
 └── docs/

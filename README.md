@@ -52,7 +52,7 @@ Install from [crates.io](https://crates.io/crates/dynamic-mcp):
 
 The binary is then available at `~/.cargo/bin/dmcp` (`$CARGO_HOME/bin/dmcp`).
 
-### Migrate from AI Coding Tools
+### Import from AI Coding Tools
 
 Dynamic-mcp can automatically import MCP server configurations from popular AI coding tools.
 
@@ -70,19 +70,19 @@ Dynamic-mcp can automatically import MCP server configurations from popular AI c
 
 #### Quick Start
 
-**Migrate from project config** (run in project directory):
+**Import from project config** (run in project directory):
 ```bash
-dmcp migrate <tool-name>
+dmcp import <tool-name>
 ```
 
-**Migrate from global/user config**:
+**Import from global/user config**:
 ```bash
-dmcp migrate --global <tool-name>
+dmcp import --global <tool-name>
 ```
 
 **Force overwrite** (skip confirmation prompt):
 ```bash
-dmcp migrate <tool-name> --force
+dmcp import <tool-name> --force
 ```
 
 The command will:
@@ -92,15 +92,15 @@ The command will:
 4. Normalize environment variable formats
 5. Generate `dynamic-mcp.json`
 
-#### Example Migration
+#### Example Import
 
 ```bash
-$ dmcp migrate cursor
+$ dmcp import cursor
 
-🔄 Starting migration from cursor to dynamic-mcp format
+🔄 Starting import from cursor to dynamic-mcp format
 📖 Reading config from: .cursor/mcp.json
 
-✅ Found 2 MCP server(s) to migrate
+✅ Found 2 MCP server(s) to import
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Server: filesystem
@@ -114,7 +114,7 @@ Config details:
 
 [... prompts for other servers ...]
 
-✅ Migration complete!
+✅ Import complete!
 📝 Output saved to: dynamic-mcp.json
 ```
 
@@ -134,7 +134,7 @@ Config details:
 
 #### Environment Variable Conversion
 
-The migrate command automatically normalizes environment variables to dynamic-mcp's `${VAR}` format:
+The import command automatically normalizes environment variables to dynamic-mcp's `${VAR}` format:
 
 | Tool | Original Format | Converted To |
 |------|----------------|--------------|
@@ -144,9 +144,9 @@ The migrate command automatically normalizes environment variables to dynamic-mc
 | VS Code | `${env:GITHUB_TOKEN}` | `${GITHUB_TOKEN}` |
 | Codex | `"${GITHUB_TOKEN}"` | `${GITHUB_TOKEN}` |
 
-**Note**: VS Code's `${input:ID}` secure prompts cannot be automatically converted. You'll need to manually configure these after migration.
+**Note**: VS Code's `${input:ID}` secure prompts cannot be automatically converted. You'll need to manually configure these after import.
 
-See [docs/MIGRATION.md](docs/MIGRATION.md) for detailed tool-specific migration guides.
+See [docs/IMPORT.md](docs/IMPORT.md) for detailed tool-specific import guides.
 
 ## Dynamic MCP format
 

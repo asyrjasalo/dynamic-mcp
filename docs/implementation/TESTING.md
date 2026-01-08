@@ -9,7 +9,7 @@
 |----------|-------|-----------|----------|
 | **Unit Tests** | 50 | 100% ✅ | All modules |
 | **Integration Tests (General)** | 14 | 100% ✅ | CLI & workflows |
-| **Integration Tests (Migration)** | 18 | 100% ✅ | Multi-tool migration + env var conversion |
+| **Integration Tests (Import)** | 18 | 100% ✅ | Multi-tool import + env var conversion |
 | **Total** | **82** | **100%** | **~95%** |
 
 ## Running Tests
@@ -25,7 +25,7 @@ cargo test
 # running 14 tests (integration)
 # test result: ok. 14 passed; 0 failed
 #
-# running 18 tests (migration integration)
+# running 18 tests (import integration)
 # test result: ok. 18 passed; 0 failed
 ```
 
@@ -37,7 +37,7 @@ cargo test --lib
 ### Integration Tests Only
 ```bash
 cargo test --test integration_test        # General integration tests
-cargo test --test migrate_integration_test  # Migration workflow tests
+cargo test --test import_integration_test  # Import workflow tests
 ```
 
 ### Specific Module
@@ -81,14 +81,14 @@ cargo test -- --nocapture  # Show println! output
 ### CLI Module (100%)
 - ✅ Argument parsing
 - ✅ Config path resolution (CLI arg vs env var)
-- ✅ Migration command (legacy and tool-based)
+- ✅ Import command (legacy and tool-based)
 - ✅ Help and version flags
 - ✅ Tool detector (tool name parsing, path resolution)
 - ✅ Config parser (JSON, JSONC, TOML)
 - ✅ Environment variable normalization
-- ✅ Multi-tool migration workflow
-- ✅ **NEW: End-to-end migration workflow tests**
-  - Cursor project migration
+- ✅ Multi-tool import workflow
+- ✅ **NEW: End-to-end import workflow tests**
+  - Cursor project import
   - OpenCode JSONC with comments
   - VS Code environment variable normalization
   - Claude Code CLI project config
@@ -99,11 +99,11 @@ cargo test -- --nocapture  # Show println! output
 
 ## Test Fixtures
 
-### Migration Test Fixtures
+### Import Test Fixtures
 
-**Location**: `tests/fixtures/migrate/`
+**Location**: `tests/fixtures/import/`
 
-Comprehensive fixtures for testing multi-tool migration:
+Comprehensive fixtures for testing multi-tool import:
 
 | Tool | Project Config | Global Config | Invalid Config |
 |------|---------------|---------------|----------------|
@@ -133,37 +133,37 @@ Comprehensive fixtures for testing multi-tool migration:
 - Format handling (JSON, JSONC, TOML)
 - Error conditions (missing fields, invalid formats)
 
-### Migration Integration Test Fixtures
+### Import Integration Test Fixtures
 
-**Location**: `tests/migrate_integration_test.rs`
+**Location**: `tests/import_integration_test.rs`
 
 **18 comprehensive end-to-end tests**:
 
-#### Core Migration Tests (10)
+#### Core Import Tests (10)
 | Test | Scenario | Verifies |
 |------|----------|----------|
-| `test_migrate_cursor_project_success` | Cursor multi-server migration | Server parsing, description prompts, output file creation |
-| `test_migrate_opencode_jsonc_success` | OpenCode JSONC with comments | JSONC parsing, comment stripping, env var preservation |
-| `test_migrate_vscode_env_var_normalization` | VS Code `${env:VAR}` pattern | Environment variable normalization from `${env:VAR}` to `${VAR}` |
-| `test_migrate_claude_project_success` | Claude CLI `.mcp.json` | Project-level config detection and migration |
-| `test_migrate_cline_success` | Cline with env vars | Env var normalization and Cline-specific patterns |
-| `test_migrate_force_flag_skips_overwrite_prompt` | Force flag behavior | Overwrite existing files without user prompt |
-| `test_migrate_missing_config_file_error` | Missing config file | Proper error message when config not found |
-| `test_migrate_empty_description_error` | Empty description input | Validation of required description field |
-| `test_migrate_invalid_json_error` | Invalid JSON config | Parse error handling and error messages |
-| `test_migrate_multiple_servers_interactive` | 3 servers with prompts | Server ordering (alphabetical), multiple description prompts |
+| `test_import_cursor_project_success` | Cursor multi-server import | Server parsing, description prompts, output file creation |
+| `test_import_opencode_jsonc_success` | OpenCode JSONC with comments | JSONC parsing, comment stripping, env var preservation |
+| `test_import_vscode_env_var_normalization` | VS Code `${env:VAR}` pattern | Environment variable normalization from `${env:VAR}` to `${VAR}` |
+| `test_import_claude_project_success` | Claude CLI `.mcp.json` | Project-level config detection and import |
+| `test_import_cline_success` | Cline with env vars | Env var normalization and Cline-specific patterns |
+| `test_import_force_flag_skips_overwrite_prompt` | Force flag behavior | Overwrite existing files without user prompt |
+| `test_import_missing_config_file_error` | Missing config file | Proper error message when config not found |
+| `test_import_empty_description_error` | Empty description input | Validation of required description field |
+| `test_import_invalid_json_error` | Invalid JSON config | Parse error handling and error messages |
+| `test_import_multiple_servers_interactive` | 3 servers with prompts | Server ordering (alphabetical), multiple description prompts |
 
 #### Environment Variable Conversion Tests (8)
 | Test | Tool | Pattern | Conversion | Verifies |
 |------|------|---------|------------|----------|
-| `test_migrate_cursor_env_var_conversion` | Cursor | `EnvColon` | `${env:VAR}` → `${VAR}` | Env var normalization in `env` map |
-| `test_migrate_vscode_env_var_conversion_in_env` | VSCode | `Multiple (EnvColon)` | `${env:VAR}` → `${VAR}` | Env var normalization in `env` map |
-| `test_migrate_vscode_env_var_conversion_in_headers` | VSCode | `Multiple (EnvColon)` | `${env:VAR}` → `${VAR}` | Env var normalization in `headers` map (HTTP/SSE) |
-| `test_migrate_codex_env_var_passthrough` | Codex | `CurlyBraces` | `${VAR}` (no change) | Passthrough for TOML configs |
-| `test_migrate_claude_env_var_passthrough` | Claude CLI | `CurlyBraces` | `${VAR}` (no change) | Passthrough for JSON configs |
-| `test_migrate_opencode_env_var_passthrough` | OpenCode | `SystemEnv` | `${VAR}` (no change) | Passthrough for JSON/JSONC configs |
-| `test_migrate_gemini_env_var_passthrough` | Gemini | `SystemEnv` | `${VAR}` (no change) | Passthrough for settings.json |
-| `test_migrate_kilocode_env_var_passthrough` | KiloCode | `SystemEnv` | `${VAR}` (no change) | Passthrough for JSON configs |
+| `test_import_cursor_env_var_conversion` | Cursor | `EnvColon` | `${env:VAR}` → `${VAR}` | Env var normalization in `env` map |
+| `test_import_vscode_env_var_conversion_in_env` | VSCode | `Multiple (EnvColon)` | `${env:VAR}` → `${VAR}` | Env var normalization in `env` map |
+| `test_import_vscode_env_var_conversion_in_headers` | VSCode | `Multiple (EnvColon)` | `${env:VAR}` → `${VAR}` | Env var normalization in `headers` map (HTTP/SSE) |
+| `test_import_codex_env_var_passthrough` | Codex | `CurlyBraces` | `${VAR}` (no change) | Passthrough for TOML configs |
+| `test_import_claude_env_var_passthrough` | Claude CLI | `CurlyBraces` | `${VAR}` (no change) | Passthrough for JSON configs |
+| `test_import_opencode_env_var_passthrough` | OpenCode | `SystemEnv` | `${VAR}` (no change) | Passthrough for JSON/JSONC configs |
+| `test_import_gemini_env_var_passthrough` | Gemini | `SystemEnv` | `${VAR}` (no change) | Passthrough for settings.json |
+| `test_import_kilocode_env_var_passthrough` | KiloCode | `SystemEnv` | `${VAR}` (no change) | Passthrough for JSON configs |
 
 **Environment Variable Test Coverage**:
 - ✅ **EnvColon pattern** (`${env:VAR}` → `${VAR}`): Cursor, VSCode, Cline
@@ -174,7 +174,7 @@ Comprehensive fixtures for testing multi-tool migration:
 
 **Test Infrastructure**:
 - `TestProject` struct: Creates temporary project directories with tool configs
-- `run_migrate_with_input()`: Runs `dmcp migrate` with automated stdin input
+- `run_import_with_input()`: Runs `dmcp import` with automated stdin input
 - Binary built once at test start (via `Once` synchronization)
 - Tests run in parallel with isolated temp directories
 

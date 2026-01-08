@@ -2,7 +2,7 @@
 
 > **Last Updated**: January 8, 2026
 > **Current Phase**: Phase 8 Complete ✅ (with comprehensive integration tests)
-> **Version**: 1.2.0 (Multi-Tool Migration Support)
+> **Version**: 1.2.0 (Multi-Tool Import Support)
 
 ## ✅ Completed Features
 
@@ -37,8 +37,8 @@
 - [x] Token injection into HTTP/SSE transport headers
 - [x] Support for custom OAuth scopes
 
-### Phase 4: Migration Command
-- [x] `dynamic-mcp migrate` subcommand
+### Phase 4: Import Command
+- [x] `dynamic-mcp import` subcommand
 - [x] Interactive description prompts for each server
 - [x] Config transformation from standard MCP to dynamic-mcp format
 - [x] Preserves all server settings (command, args, env, headers, OAuth)
@@ -48,7 +48,7 @@
 - [x] Comprehensive test suite (82 tests total)
   - 50 unit tests covering all modules
   - 14 integration tests for CLI and workflows
-  - 18 migration integration tests (core + env var conversion)
+  - 18 import integration tests (core + env var conversion)
 
 ### Phase 6: Production Release
 - [x] Test coverage: Config (100%), Auth (100%), Server (100%), Transport (100%)
@@ -60,7 +60,7 @@
 - [x] Complete documentation
   - Module-level Rust documentation (cargo doc)
   - Architecture documentation with diagrams
-  - Migration guide with examples
+  - Import guide with examples
   - Troubleshooting guide
   - Enhanced README with practical examples
 - [x] **CI/CD Pipeline** (GitHub Actions)
@@ -95,7 +95,7 @@
 - [x] Binary renamed to `dmcp` for consistency
 - [x] Updated documentation (README.md, STATUS.md)
 
-### Phase 8: Multi-Tool Migration Support
+### Phase 8: Multi-Tool Import Support
 - [x] **Tool Detection Module** - Support for 9 AI coding tools
   - Cursor, OpenCode, Claude Desktop, VS Code
   - Cline, KiloCode, Codex CLI, Gemini CLI, Antigravity
@@ -111,10 +111,10 @@
   - **Normalization applies to**: `env` and `headers` maps only (not `args` by design)
   - **All 10 tools have env var test fixtures**
 - [x] **Enhanced CLI Interface**
-  - `dmcp migrate <tool-name>` for tool-based migration
+  - `dmcp import <tool-name>` for tool-based import
   - `--global` flag for user-level configs
   - `--force` flag to skip overwrite prompts
-  - Backward compatibility with file-path migration
+  - Backward compatibility with file-path import
 - [x] **Path Resolution**
   - Project-level config detection per tool
   - Global config paths (OS-aware for Claude Desktop)
@@ -130,16 +130,16 @@
   - Real-world examples from each tool
 - [x] **Documentation**
   - README.md updated with tool-specific examples
-  - MIGRATION.md with detailed tool guides
+  - IMPORT.md with detailed tool guides
   - Tool-specific environment variable patterns
-  - Manual migration steps for edge cases
+  - Manual import steps for edge cases
 - [x] **Test Coverage**
   - 14 new unit tests (config parser, tool detector)
   - 5 new integration tests (fixture validation)
-  - **18 end-to-end migration workflow tests**
-    - 10 core migration tests (success paths, error handling, interactive prompts)
+  - **18 end-to-end import workflow tests**
+    - 10 core import tests (success paths, error handling, interactive prompts)
     - 8 environment variable conversion tests (all tool patterns covered)
-  - All 82 tests passing (50 unit + 14 integration + 18 migration integration)
+  - All 82 tests passing (50 unit + 14 integration + 18 import integration)
 
 ## 📊 Project Metrics
 
@@ -149,13 +149,13 @@
 | **Phase** | 8 Complete ✅ |
 | **LOC** | ~4,765 Rust |
 | **Source Files** | 24 Rust files |
-| **Tests** | **82 total** (50 unit + 14 integration + 18 migration integration) |
+| **Tests** | **82 total** (50 unit + 14 integration + 18 import integration) |
 | **Test Fixtures** | 26 fixture files (10 tools, all with env vars) |
 | **Test Pass Rate** | 100% ✅ |
 | **Test Coverage** | ~95% |
 | **Dependencies** | 53 direct crates |
 | **Modules** | config, proxy, server, cli, auth, watcher |
-| **CLI Commands** | serve (default), migrate |
+| **CLI Commands** | serve (default), import |
 | **Transports** | stdio, HTTP, SSE |
 | **Supported Tools** | 10 AI coding tools |
 | **Authentication** | OAuth2 with PKCE |
@@ -177,10 +177,10 @@ src/
 │   ├── mod.rs           (17 lines)  - Module exports
 │   ├── oauth_client.rs  (335 lines) - OAuth flow implementation
 │   └── store.rs         (200 lines) - Token storage
-├── cli/                 (5 files)   - CLI commands & migration
+├── cli/                 (5 files)   - CLI commands & import
 │   ├── mod.rs           (4 lines)   - Module exports
-│   ├── migrate.rs       (121 lines) - Legacy migration (dead code)
-│   ├── migrate_enhanced.rs (223 lines) - Enhanced migration workflow
+│   ├── import.rs       (121 lines) - Legacy import (dead code)
+│   ├── import_enhanced.rs (223 lines) - Enhanced import workflow
 │   ├── tool_detector.rs (265 lines) - Tool detection & path resolution
 │   └── config_parser.rs (393 lines) - Multi-format config parsing
 ├── config/              (4 files)   - Configuration management
@@ -215,7 +215,7 @@ cargo test
 
 # Results:
 # - 37 unit tests (auth, config, proxy, server)
-# - 9 integration tests (CLI, OAuth flow, migration)
+# - 9 integration tests (CLI, OAuth flow, import)
 # - 100% pass rate
 ```
 
@@ -290,4 +290,4 @@ All public APIs have doc comments with examples.
 
 ---
 
-**Status**: ✅ Phase 8 Complete | Multi-Tool Migration Support v1.2.0
+**Status**: ✅ Phase 8 Complete | Multi-Tool Import Support v1.2.0

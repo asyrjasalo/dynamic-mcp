@@ -29,7 +29,7 @@ Download from [GitHub Releases](https://github.com/asyrjasalo/dynamic-mcp/releas
 - **OAuth2 Authentication**: With PKCE flow and automatic token refresh
 - **Live Configuration Reload**: Watch config file for changes and automatically reconnect
 - **Automatic Retry**: Exponential backoff for failed connections
-- **Migration Command**: Convert standard MCP configs to dynamic-mcp format
+- **Import Command**: Convert standard MCP configs to dynamic-mcp format
 
 ### Configuration
 - Environment variable interpolation (`${VAR}` syntax)
@@ -127,7 +127,7 @@ Download from [GitHub Releases](https://github.com/asyrjasalo/dynamic-mcp/releas
 - [CONTRIBUTING](../../CONTRIBUTING.md) - Development setup
 - [SECURITY](../../SECURITY.md) - Security considerations
 - [ARCHITECTURE](../ARCHITECTURE.md) - System design
-- [MIGRATION](../MIGRATION.md) - Migrating from standard MCP
+- [MIGRATION](../IMPORT.md) - Migrating from standard MCP
 
 ## 🙏 Acknowledgments
 

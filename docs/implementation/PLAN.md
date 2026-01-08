@@ -101,7 +101,7 @@ dynamic-mcp/
 │   │   └── types.rs
 │   └── cli/
 │       ├── mod.rs
-│       └── migrate.rs
+│       └── import.rs
 ├── tests/
 │   ├── config_test.rs
 │   └── integration_test.rs
@@ -1046,9 +1046,9 @@ Update `create_transport` to handle OAuth when needed.
 
 ---
 
-## Phase 4: Migration Command
+## Phase 4: Import Command
 
-**Goal**: CLI command to migrate standard MCP configs
+**Goal**: CLI command to import standard MCP configs
 
 **Duration**: 1 day
 
@@ -1072,8 +1072,8 @@ pub struct Cli {
 
 #[derive(Subcommand)]
 pub enum Commands {
-    /// Migrate standard MCP config to dynamic-mcp format
-    Migrate {
+    /// Import standard MCP config to dynamic-mcp format
+    Import {
         /// Path to standard MCP config file
         mcp_config_path: String,
 
@@ -1084,15 +1084,15 @@ pub enum Commands {
 }
 ```
 
-### 4.2 Migration Logic
+### 4.2 Import Logic
 
-**File**: `src/cli/migrate.rs`
+**File**: `src/cli/import.rs`
 
 Prompt user for descriptions and transform config.
 
 ### 4.3 Deliverables
 
-- ✅ `dynamic-mcp migrate` command
+- ✅ `dynamic-mcp import` command
 - ✅ Interactive description prompts
 - ✅ Config transformation
 - ✅ Original config replacement
@@ -1122,7 +1122,7 @@ Prompt user for descriptions and transform config.
 
 - README.md with usage examples
 - API documentation (cargo doc)
-- Migration guide
+- Import guide
 - Architecture overview
 
 ### 5.4 Deliverables
@@ -1199,7 +1199,7 @@ jobs:
 | **Phase 1** | 2-3 days | Core proxy with stdio transport |
 | **Phase 2** | 1-2 days | HTTP/SSE transport support |
 | **Phase 3** | 2-3 days | OAuth authentication |
-| **Phase 4** | 1 day | Migration command |
+| **Phase 4** | 1 day | Import command |
 | **Phase 5** | 2-3 days | Tests + documentation |
 | **Phase 6** | 1 day | Build system + CI/CD |
 | **Total** | **9-13 days** | Production-ready v1.0.0 |
@@ -1212,7 +1212,7 @@ jobs:
 2. ✅ All three transport types working (stdio, HTTP, SSE)
 3. ✅ OAuth authentication functional
 4. ✅ Environment variable substitution
-5. ✅ Migration command working
+5. ✅ Import command working
 6. ✅ >80% test coverage
 7. ✅ Complete documentation
 8. ✅ Published to crates.io

@@ -40,19 +40,19 @@ fn test_binary_exists_after_build() {
 }
 
 #[test]
-fn test_migrate_command_help() {
+fn test_import_command_help() {
     let output = Command::new("cargo")
-        .args(["run", "--", "migrate", "--help"])
+        .args(["run", "--", "import", "--help"])
         .output()
-        .expect("Failed to run migrate help");
+        .expect("Failed to run import help");
 
     let stdout = String::from_utf8_lossy(&output.stdout);
-    assert!(stdout.contains("migrate"));
+    assert!(stdout.contains("import"));
     assert!(stdout.contains("Tool name") || stdout.contains("AI coding tools"));
 }
 
 #[test]
-fn test_migrate_command_with_valid_config() {
+fn test_import_command_with_valid_config() {
     let mut input_file = NamedTempFile::new().unwrap();
     let config_json = r#"{
         "mcpServers": {
@@ -71,18 +71,18 @@ fn test_migrate_command_with_valid_config() {
         .args([
             "run",
             "--",
-            "migrate",
+            "import",
             input_file.path().to_str().unwrap(),
             "-o",
             output_file.path().to_str().unwrap(),
         ])
         .env("TEST_MODE", "1")
         .output()
-        .expect("Failed to run migrate");
+        .expect("Failed to run import");
 
     let stderr = String::from_utf8_lossy(&output.stderr);
     if !output.status.success() {
-        eprintln!("Migration failed with stderr: {}", stderr);
+        eprintln!("Import failed with stderr: {}", stderr);
     }
 }
 
@@ -106,7 +106,7 @@ fn test_help_flag() {
 
     let stdout = String::from_utf8_lossy(&output.stdout);
     assert!(stdout.contains("Usage") || stdout.contains("dynamic-mcp"));
-    assert!(stdout.contains("migrate") || stdout.contains("Commands"));
+    assert!(stdout.contains("import") || stdout.contains("Commands"));
 }
 
 #[test]
@@ -135,9 +135,9 @@ fn test_config_schema_validation() {
 }
 
 #[test]
-fn test_migrate_with_tool_name_cursor() {
+fn test_import_with_tool_name_cursor() {
     use std::fs;
-    let fixture_path = "tests/fixtures/migrate/cursor/project.json";
+    let fixture_path = "tests/fixtures/import/cursor/project.json";
 
     assert!(
         std::path::Path::new(fixture_path).exists(),
@@ -151,8 +151,8 @@ fn test_migrate_with_tool_name_cursor() {
 }
 
 #[test]
-fn test_migrate_with_tool_name_opencode() {
-    let fixture_path = "tests/fixtures/migrate/opencode/project.jsonc";
+fn test_import_with_tool_name_opencode() {
+    let fixture_path = "tests/fixtures/import/opencode/project.jsonc";
 
     assert!(
         std::path::Path::new(fixture_path).exists(),
@@ -161,9 +161,9 @@ fn test_migrate_with_tool_name_opencode() {
 }
 
 #[test]
-fn test_migrate_with_tool_name_claude() {
+fn test_import_with_tool_name_claude() {
     use std::fs;
-    let fixture_path = "tests/fixtures/migrate/claude-desktop/global.json";
+    let fixture_path = "tests/fixtures/import/claude-desktop/global.json";
 
     assert!(
         std::path::Path::new(fixture_path).exists(),
@@ -177,9 +177,9 @@ fn test_migrate_with_tool_name_claude() {
 }
 
 #[test]
-fn test_migrate_with_tool_name_vscode() {
+fn test_import_with_tool_name_vscode() {
     use std::fs;
-    let fixture_path = "tests/fixtures/migrate/vscode/project.json";
+    let fixture_path = "tests/fixtures/import/vscode/project.json";
 
     assert!(
         std::path::Path::new(fixture_path).exists(),
@@ -193,9 +193,9 @@ fn test_migrate_with_tool_name_vscode() {
 }
 
 #[test]
-fn test_migrate_with_tool_name_codex_toml() {
+fn test_import_with_tool_name_codex_toml() {
     use std::fs;
-    let fixture_path = "tests/fixtures/migrate/codex/global.toml";
+    let fixture_path = "tests/fixtures/import/codex/global.toml";
 
     assert!(
         std::path::Path::new(fixture_path).exists(),

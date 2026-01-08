@@ -1,11 +1,11 @@
-# Multi-Tool Migration Feature
+# Multi-Tool Import Feature
 
 **Date**: 2026-01-08
 **Status**: ✅ Complete (with comprehensive test coverage)
 
 ## Overview
 
-Extends the `migrate` command to support importing MCP server configurations from 10 different AI coding tools, handling their varied config formats, locations, and environment variable expansion patterns.
+Extends the `import` command to support importing MCP server configurations from 10 different AI coding tools, handling their varied config formats, locations, and environment variable expansion patterns.
 
 ## Objectives
 
@@ -21,8 +21,8 @@ Extends the `migrate` command to support importing MCP server configurations fro
    - Google Antigravity
 
 2. **Dual Config Support**:
-   - Project-level: `dmcp migrate <tool-name>` (creates `dynamic-mcp.json` in current directory)
-   - Global/user-level: `dmcp migrate --global <tool-name>` (creates in current directory from global config)
+   - Project-level: `dmcp import <tool-name>` (creates `dynamic-mcp.json` in current directory)
+   - Global/user-level: `dmcp import --global <tool-name>` (creates in current directory from global config)
 
 3. **Override Protection**:
    - Prompt user if `dynamic-mcp.json` exists
@@ -90,22 +90,22 @@ All tools use variations of:
 ### CLI Interface
 
 ```bash
-# Project-level migration (reads from current directory)
-dmcp migrate <tool-name>
+# Project-level import (reads from current directory)
+dmcp import <tool-name>
 
-# Global/user-level migration (reads from home directory)
-dmcp migrate --global <tool-name>
+# Global/user-level import (reads from home directory)
+dmcp import --global <tool-name>
 
 # Force override existing config
-dmcp migrate <tool-name> --force
+dmcp import <tool-name> --force
 
 # Custom output path
-dmcp migrate <tool-name> -o custom-path.json
+dmcp import <tool-name> -o custom-path.json
 
 # Examples
-dmcp migrate cursor
-dmcp migrate --global claude-desktop
-dmcp migrate opencode --force
+dmcp import cursor
+dmcp import --global claude-desktop
+dmcp import opencode --force
 ```
 
 ### Supported Tool Names
@@ -204,19 +204,19 @@ impl ConfigParser {
 }
 ```
 
-#### 4. Enhanced Migration Module
+#### 4. Enhanced Import Module
 
 ```rust
-// src/cli/migrate.rs
+// src/cli/import.rs
 
-pub struct MigrationConfig {
+pub struct ImportConfig {
     pub tool: Tool,
     pub is_global: bool,
     pub output_path: String,
     pub force: bool,
 }
 
-pub async fn run_migration_from_tool(config: MigrationConfig) -> Result<()> {
+pub async fn run_import_from_tool(config: ImportConfig) -> Result<()> {
     // 1. Determine input path (project vs global)
     // 2. Check if input exists, error if not
     // 3. Check if output exists, prompt unless --force
@@ -246,9 +246,9 @@ Supported tools:
   - cline
   - kilocode
   
-Note: GitHub Copilot uses registry-based config and cannot be migrated this way.
+Note: GitHub Copilot uses registry-based config and cannot be importd this way.
 
-Usage: dmcp migrate <tool-name>
+Usage: dmcp import <tool-name>
 ```
 
 #### Project Config Not Found
@@ -261,8 +261,8 @@ Current directory: /path/to/project
 
 Suggestions:
   - Run this command from your project root directory
-  - Or use --global flag to migrate from global config:
-      dmcp migrate --global cursor
+  - Or use --global flag to import from global config:
+      dmcp import --global cursor
 ```
 
 #### Global Config Not Found
@@ -276,7 +276,7 @@ Expected location: ~/Library/Application Support/Claude/claude_desktop_config.js
 Suggestions:
   - Verify Claude Desktop is installed
   - Check if config file exists: ls -la "~/Library/Application Support/Claude/"
-  - Or omit --global to migrate from project config (if available)
+  - Or omit --global to import from project config (if available)
 ```
 
 #### Output File Exists
@@ -331,18 +331,18 @@ Tests for each tool:
 
 ### Integration Tests ✅
 
-**Location**: `tests/migrate_integration_test.rs`
+**Location**: `tests/import_integration_test.rs`
 
 **Status**: 18 integration tests, all passing
 
-**Fixtures**: `tests/fixtures/migrate/<tool-name>/` (26 fixture files)
+**Fixtures**: `tests/fixtures/import/<tool-name>/` (26 fixture files)
 - `project.json` - Project-level config example (with env vars)
 - `global.json` - Global-level config example (with env vars)
 - `invalid.json` - Invalid config for error testing
 
-#### Core Migration Tests (10 tests)
-1. ✅ Migrate from each tool (project config)
-2. ✅ Migrate from each tool (global config)
+#### Core Import Tests (10 tests)
+1. ✅ Import from each tool (project config)
+2. ✅ Import from each tool (global config)
 3. ✅ Force override existing output
 4. ✅ Error on unknown tool
 5. ✅ Error on missing config
@@ -367,7 +367,7 @@ Tests for each tool:
 ### Test Fixtures Structure
 
 ```
-tests/fixtures/migrate/
+tests/fixtures/import/
 ├── cursor/
 │   ├── project.json          # .cursor/mcp.json format
 │   ├── global.json           # ~/.cursor/mcp.json format
@@ -397,10 +397,10 @@ tests/fixtures/migrate/
 
 ### README.md
 
-Add section under "Migrate from an existing MCP config":
+Add section under "Import from an existing MCP config":
 
 ```markdown
-### Migrate from AI Coding Tools
+### Import from AI Coding Tools
 
 Dynamic-mcp can automatically import MCP server configurations from popular AI coding tools:
 
@@ -419,20 +419,20 @@ Dynamic-mcp can automatically import MCP server configurations from popular AI c
 
 **From project config** (run in project directory):
 ```bash
-dmcp migrate cursor
-dmcp migrate vscode
-dmcp migrate cline
+dmcp import cursor
+dmcp import vscode
+dmcp import cline
 ```
 
 **From global/user config** (reads from home directory):
 ```bash
-dmcp migrate --global claude-desktop
-dmcp migrate --global cursor
+dmcp import --global claude-desktop
+dmcp import --global cursor
 ```
 
 **Force overwrite** (skip confirmation):
 ```bash
-dmcp migrate cursor --force
+dmcp import cursor --force
 ```
 
 The command will:
@@ -449,14 +449,14 @@ The command will:
 - **VS Code**: Reads from `.vscode/mcp.json` in project
 - **OpenCode**: Supports JSONC format with comments
 - **Codex CLI**: Uses TOML format
-- **GitHub Copilot**: Registry-based config (not file-based, cannot migrate)
+- **GitHub Copilot**: Registry-based config (not file-based, cannot import)
 
-See [MIGRATION.md](docs/MIGRATION.md) for detailed tool-specific guides.
+See [IMPORT.md](docs/IMPORT.md) for detailed tool-specific guides.
 ```
 
-### docs/MIGRATION.md
+### docs/IMPORT.md
 
-Expand with tool-specific migration guides for each supported tool.
+Expand with tool-specific import guides for each supported tool.
 
 ## Implementation Phases
 
@@ -483,7 +483,7 @@ Expand with tool-specific migration guides for each supported tool.
 
 ### Phase 5: Documentation & Polish ✅
 - [x] Update README.md
-- [x] Update docs/MIGRATION.md
+- [x] Update docs/IMPORT.md
 - [x] Update docs/implementation/STATUS.md
 - [x] Update docs/implementation/TESTING.md
 - [x] Add examples for each tool
@@ -499,7 +499,7 @@ Expand with tool-specific migration guides for each supported tool.
 
 ## Known Limitations
 
-1. **VS Code Input Prompts**: `${input:ID}` syntax for secure credential prompts cannot be automatically converted. Will prompt user to manually configure these after migration.
+1. **VS Code Input Prompts**: `${input:ID}` syntax for secure credential prompts cannot be automatically converted. Will prompt user to manually configure these after import.
 
 2. **Antigravity UI Config**: Config is managed through UI, not direct file access. Users may need to manually locate the config file.
 
@@ -521,19 +521,19 @@ toml = "0.8"
 
 ## Success Criteria ✅
 
-- [x] All 10 supported tools migrate successfully
+- [x] All 10 supported tools import successfully
 - [x] Project and global configs both supported
 - [x] Environment variables normalized correctly for all patterns
   - [x] `${env:VAR}` → `${VAR}` conversion tested
   - [x] `${VAR}` passthrough tested
   - [x] SystemEnv passthrough tested
 - [x] Clear error messages for all failure scenarios
-- [x] 100% test coverage for migration logic (82 tests total)
+- [x] 100% test coverage for import logic (82 tests total)
   - [x] 50 unit tests
   - [x] 14 general integration tests
-  - [x] 18 migration integration tests (10 core + 8 env var)
+  - [x] 18 import integration tests (10 core + 8 env var)
 - [x] Documentation complete and accurate
-- [x] User can migrate in <30 seconds with clear prompts
+- [x] User can import in <30 seconds with clear prompts
 
 ## Test Results
 
@@ -545,8 +545,8 @@ test result: ok. 50 passed; 0 failed
 running 14 tests (integration)
 test result: ok. 14 passed; 0 failed
 
-running 18 tests (migration integration)
+running 18 tests (import integration)
 test result: ok. 18 passed; 0 failed
 ```
 
-**Test Coverage**: ~95% overall, 100% for migration logic
+**Test Coverage**: ~95% overall, 100% for import logic

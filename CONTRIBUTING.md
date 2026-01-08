@@ -66,7 +66,7 @@ RUST_LOG=debug cargo run -- examples/config.example.json
 ### Running Tests
 
 ```bash
-# Run all tests (74 total: 50 unit + 14 integration + 10 migration integration)
+# Run all tests (74 total: 50 unit + 14 integration + 10 import integration)
 cargo test
 
 # Run specific module tests
@@ -77,7 +77,7 @@ cargo test -- --nocapture
 
 # Run integration tests only
 cargo test --test integration_test              # General CLI integration tests
-cargo test --test migrate_integration_test       # Migration workflow tests
+cargo test --test import_integration_test       # Import workflow tests
 
 # Run specific test
 cargo test test_substitute_env_vars

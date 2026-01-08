@@ -16,7 +16,7 @@
 - **Authentication**: OAuth2 with PKCE, automatic token refresh, RFC 6749 compliant
 - **Reliability**: Automatic retry with exponential backoff, periodic reconnection for failed servers
 - **Live Reload**: Configuration file watching with automatic reconnection
-- **Migration**: Interactive command to migrate from standard MCP configs
+- **Import**: Interactive command to import from standard MCP configs
 
 ### Architecture
 ```
@@ -39,10 +39,10 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for detailed system design.
 - **Testing**: cargo test + integration tests
 
 ### Current Status
-- **Version**: 1.2.0 (Multi-Tool Migration Support)
+- **Version**: 1.2.0 (Multi-Tool Import Support)
 - **Phase**: Phase 8 Complete ✅
 - **LOC**: ~4,765 Rust
-- **Tests**: 74 (50 unit + 14 integration + 10 migration integration), 100% pass rate
+- **Tests**: 74 (50 unit + 14 integration + 10 import integration), 100% pass rate
 - **Platforms**: Linux (x86_64, ARM64), macOS (ARM64), Windows (x86_64, ARM64)
 - **Published**: [crates.io](https://crates.io/crates/dynamic-mcp), [PyPI](https://pypi.org/project/dmcp/), [GitHub Releases](https://github.com/asyrjasalo/dynamic-mcp/releases)
 
@@ -221,7 +221,7 @@ cargo test -- --test-threads=1
 | `auth/` | ✅ 100% | ✅ OAuth flow | OAuth2, token storage |
 | `proxy/` | ✅ 100% | N/A | Transport, group state |
 | `server.rs` | ✅ 100% | N/A | MCP protocol, tool calls |
-| `cli/` | ✅ Basic | ✅ Full | Migrate command |
+| `cli/` | ✅ Basic | ✅ Full | Import command |
 
 ### Adding New Tests
 
@@ -253,7 +253,7 @@ cargo test -- --test-threads=1
 
 **Architecture Documentation (docs/)**
 - **ARCHITECTURE.md**: System design, data flows, component details
-- **MIGRATION.md**: Migration guide from standard MCP
+- **IMPORT.md**: Import guide from standard MCP
 
 **Implementation Documentation (docs/implementation/)**
 - **STATUS.md**: Current metrics, features, limitations
@@ -394,7 +394,7 @@ git push origin main --tags
 | File | Purpose | Update When |
 |------|---------|-------------|
 | **ARCHITECTURE.md** | System design, data flows, component details | Adding new modules, changing core architecture, modifying data flows |
-| **MIGRATION.md** | Migration guide from standard MCP | Changing config format, adding new migration features |
+| **IMPORT.md** | Import guide from standard MCP | Changing config format, adding new import features |
 
 ### Implementation Documentation (docs/implementation/)
 
@@ -524,7 +524,7 @@ Update docs/implementation/STATUS.md:
 
 **Required Updates:**
 1. ✅ **README.md** - Update configuration examples
-2. ✅ **MIGRATION.md** - If affects migration from standard MCP
+2. ✅ **IMPORT.md** - If affects import from standard MCP
 3. ⚠️ **STATUS.md** - If adds significant new capability
 
 **Example:**
@@ -535,8 +535,8 @@ Update README.md:
 - Add timeout field to config schema examples
 - Document timeout behavior
 
-Update MIGRATION.md:
-- Document how timeouts are handled during migration
+Update IMPORT.md:
+- Document how timeouts are handled during import
 - Update example output
 
 Update STATUS.md (if major):
@@ -683,7 +683,7 @@ Add "Last Updated: [Date]" when making significant updates to:
 - Feature-specific docs
 
 ### 4. Preserve Examples
-When updating README.md or MIGRATION.md:
+When updating README.md or IMPORT.md:
 - Keep examples functional and tested
 - Update examples if config schema changes
 - Add new examples for new features
@@ -697,10 +697,10 @@ When updating README.md or MIGRATION.md:
 
 **Phase**: Phase 8 Complete ✅
 **LOC**: ~4,765 Rust
-**Tests**: 74 (50 unit + 14 integration + 10 migration integration)
+**Tests**: 74 (50 unit + 14 integration + 10 import integration)
 **Modules**: config, proxy, server, cli, auth
 **Transports**: stdio, HTTP, SSE
-**Key Features**: OAuth2, Live Reload, Migration Command, CI/CD
+**Key Features**: OAuth2, Live Reload, Import Command, CI/CD
 
 **Where to find details:**
 - Project status → **docs/implementation/DEVELOPMENT.md**

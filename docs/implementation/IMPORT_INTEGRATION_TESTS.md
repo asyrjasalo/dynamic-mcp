@@ -1,14 +1,14 @@
-# Migration Integration Tests
+# Import Integration Tests
 
 **Date**: January 8, 2026  
 **Status**: ✅ Complete  
-**Tests**: 10 end-to-end migration workflow tests  
+**Tests**: 10 end-to-end import workflow tests  
 
 ## Overview
 
-Comprehensive integration tests that verify the complete migration workflow from AI coding tools to dynamic-mcp format. Unlike unit tests that verify individual components, these tests:
+Comprehensive integration tests that verify the complete import workflow from AI coding tools to dynamic-mcp format. Unlike unit tests that verify individual components, these tests:
 
-- Run the actual `dmcp migrate` binary
+- Run the actual `dmcp import` binary
 - Create real temporary project directories with tool configs
 - Provide automated user input (descriptions) via stdin
 - Verify output files are created correctly
@@ -35,12 +35,12 @@ impl TestProject {
 - Tool-specific directory structure (`.cursor/`, `.vscode/`, etc.)
 - Config file creation with provided content
 
-### run_migrate_with_input()
+### run_import_with_input()
 
-Runs `dmcp migrate` command with automated stdin input:
+Runs `dmcp import` command with automated stdin input:
 
 ```rust
-fn run_migrate_with_input(
+fn run_import_with_input(
     tool_name: &str,
     working_dir: &Path,
     output_path: &str,
@@ -58,9 +58,9 @@ fn run_migrate_with_input(
 
 ## Test Cases
 
-### 1. test_migrate_cursor_project_success
+### 1. test_import_cursor_project_success
 
-**Scenario**: Migrate Cursor project config with 2 servers
+**Scenario**: Import Cursor project config with 2 servers
 
 **Verifies**:
 - Config file parsing
@@ -84,7 +84,7 @@ fn run_migrate_with_input(
 
 ---
 
-### 2. test_migrate_opencode_jsonc_success
+### 2. test_import_opencode_jsonc_success
 
 **Scenario**: OpenCode JSONC with line comments
 
@@ -108,7 +108,7 @@ fn run_migrate_with_input(
 
 ---
 
-### 3. test_migrate_vscode_env_var_normalization
+### 3. test_import_vscode_env_var_normalization
 
 **Scenario**: VS Code with `${env:VAR}` pattern
 
@@ -130,7 +130,7 @@ fn run_migrate_with_input(
 
 ---
 
-### 4. test_migrate_claude_project_success
+### 4. test_import_claude_project_success
 
 **Scenario**: Claude Code CLI `.mcp.json` in project root
 
@@ -141,11 +141,11 @@ fn run_migrate_with_input(
 
 **Input**: Standard MCP config with PostgreSQL server
 
-**Expected Output**: Migrated config with description
+**Expected Output**: Imported config with description
 
 ---
 
-### 5. test_migrate_cline_success
+### 5. test_import_cline_success
 
 **Scenario**: Cline with `${env:VAR}` pattern
 
@@ -160,7 +160,7 @@ fn run_migrate_with_input(
 
 ---
 
-### 6. test_migrate_force_flag_skips_overwrite_prompt
+### 6. test_import_force_flag_skips_overwrite_prompt
 
 **Scenario**: Force overwrite existing output file
 
@@ -176,7 +176,7 @@ fn run_migrate_with_input(
 
 ---
 
-### 7. test_migrate_missing_config_file_error
+### 7. test_import_missing_config_file_error
 
 **Scenario**: Config file not found
 
@@ -192,7 +192,7 @@ fn run_migrate_with_input(
 
 ---
 
-### 8. test_migrate_empty_description_error
+### 8. test_import_empty_description_error
 
 **Scenario**: User provides empty description
 
@@ -208,7 +208,7 @@ fn run_migrate_with_input(
 
 ---
 
-### 9. test_migrate_invalid_json_error
+### 9. test_import_invalid_json_error
 
 **Scenario**: Malformed JSON config
 
@@ -223,7 +223,7 @@ fn run_migrate_with_input(
 
 ---
 
-### 10. test_migrate_multiple_servers_interactive
+### 10. test_import_multiple_servers_interactive
 
 **Scenario**: 3 servers requiring 3 description prompts
 
@@ -231,7 +231,7 @@ fn run_migrate_with_input(
 - Multiple interactive prompts
 - Server processing order (alphabetical: server1, server2, server3)
 - Description assignment to correct servers
-- All servers migrated successfully
+- All servers imported successfully
 
 **Input**: 3 servers, 3 descriptions
 
@@ -241,19 +241,19 @@ fn run_migrate_with_input(
 
 ## Running Tests
 
-### Run all migration integration tests:
+### Run all import integration tests:
 ```bash
-cargo test --test migrate_integration_test
+cargo test --test import_integration_test
 ```
 
 ### Run specific test:
 ```bash
-cargo test --test migrate_integration_test test_migrate_cursor_project_success
+cargo test --test import_integration_test test_import_cursor_project_success
 ```
 
 ### With output visible:
 ```bash
-cargo test --test migrate_integration_test -- --nocapture
+cargo test --test import_integration_test -- --nocapture
 ```
 
 ## Test Results
@@ -276,7 +276,7 @@ These tests provide end-to-end verification of:
 - ✅ Server ordering (alphabetical)
 - ✅ Multiple server workflows
 
-Combined with unit tests, this provides comprehensive coverage of the migration workflow from user invocation to output file creation.
+Combined with unit tests, this provides comprehensive coverage of the import workflow from user invocation to output file creation.
 
 ## Future Enhancements
 
@@ -288,7 +288,7 @@ Potential additional tests:
 - [ ] Test mixed env var patterns in single config
 - [ ] Test very large configs (100+ servers)
 - [ ] Test Unicode/special characters in descriptions
-- [ ] Test concurrent migrations (race conditions)
+- [ ] Test concurrent imports (race conditions)
 - [ ] Test permission errors (read-only directories)
 
 ## Notes

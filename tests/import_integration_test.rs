@@ -53,7 +53,7 @@ impl TestProject {
     }
 }
 
-fn run_migrate_with_input(
+fn run_import_with_input(
     tool_name: &str,
     working_dir: &std::path::Path,
     output_path: &str,
@@ -65,7 +65,7 @@ fn run_migrate_with_input(
 
     let binary_path = get_binary_path();
     let mut cmd = Command::new(binary_path);
-    let mut args = vec!["migrate", tool_name];
+    let mut args = vec!["import", tool_name];
 
     if global {
         args.push("--global");
@@ -84,7 +84,7 @@ fn run_migrate_with_input(
         .stdout(Stdio::piped())
         .stderr(Stdio::piped());
 
-    let mut child = cmd.spawn().expect("Failed to spawn migrate command");
+    let mut child = cmd.spawn().expect("Failed to spawn import command");
 
     if let Some(mut stdin) = child.stdin.take() {
         for line in input_lines {
@@ -98,7 +98,7 @@ fn run_migrate_with_input(
 }
 
 #[test]
-fn test_migrate_cursor_project_success() {
+fn test_import_cursor_project_success() {
     let config_content = r#"{
   "mcpServers": {
     "filesystem": {
@@ -115,7 +115,7 @@ fn test_migrate_cursor_project_success() {
     let project = TestProject::new("cursor", ".cursor", "mcp.json", config_content);
     let output_path = project.output_path();
 
-    let output = run_migrate_with_input(
+    let output = run_import_with_input(
         "cursor",
         project.path(),
         output_path.to_str().unwrap(),
@@ -126,7 +126,7 @@ fn test_migrate_cursor_project_success() {
 
     assert!(
         output.status.success(),
-        "Migration should succeed. stderr: {}",
+        "Import should succeed. stderr: {}",
         String::from_utf8_lossy(&output.stderr)
     );
 
@@ -154,7 +154,7 @@ fn test_migrate_cursor_project_success() {
 }
 
 #[test]
-fn test_migrate_opencode_jsonc_success() {
+fn test_import_opencode_jsonc_success() {
     let config_content = r#"{
   // OpenCode MCP configuration with comments
   "mcp": {
@@ -172,7 +172,7 @@ fn test_migrate_opencode_jsonc_success() {
     let project = TestProject::new("opencode", ".opencode", "mcp.jsonc", config_content);
     let output_path = project.output_path();
 
-    let output = run_migrate_with_input(
+    let output = run_import_with_input(
         "opencode",
         project.path(),
         output_path.to_str().unwrap(),
@@ -183,7 +183,7 @@ fn test_migrate_opencode_jsonc_success() {
 
     assert!(
         output.status.success(),
-        "Migration should succeed. stderr: {}",
+        "Import should succeed. stderr: {}",
         String::from_utf8_lossy(&output.stderr)
     );
 
@@ -204,7 +204,7 @@ fn test_migrate_opencode_jsonc_success() {
 }
 
 #[test]
-fn test_migrate_vscode_env_var_normalization() {
+fn test_import_vscode_env_var_normalization() {
     let config_content = r#"{
   "servers": {
     "github": {
@@ -220,7 +220,7 @@ fn test_migrate_vscode_env_var_normalization() {
     let project = TestProject::new("vscode", ".vscode", "mcp.json", config_content);
     let output_path = project.output_path();
 
-    let output = run_migrate_with_input(
+    let output = run_import_with_input(
         "vscode",
         project.path(),
         output_path.to_str().unwrap(),
@@ -246,7 +246,7 @@ fn test_migrate_vscode_env_var_normalization() {
 }
 
 #[test]
-fn test_migrate_claude_project_success() {
+fn test_import_claude_project_success() {
     let config_content = r#"{
   "mcpServers": {
     "postgres": {
@@ -259,7 +259,7 @@ fn test_migrate_claude_project_success() {
     let project = TestProject::new("claude", ".", ".mcp.json", config_content);
     let output_path = project.output_path();
 
-    let output = run_migrate_with_input(
+    let output = run_import_with_input(
         "claude",
         project.path(),
         output_path.to_str().unwrap(),
@@ -286,7 +286,7 @@ fn test_migrate_claude_project_success() {
 }
 
 #[test]
-fn test_migrate_cline_success() {
+fn test_import_cline_success() {
     let config_content = r#"{
   "mcpServers": {
     "brave-search": {
@@ -302,7 +302,7 @@ fn test_migrate_cline_success() {
     let project = TestProject::new("cline", ".cline", "mcp.json", config_content);
     let output_path = project.output_path();
 
-    let output = run_migrate_with_input(
+    let output = run_import_with_input(
         "cline",
         project.path(),
         output_path.to_str().unwrap(),
@@ -328,7 +328,7 @@ fn test_migrate_cline_success() {
 }
 
 #[test]
-fn test_migrate_force_flag_skips_overwrite_prompt() {
+fn test_import_force_flag_skips_overwrite_prompt() {
     let config_content = r#"{
   "mcpServers": {
     "test": {
@@ -343,7 +343,7 @@ fn test_migrate_force_flag_skips_overwrite_prompt() {
 
     fs::write(&output_path, "existing content").expect("Failed to create existing file");
 
-    let output = run_migrate_with_input(
+    let output = run_import_with_input(
         "cursor",
         project.path(),
         output_path.to_str().unwrap(),
@@ -364,10 +364,10 @@ fn test_migrate_force_flag_skips_overwrite_prompt() {
 }
 
 #[test]
-fn test_migrate_missing_config_file_error() {
+fn test_import_missing_config_file_error() {
     let project = TempDir::new().expect("Failed to create temp dir");
 
-    let output = run_migrate_with_input(
+    let output = run_import_with_input(
         "cursor",
         project.path(),
         project.path().join("output.json").to_str().unwrap(),
@@ -386,7 +386,7 @@ fn test_migrate_missing_config_file_error() {
 }
 
 #[test]
-fn test_migrate_empty_description_error() {
+fn test_import_empty_description_error() {
     let config_content = r#"{
   "mcpServers": {
     "test": {
@@ -399,7 +399,7 @@ fn test_migrate_empty_description_error() {
     let project = TestProject::new("cursor", ".cursor", "mcp.json", config_content);
     let output_path = project.output_path();
 
-    let output = run_migrate_with_input(
+    let output = run_import_with_input(
         "cursor",
         project.path(),
         output_path.to_str().unwrap(),
@@ -418,7 +418,7 @@ fn test_migrate_empty_description_error() {
 }
 
 #[test]
-fn test_migrate_invalid_json_error() {
+fn test_import_invalid_json_error() {
     let invalid_config = r#"{
   "mcpServers": {
     "test": {
@@ -428,7 +428,7 @@ fn test_migrate_invalid_json_error() {
     let project = TestProject::new("cursor", ".cursor", "mcp.json", invalid_config);
     let output_path = project.output_path();
 
-    let output = run_migrate_with_input(
+    let output = run_import_with_input(
         "cursor",
         project.path(),
         output_path.to_str().unwrap(),
@@ -446,7 +446,7 @@ fn test_migrate_invalid_json_error() {
 }
 
 #[test]
-fn test_migrate_multiple_servers_interactive() {
+fn test_import_multiple_servers_interactive() {
     let config_content = r#"{
   "mcpServers": {
     "server1": {
@@ -467,7 +467,7 @@ fn test_migrate_multiple_servers_interactive() {
     let project = TestProject::new("cursor", ".cursor", "mcp.json", config_content);
     let output_path = project.output_path();
 
-    let output = run_migrate_with_input(
+    let output = run_import_with_input(
         "cursor",
         project.path(),
         output_path.to_str().unwrap(),
@@ -504,7 +504,7 @@ fn test_migrate_multiple_servers_interactive() {
 }
 
 #[test]
-fn test_migrate_cursor_env_var_conversion() {
+fn test_import_cursor_env_var_conversion() {
     let config_content = r#"{
   "mcpServers": {
     "test": {
@@ -522,7 +522,7 @@ fn test_migrate_cursor_env_var_conversion() {
     let project = TestProject::new("cursor", ".cursor", "mcp.json", config_content);
     let output_path = project.output_path();
 
-    let output = run_migrate_with_input(
+    let output = run_import_with_input(
         "cursor",
         project.path(),
         output_path.to_str().unwrap(),
@@ -549,7 +549,7 @@ fn test_migrate_cursor_env_var_conversion() {
 }
 
 #[test]
-fn test_migrate_vscode_env_var_conversion_in_env() {
+fn test_import_vscode_env_var_conversion_in_env() {
     let config_content = r#"{
   "servers": {
     "test": {
@@ -567,7 +567,7 @@ fn test_migrate_vscode_env_var_conversion_in_env() {
     let project = TestProject::new("vscode", ".vscode", "mcp.json", config_content);
     let output_path = project.output_path();
 
-    let output = run_migrate_with_input(
+    let output = run_import_with_input(
         "vscode",
         project.path(),
         output_path.to_str().unwrap(),
@@ -594,7 +594,7 @@ fn test_migrate_vscode_env_var_conversion_in_env() {
 }
 
 #[test]
-fn test_migrate_vscode_env_var_conversion_in_headers() {
+fn test_import_vscode_env_var_conversion_in_headers() {
     let config_content = r#"{
   "servers": {
     "api": {
@@ -611,7 +611,7 @@ fn test_migrate_vscode_env_var_conversion_in_headers() {
     let project = TestProject::new("vscode", ".vscode", "mcp.json", config_content);
     let output_path = project.output_path();
 
-    let output = run_migrate_with_input(
+    let output = run_import_with_input(
         "vscode",
         project.path(),
         output_path.to_str().unwrap(),
@@ -639,7 +639,7 @@ fn test_migrate_vscode_env_var_conversion_in_headers() {
 }
 
 #[test]
-fn test_migrate_codex_env_var_passthrough() {
+fn test_import_codex_env_var_passthrough() {
     let config_content = r#"
 [mcp.test]
 command = "node"
@@ -664,7 +664,7 @@ WORKSPACE = "${WORKSPACE_ROOT}"
 
     let output_path = dir.path().join("dynamic-mcp.json");
 
-    let output = run_migrate_with_input(
+    let output = run_import_with_input(
         "codex",
         dir.path(),
         output_path.to_str().unwrap(),
@@ -693,7 +693,7 @@ WORKSPACE = "${WORKSPACE_ROOT}"
 }
 
 #[test]
-fn test_migrate_claude_env_var_passthrough() {
+fn test_import_claude_env_var_passthrough() {
     let config_content = r#"{
   "mcpServers": {
     "test": {
@@ -711,7 +711,7 @@ fn test_migrate_claude_env_var_passthrough() {
     let project = TestProject::new("claude", ".", ".mcp.json", config_content);
     let output_path = project.output_path();
 
-    let output = run_migrate_with_input(
+    let output = run_import_with_input(
         "claude",
         project.path(),
         output_path.to_str().unwrap(),
@@ -738,7 +738,7 @@ fn test_migrate_claude_env_var_passthrough() {
 }
 
 #[test]
-fn test_migrate_opencode_env_var_passthrough() {
+fn test_import_opencode_env_var_passthrough() {
     let config_content = r#"{
   "mcp": {
     "test": {
@@ -756,7 +756,7 @@ fn test_migrate_opencode_env_var_passthrough() {
     let project = TestProject::new("opencode", ".opencode", "mcp.json", config_content);
     let output_path = project.output_path();
 
-    let output = run_migrate_with_input(
+    let output = run_import_with_input(
         "opencode",
         project.path(),
         output_path.to_str().unwrap(),
@@ -783,7 +783,7 @@ fn test_migrate_opencode_env_var_passthrough() {
 }
 
 #[test]
-fn test_migrate_gemini_env_var_passthrough() {
+fn test_import_gemini_env_var_passthrough() {
     let config_content = r#"{
   "mcpServers": {
     "test": {
@@ -801,7 +801,7 @@ fn test_migrate_gemini_env_var_passthrough() {
     let project = TestProject::new("gemini", ".gemini", "settings.json", config_content);
     let output_path = project.output_path();
 
-    let output = run_migrate_with_input(
+    let output = run_import_with_input(
         "gemini",
         project.path(),
         output_path.to_str().unwrap(),
@@ -828,7 +828,7 @@ fn test_migrate_gemini_env_var_passthrough() {
 }
 
 #[test]
-fn test_migrate_kilocode_env_var_passthrough() {
+fn test_import_kilocode_env_var_passthrough() {
     let config_content = r#"{
   "mcpServers": {
     "test": {
@@ -846,7 +846,7 @@ fn test_migrate_kilocode_env_var_passthrough() {
     let project = TestProject::new("kilocode", ".kilocode", "mcp.json", config_content);
     let output_path = project.output_path();
 
-    let output = run_migrate_with_input(
+    let output = run_import_with_input(
         "kilocode",
         project.path(),
         output_path.to_str().unwrap(),

@@ -8,31 +8,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.2.0] - 2026-01-08
 
 ### Added
-- **Multi-Tool Migration Support** - Automatically import configs from 10 AI coding tools
+- **Multi-Tool Import Support** - Automatically import configs from 10 AI coding tools
   - Cursor, OpenCode, Claude Desktop, Claude Code CLI, VS Code
   - Cline, KiloCode, Codex CLI, Gemini CLI, Google Antigravity
 - **Tool Detection Module** - Smart path resolution for project/global configs per tool
 - **Config Parser Module** - Support for JSON, JSONC (with comments), and TOML formats
 - **Environment Variable Normalization** - Automatic conversion of tool-specific env var patterns
 - **Enhanced CLI** - `--global` flag for user-level configs, `--force` flag to skip prompts
-- **Comprehensive Test Coverage** - 10 new end-to-end migration integration tests
+- **Comprehensive Test Coverage** - 10 new end-to-end import integration tests
 - **26 Test Fixtures** - Real-world config examples for all 10 supported tools
 
 ### Changed
-- Migration command now uses tool names instead of file paths: `dmcp migrate cursor`
+- Import command now uses tool names instead of file paths: `dmcp import cursor`
 - Server processing order is now alphabetical (consistent interactive prompts)
 - JSONC parsing improved with line comment stripping for better compatibility
 
 ### Documentation
-- New MIGRATION_INTEGRATION_TESTS.md with detailed test documentation
-- Updated README.md with tool-specific migration examples
-- Updated MIGRATION.md with comprehensive tool guides
-- MIGRATE_MULTI_TOOL.md technical specification document
+- New IMPORT_INTEGRATION_TESTS.md with detailed test documentation
+- Updated README.md with tool-specific import examples
+- Updated IMPORT.md with comprehensive tool guides
+- IMPORT_MULTI_TOOL.md technical specification document
 - Updated STATUS.md, TESTING.md, and DEVELOPMENT.md with Phase 8 completion
 
 ### Metrics
 - LOC increased: ~2,900 → ~4,765 Rust
-- Tests increased: 46 → 82 (50 unit + 14 integration + 18 migration integration)
+- Tests increased: 46 → 82 (50 unit + 14 integration + 18 import integration)
 - Test coverage: ~90% → ~95%
 - Source files: 17 → 24 Rust files
 
@@ -49,7 +49,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved test reliability with better config fixtures and race condition handling
 
 ### Fixed
-- Migrate command now respects `RUST_LOG` environment variable
+- Import command now respects `RUST_LOG` environment variable
 - Removed duplicate wheel upload step in release workflow
 - Updated dependencies: switched from native-tls to rustls for better ARM64 cross-compilation
 - Snake_case tool names for better MCP protocol compliance
@@ -69,7 +69,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **OAuth2 authentication**: PKCE flow with automatic token refresh
 - **Live configuration reload**: Watch config file changes and auto-reconnect
 - **Automatic retry**: Exponential backoff for failed upstream connections
-- **Migration command**: Convert standard MCP configs to dynamic-mcp format (`dynamic-mcp migrate`)
+- **Import command**: Convert standard MCP configs to dynamic-mcp format (`dynamic-mcp import`)
 - **Environment variable interpolation**: `${VAR}` syntax in configuration
 - **Server descriptions**: Help LLMs understand when to use each tool group
 - **Cross-platform binaries**: Linux x86_64, Linux ARM64, macOS ARM64, Windows x86_64
@@ -92,7 +92,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Documentation
 - Comprehensive README with quick start guide
 - Architecture documentation explaining system design
-- Migration guide from standard MCP setup
+- Import guide from standard MCP setup
 - Security documentation for OAuth token storage
 - Contributing guide with development setup
 - Full API documentation via rustdoc

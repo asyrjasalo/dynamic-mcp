@@ -1,8 +1,8 @@
-# Migration Guide
+# Import Guide
 
-This guide explains how to migrate to dynamic-mcp from AI coding tools and standard MCP configurations.
+This guide explains how to import MCP server configurations from AI coding tools and standard MCP configurations into dynamic-mcp format.
 
-## Why Migrate?
+## Why Import?
 
 Standard MCP clients load all tool schemas from all servers upfront, consuming significant LLM context. Dynamic-mcp reduces context usage by:
 
@@ -12,33 +12,33 @@ Standard MCP clients load all tool schemas from all servers upfront, consuming s
 
 ## Quick Start
 
-### Migrate from AI Coding Tools
+### Import from AI Coding Tools
 
 **Project-level config** (run in project directory):
 ```bash
-dmcp migrate cursor
-dmcp migrate vscode
-dmcp migrate cline
+dmcp import cursor
+dmcp import vscode
+dmcp import cline
 ```
 
 **Global/user-level config**:
 ```bash
-dmcp migrate --global claude-desktop
-dmcp migrate --global opencode
-dmcp migrate --global codex
+dmcp import --global claude-desktop
+dmcp import --global opencode
+dmcp import --global codex
 ```
 
 **Force overwrite**:
 ```bash
-dmcp migrate cursor --force
+dmcp import cursor --force
 ```
 
-### Migrate from Generic MCP Config
+### Import from Generic MCP Config
 
 For backward compatibility with generic configs:
 
 ```bash
-dmcp migrate config.json -o dynamic-mcp.json
+dmcp import config.json -o dynamic-mcp.json
 ```
 
 **What it does**:
@@ -50,10 +50,10 @@ dmcp migrate config.json -o dynamic-mcp.json
 
 **Example session**:
 ```
-🔄 Starting migration from standard MCP config to dynamic-mcp format
+🔄 Starting import from standard MCP config to dynamic-mcp format
 📖 Reading config from: /Users/you/.config/mcp/config.json
 
-✅ Found 3 MCP server(s) to migrate
+✅ Found 3 MCP server(s) to import
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Server: filesystem
@@ -78,11 +78,11 @@ Web search using Brave Search API
 
 ...
 
-✅ Migration complete!
+✅ Import complete!
 📝 Output saved to: dynamic-mcp.json
 ```
 
-### Method 2: Manual Migration
+### Method 2: Manual Import
 
 If you prefer manual control:
 
@@ -231,7 +231,7 @@ Examples:
 - "Browser automation with Playwright"
 - "Database queries on PostgreSQL"
 
-## Common Migration Scenarios
+## Common Import Scenarios
 
 ### Scenario 1: NPX-based Servers
 
@@ -343,9 +343,9 @@ Examples:
 }
 ```
 
-## Testing Your Migration
+## Testing Your Import
 
-After migration, verify the config works:
+After import, verify the config works:
 
 ```bash
 # Test the config
@@ -402,31 +402,31 @@ Some MCP groups failed to connect. success_groups=[...], failed_groups=[...]
 
 ## Rollback
 
-If migration causes issues, you can:
+If import causes issues, you can:
 
 1. **Keep both configs**: Use standard config with standard MCP client
 2. **Revert**: Delete `dynamic-mcp.json`, use original config
-3. **Fix forward**: Adjust descriptions or types in migrated config
+3. **Fix forward**: Adjust descriptions or types in importd config
 
 ## Next Steps
 
-After successful migration:
+After successful import:
 
 1. Update your MCP client config to point to dynamic-mcp
 2. Configure dynamic-mcp to start automatically
 3. Test each group with `get_dynamic_tools`
 4. Verify tool calls work as expected
 
-## Example: Full Migration Workflow
+## Example: Full Import Workflow
 
 ```bash
 # 1. Backup original config
 cp ~/.config/mcp/config.json ~/.config/mcp/config.json.backup
 
-# 2. Run migration
-dmcp migrate ~/.config/mcp/config.json -o dynamic-mcp.json
+# 2. Run import
+dmcp import ~/.config/mcp/config.json -o dynamic-mcp.json
 
-# 3. Review migrated config
+# 3. Review importd config
 cat dynamic-mcp.json
 
 # 4. Test the config
@@ -438,7 +438,7 @@ dmcp dynamic-mcp.json
 # 6. Restart your LLM client
 ```
 
-## Tool-Specific Migration Guides
+## Tool-Specific Import Guides
 
 ### Cursor
 
@@ -446,14 +446,14 @@ dmcp dynamic-mcp.json
 - Project: `.cursor/mcp.json` (in project root)
 - Global: `~/.cursor/mcp.json`
 
-**Migration**:
+**Import**:
 ```bash
 # From project config
 cd /path/to/project
-dmcp migrate cursor
+dmcp import cursor
 
 # From global config
-dmcp migrate --global cursor
+dmcp import --global cursor
 ```
 
 **Environment Variables**: Cursor uses `${env:VAR}` format, automatically converted to `${VAR}`.
@@ -466,13 +466,13 @@ dmcp migrate --global cursor
 - Project: `.opencode/mcp.json` or `.opencode/mcp.jsonc`
 - Global: `~/.config/opencode/opencode.json` or `~/.config/opencode/opencode.jsonc`
 
-**Migration**:
+**Import**:
 ```bash
 # From project config (auto-detects .json or .jsonc)
-dmcp migrate opencode
+dmcp import opencode
 
 # From global config (auto-detects .json or .jsonc)
-dmcp migrate --global opencode
+dmcp import --global opencode
 ```
 
 **Special Notes**:
@@ -491,11 +491,11 @@ dmcp migrate --global opencode
 - Windows: `%APPDATA%\Claude\claude_desktop_config.json`
 - Linux: `~/.config/Claude/claude_desktop_config.json`
 
-**Migration**:
+**Import**:
 ```bash
-dmcp migrate --global claude-desktop
+dmcp import --global claude-desktop
 # or
-dmcp migrate --global claude
+dmcp import --global claude
 ```
 
 **Environment Variables**: Uses `${VAR}` format (already compatible).
@@ -508,14 +508,14 @@ dmcp migrate --global claude
 - Project: `.mcp.json` (in project root - shared with team, version-controlled)
 - Global: `~/.claude/mcp.json`
 
-**Migration**:
+**Import**:
 ```bash
 # From project config (.mcp.json in project root)
 cd /path/to/project
-dmcp migrate claude
+dmcp import claude
 
 # From global config
-dmcp migrate --global claude
+dmcp import --global claude
 ```
 
 **Environment Variables**: Uses `${VAR}` format (already compatible).
@@ -538,23 +538,23 @@ dmcp migrate --global claude
   - Windows: `%APPDATA%\Code\User\mcp.json`
   - Linux: `~/.config/Code/User/mcp.json`
 
-**Migration**:
+**Import**:
 ```bash
 # From project config
-dmcp migrate vscode
+dmcp import vscode
 
 # From global/user config
-dmcp migrate --global vscode
+dmcp import --global vscode
 ```
 
 **Special Notes**:
 - Uses `servers` instead of `mcpServers`
 - Supports `${input:ID}` for secure credential prompts (cannot auto-convert)
-- VS Code specific `inputs` array not migrated
+- VS Code specific `inputs` array not importd
 - Can also use Command Palette: `MCP: Open User Configuration`
 - Supports both dedicated `mcp.json` or settings in `settings.json`
 
-**Manual Steps After Migration**:
+**Manual Steps After Import**:
 If your config used `${input:credential-id}`:
 1. Replace with environment variable: `${API_KEY}`
 2. Export the variable: `export API_KEY=your-key`
@@ -566,14 +566,14 @@ If your config used `${input:credential-id}`:
 **Config Location**:
 - Project: `.cline/mcp.json`
 
-**Migration**:
+**Import**:
 ```bash
-dmcp migrate cline
+dmcp import cline
 ```
 
 **Special Notes**:
-- `alwaysAllow` field is not migrated (Cline-specific)
-- `disabled` field is not migrated
+- `alwaysAllow` field is not importd (Cline-specific)
+- `disabled` field is not importd
 - Environment variables use `${env:VAR}` format (auto-converted)
 
 ---
@@ -583,12 +583,12 @@ dmcp migrate cline
 **Config Location**:
 - Project: `.kilocode/mcp.json`
 
-**Migration**:
+**Import**:
 ```bash
-dmcp migrate kilocode
+dmcp import kilocode
 ```
 
-**Similar to Cline**: Extension-specific fields (`alwaysAllow`, `disabled`) are not migrated.
+**Similar to Cline**: Extension-specific fields (`alwaysAllow`, `disabled`) are not importd.
 
 ---
 
@@ -597,9 +597,9 @@ dmcp migrate kilocode
 **Config Location**:
 - Global: `~/.codex/config.toml`
 
-**Migration**:
+**Import**:
 ```bash
-dmcp migrate --global codex
+dmcp import --global codex
 ```
 
 **Special Notes**:
@@ -624,11 +624,11 @@ GITHUB_TOKEN = "${GITHUB_TOKEN}"
 **Config Location**:
 - UI-managed: `mcp_config.json`
 
-**Migration**:
+**Import**:
 ```bash
 # Locate the config file through Antigravity UI
-# Then migrate using file path:
-dmcp migrate /path/to/mcp_config.json -o dynamic-mcp.json
+# Then import using file path:
+dmcp import /path/to/mcp_config.json -o dynamic-mcp.json
 ```
 
 **Finding Config**:
@@ -646,14 +646,14 @@ dmcp migrate /path/to/mcp_config.json -o dynamic-mcp.json
 - Project: `.gemini/settings.json` (in project root)
 - Global: `~/.gemini/settings.json`
 
-**Migration**:
+**Import**:
 ```bash
 # From project config
 cd /path/to/project
-dmcp migrate gemini
+dmcp import gemini
 
 # From global config
-dmcp migrate --global gemini
+dmcp import --global gemini
 ```
 
 **Environment Variables**: Uses standard environment variables (no special syntax).

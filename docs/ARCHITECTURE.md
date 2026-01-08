@@ -18,7 +18,7 @@ dynamic-mcp/
 │   │   ├── client.rs        # Group state management
 │   │   └── transport.rs     # Transport creation
 │   └── cli/                 # CLI commands
-│       └── migrate.rs       # Config migration
+│       └── import.rs       # Config import
 ├── docs/                    # Documentation
 ├── examples/                # Example configurations
 └── Cargo.toml              # Dependencies
@@ -167,15 +167,15 @@ config.json → load_config() → substitute_env_vars() → ServerConfig
 - `tools/list`: Return the two proxy tools
 - `tools/call`: Execute get_dynamic_tools or call_dynamic_tool
 
-### 6. CLI & Migration (`src/cli/`)
+### 6. CLI & Import (`src/cli/`)
 
-**Purpose**: Command-line interface and config migration
+**Purpose**: Command-line interface and config import
 
 **Commands**:
 - `dynamic-mcp <config.json>`: Start server with config
-- `dynamic-mcp migrate <input.json> -o <output.json>`: Migrate standard MCP config
+- `dynamic-mcp import <input.json> -o <output.json>`: Import standard MCP config
 
-**Migration Process**:
+**Import Process**:
 ```
 Standard MCP Config          Dynamic-MCP Config
 ─────────────────           ──────────────────
@@ -372,7 +372,7 @@ enum McpServerConfig {
 
 ### Integration Tests
 - End-to-end CLI workflows
-- Migration command
+- Import command
 - Config schema validation
 
 ### Manual Testing

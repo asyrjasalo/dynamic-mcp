@@ -28,8 +28,8 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    /// Migrate MCP config from AI coding tools to dynamic-mcp format
-    Migrate {
+    /// Import MCP config from AI coding tools to dynamic-mcp format
+    Import {
         /// Tool name: cursor, opencode, claude-desktop, claude, vscode, cline, kilocode, codex, gemini, antigravity
         tool_name: String,
 
@@ -66,7 +66,7 @@ async fn main() -> Result<()> {
     let cli = Cli::parse();
 
     match cli.command {
-        Some(Commands::Migrate {
+        Some(Commands::Import {
             tool_name,
             global,
             force,
@@ -77,7 +77,7 @@ async fn main() -> Result<()> {
                     EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("warn")),
                 )
                 .init();
-            cli::migrate::run_migration_from_tool(&tool_name, global, force, &output).await
+            cli::import::run_import_from_tool(&tool_name, global, force, &output).await
         }
         None => {
             tracing_subscriber::fmt()

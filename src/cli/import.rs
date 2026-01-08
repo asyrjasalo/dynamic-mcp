@@ -1,24 +1,24 @@
-use crate::cli::migrate_enhanced;
+use crate::cli::import_enhanced;
 use crate::cli::tool_detector::Tool;
 use anyhow::Result;
 
-pub async fn run_migration_from_tool(
+pub async fn run_import_from_tool(
     tool_name: &str,
     is_global: bool,
     force: bool,
     output_path: &str,
 ) -> Result<()> {
     let tool = Tool::from_name(tool_name)?;
-    migrate_enhanced::run_migration_from_tool(tool, is_global, force, output_path).await
+    import_enhanced::run_import_from_tool(tool, is_global, force, output_path).await
 }
 
 #[allow(dead_code)]
-pub async fn run_migration_legacy(input_path: &str, output_path: &str) -> Result<()> {
+pub async fn run_import_legacy(input_path: &str, output_path: &str) -> Result<()> {
     use crate::config::{McpServerConfig, ServerConfig, StandardServerConfig};
     use anyhow::Context;
     use std::collections::HashMap;
     use tokio::fs;
-    println!("🔄 Starting migration from standard MCP config to dynamic-mcp format");
+    println!("🔄 Starting import from standard MCP config to dynamic-mcp format");
     println!("📖 Reading config from: {}", input_path);
 
     let content = fs::read_to_string(input_path)
@@ -29,11 +29,11 @@ pub async fn run_migration_legacy(input_path: &str, output_path: &str) -> Result
         .with_context(|| format!("Failed to parse standard MCP config: {}", input_path))?;
 
     println!(
-        "\n✅ Found {} MCP server(s) to migrate\n",
+        "\n✅ Found {} MCP server(s) to import\n",
         standard_config.mcp_servers.len()
     );
 
-    let mut migrated_servers: HashMap<String, McpServerConfig> = HashMap::new();
+    let mut imported_servers: HashMap<String, McpServerConfig> = HashMap::new();
 
     for (name, standard_server) in standard_config.mcp_servers {
         println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
@@ -57,27 +57,27 @@ pub async fn run_migration_legacy(input_path: &str, output_path: &str) -> Result
             );
         }
 
-        let migrated_server: McpServerConfig =
+        let imported_server: McpServerConfig =
             serde_json::from_value(config_value).with_context(|| {
                 format!("Failed to convert server '{}' to dynamic-mcp format", name)
             })?;
 
-        migrated_servers.insert(name, migrated_server);
+        imported_servers.insert(name, imported_server);
     }
 
-    let migrated_config = ServerConfig {
-        mcp_servers: migrated_servers,
+    let imported_config = ServerConfig {
+        mcp_servers: imported_servers,
     };
 
-    let output_json = serde_json::to_string_pretty(&migrated_config)
-        .context("Failed to serialize migrated config")?;
+    let output_json = serde_json::to_string_pretty(&imported_config)
+        .context("Failed to serialize imported config")?;
 
     fs::write(output_path, output_json)
         .await
         .with_context(|| format!("Failed to write output file: {}", output_path))?;
 
     println!("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-    println!("✅ Migration complete!");
+    println!("✅ Import complete!");
     println!("📝 Output saved to: {}", output_path);
     println!("\nYou can now use this config with:");
     println!("  dynamic-mcp {}", output_path);

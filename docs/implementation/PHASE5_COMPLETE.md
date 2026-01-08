@@ -47,8 +47,8 @@
 - Project build verification
 - Binary existence check
 - Config example validation
-- Migration command help
-- Migration with valid config
+- Import command help
+- Import with valid config
 - Version flag
 - Help flag
 - Invalid config path handling
@@ -93,15 +93,15 @@ cargo doc --no-deps
 - Security documentation
 - Extension points
 
-### ✅ 4. Migration Guide
+### ✅ 4. Import Guide
 
-**Created `docs/MIGRATION.md`** with:
+**Created `docs/IMPORT.md`** with:
 - Why migrate explanation
-- Automatic migration walkthrough
-- Manual migration steps
+- Automatic import walkthrough
+- Manual import steps
 - Transport type detection
 - Description writing best practices
-- Common migration scenarios (NPX, env vars, OAuth, headers)
+- Common import scenarios (NPX, env vars, OAuth, headers)
 - Testing migrated configs
 - Troubleshooting
 - Rollback procedures
@@ -123,7 +123,7 @@ cargo doc --no-deps
 **Updates**:
 - Phase 5 completion status
 - Updated project metrics (46 tests, enhanced coverage)
-- Added documentation links (ARCHITECTURE.md, MIGRATION.md)
+- Added documentation links (ARCHITECTURE.md, IMPORT.md)
 - Troubleshooting section
 - Enhanced development section with test commands
 - Updated roadmap showing Phase 5 complete
@@ -144,7 +144,7 @@ cargo doc --no-deps
 - Config loading edge cases
 - Server request handling
 - CLI integration workflows
-- Migration command
+- Import command
 - Error scenarios
 
 ## Documentation Summary
@@ -156,8 +156,8 @@ cargo doc --no-deps
    - Data flows
    - Extension guide
 
-2. `docs/MIGRATION.md` (400+ lines)
-   - Step-by-step migration
+2. `docs/IMPORT.md` (400+ lines)
+   - Step-by-step import
    - Examples for all scenarios
    - Best practices
    - Troubleshooting
@@ -188,7 +188,7 @@ cargo doc --no-deps
 # Result: Success
 
 # All docs exist
-ls docs/ARCHITECTURE.md docs/MIGRATION.md
+ls docs/ARCHITECTURE.md docs/IMPORT.md
 # Result: Both files present
 
 # README updated
@@ -199,10 +199,10 @@ grep "Phase 5" README.md
 ## Key Achievements
 
 1. **Exceeded test coverage target**: 100% for all core modules (target was >80%)
-2. **Comprehensive documentation**: Architecture, migration, troubleshooting, API docs
+2. **Comprehensive documentation**: Architecture, import, troubleshooting, API docs
 3. **Production-ready testing**: Integration tests cover real-world workflows
 4. **Developer-friendly**: Clear examples, troubleshooting, and extension guides
-5. **User-friendly**: Migration guide helps users adopt dynamic-mcp
+5. **User-friendly**: Import guide helps users adopt dynamic-mcp
 
 ## Next Steps (Phase 6)
 

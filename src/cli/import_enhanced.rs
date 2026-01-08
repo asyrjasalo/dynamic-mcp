@@ -7,14 +7,14 @@ use std::io::{self, Write};
 use std::path::PathBuf;
 use tokio::fs;
 
-pub async fn run_migration_from_tool(
+pub async fn run_import_from_tool(
     tool: Tool,
     is_global: bool,
     force: bool,
     output_path: &str,
 ) -> Result<()> {
     println!(
-        "🔄 Starting migration from {} to dynamic-mcp format",
+        "🔄 Starting import from {} to dynamic-mcp format",
         tool.name()
     );
 
@@ -52,11 +52,11 @@ pub async fn run_migration_from_tool(
         .with_context(|| format!("Failed to parse {} config", tool.name()))?;
 
     println!(
-        "\n✅ Found {} MCP server(s) to migrate\n",
+        "\n✅ Found {} MCP server(s) to import\n",
         intermediate_servers.len()
     );
 
-    let mut migrated_servers: HashMap<String, McpServerConfig> = HashMap::new();
+    let mut imported_servers: HashMap<String, McpServerConfig> = HashMap::new();
 
     let mut server_entries: Vec<_> = intermediate_servers.into_iter().collect();
     server_entries.sort_by(|a, b| a.0.cmp(&b.0));
@@ -69,26 +69,26 @@ pub async fn run_migration_from_tool(
 
         let description = prompt_for_description(&name)?;
 
-        let migrated = intermediate
+        let imported = intermediate
             .to_mcp_config(description)
             .map_err(|e| anyhow!("Failed to convert server '{}': {}", name, e))?;
 
-        migrated_servers.insert(name, migrated);
+        imported_servers.insert(name, imported);
     }
 
-    let migrated_config = ServerConfig {
-        mcp_servers: migrated_servers,
+    let imported_config = ServerConfig {
+        mcp_servers: imported_servers,
     };
 
-    let output_json = serde_json::to_string_pretty(&migrated_config)
-        .context("Failed to serialize migrated config")?;
+    let output_json = serde_json::to_string_pretty(&imported_config)
+        .context("Failed to serialize imported config")?;
 
     fs::write(output_path, output_json)
         .await
         .with_context(|| format!("Failed to write output file: {}", output_path))?;
 
     println!("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-    println!("✅ Migration complete!");
+    println!("✅ Import complete!");
     println!("📝 Output saved to: {}", output_path);
     println!("\nYou can now use this config with:");
     println!("  dmcp {}", output_path);
@@ -107,8 +107,8 @@ fn determine_input_path(tool: Tool, is_global: bool) -> Result<PathBuf> {
         tool.project_config_path().ok_or_else(|| {
             anyhow!(
                 "{} does not support project-level config.\n\n\
-                Use --global flag to migrate from global config:\n\
-                  dmcp migrate --global {}",
+                Use --global flag to import from global config:\n\
+                  dmcp import --global {}",
                 tool.name(),
                 tool.name()
             )
@@ -164,9 +164,9 @@ async fn check_output_file_exists(output_path: &str, force: bool) -> Result<()> 
         let response = response.trim().to_lowercase();
         if response != "y" && response != "yes" {
             return Err(anyhow!(
-                "Migration cancelled.\n\n\
+                "Import cancelled.\n\n\
                 Use --force flag to skip this prompt:\n\
-                  dmcp migrate <tool-name> --force"
+                  dmcp import <tool-name> --force"
             ));
         }
     }

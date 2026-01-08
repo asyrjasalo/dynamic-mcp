@@ -43,7 +43,7 @@ impl Tool {
                   - codex\n\
                   - cline\n\
                   - kilocode\n\n\
-                Usage: dmcp migrate <tool-name>",
+                Usage: dmcp import <tool-name>",
                 name
             )),
         }
@@ -109,7 +109,7 @@ impl Tool {
                 return Err(anyhow!(
                     "Antigravity uses UI-managed config.\n\
                     Please manually locate mcp_config.json and specify the path:\n\
-                      dmcp migrate mcp_config.json"
+                      dmcp import mcp_config.json"
                 ))
             }
             Tool::Gemini => PathBuf::from(home).join(".gemini/settings.json"),
