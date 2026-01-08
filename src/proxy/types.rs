@@ -41,6 +41,13 @@ fn is_null(value: &serde_json::Value) -> bool {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum JsonRpcMessage {
+    Request(JsonRpcRequest),
+    Batch(Vec<JsonRpcRequest>),
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct JsonRpcResponse {
     pub jsonrpc: String,
     pub id: serde_json::Value,
@@ -56,6 +63,46 @@ pub struct JsonRpcError {
     pub message: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub data: Option<serde_json::Value>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct JsonRpcNotification {
+    pub jsonrpc: String,
+    pub method: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub params: Option<serde_json::Value>,
+}
+
+impl JsonRpcNotification {
+    pub fn resources_list_changed() -> Self {
+        Self {
+            jsonrpc: "2.0".to_string(),
+            method: "notifications/resources/list_changed".to_string(),
+            params: None,
+        }
+    }
+
+    pub fn prompts_list_changed() -> Self {
+        Self {
+            jsonrpc: "2.0".to_string(),
+            method: "notifications/prompts/list_changed".to_string(),
+            params: None,
+        }
+    }
+
+    pub fn resources_updated(uri: String) -> Self {
+        Self {
+            jsonrpc: "2.0".to_string(),
+            method: "notifications/resources/updated".to_string(),
+            params: Some(serde_json::json!({ "uri": uri })),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProgressToken {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub progress_token: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -112,6 +159,21 @@ pub struct ResourceContent {
     pub text: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub blob: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub annotations: Option<ResourceAnnotations>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[allow(dead_code)]
+pub struct StreamingBinaryContent {
+    pub uri: String,
+    #[serde(rename = "mimeType")]
+    pub mime_type: String,
+    #[serde(rename = "byteLength")]
+    pub byte_length: u64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "chunkSize")]
+    pub chunk_size: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub annotations: Option<ResourceAnnotations>,
 }

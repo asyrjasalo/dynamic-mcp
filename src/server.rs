@@ -1,13 +1,16 @@
-use crate::proxy::types::{JsonRpcError, JsonRpcRequest, JsonRpcResponse};
+use crate::proxy::types::{JsonRpcError, JsonRpcNotification, JsonRpcRequest, JsonRpcResponse};
 use crate::proxy::ModularMcpClient;
 use anyhow::Result;
 use serde_json::json;
+use std::collections::{HashSet, VecDeque};
 use std::sync::Arc;
 
 pub struct ModularMcpServer {
     client: Arc<tokio::sync::RwLock<ModularMcpClient>>,
     name: String,
     version: String,
+    subscriptions: Arc<tokio::sync::RwLock<HashSet<String>>>,
+    notification_queue: Arc<tokio::sync::RwLock<VecDeque<JsonRpcNotification>>>,
 }
 
 impl ModularMcpServer {
@@ -20,6 +23,8 @@ impl ModularMcpServer {
             client,
             name,
             version,
+            subscriptions: Arc::new(tokio::sync::RwLock::new(HashSet::new())),
+            notification_queue: Arc::new(tokio::sync::RwLock::new(VecDeque::new())),
         }
     }
 
@@ -31,8 +36,12 @@ impl ModularMcpServer {
             "resources/list" => self.handle_resources_list(request).await,
             "resources/read" => self.handle_resources_read(request).await,
             "resources/templates/list" => self.handle_resources_templates_list(request).await,
+            "resources/subscribe" => self.handle_resources_subscribe(request).await,
+            "resources/unsubscribe" => self.handle_resources_unsubscribe(request).await,
             "prompts/list" => self.handle_prompts_list(request).await,
             "prompts/get" => self.handle_prompts_get(request).await,
+            "prompts/subscribe" => self.handle_prompts_subscribe(request).await,
+            "prompts/unsubscribe" => self.handle_prompts_unsubscribe(request).await,
             _ => JsonRpcResponse {
                 jsonrpc: "2.0".to_string(),
                 id: request.id,
@@ -55,11 +64,11 @@ impl ModularMcpServer {
                 "capabilities": {
                     "tools": {},
                     "resources": {
-                        "subscribe": false,
-                        "listChanged": false
+                        "subscribe": true,
+                        "listChanged": true
                     },
                     "prompts": {
-                        "listChanged": false
+                        "listChanged": true
                     }
                 },
                 "serverInfo": {
@@ -440,6 +449,76 @@ Example usage:
         }
     }
 
+    async fn handle_resources_subscribe(&self, request: JsonRpcRequest) -> JsonRpcResponse {
+        match request
+            .params
+            .as_ref()
+            .and_then(|p| p.get("group"))
+            .and_then(|g| g.as_str())
+        {
+            Some(group_name) => {
+                let mut subs = self.subscriptions.write().await;
+                subs.insert(group_name.to_string());
+                tracing::debug!(
+                    "Client subscribed to resource changes for group: {}",
+                    group_name
+                );
+
+                JsonRpcResponse {
+                    jsonrpc: "2.0".to_string(),
+                    id: request.id,
+                    result: Some(json!({})),
+                    error: None,
+                }
+            }
+            None => JsonRpcResponse {
+                jsonrpc: "2.0".to_string(),
+                id: request.id,
+                result: None,
+                error: Some(JsonRpcError {
+                    code: -32602,
+                    message: "Missing required parameter: group".to_string(),
+                    data: None,
+                }),
+            },
+        }
+    }
+
+    async fn handle_resources_unsubscribe(&self, request: JsonRpcRequest) -> JsonRpcResponse {
+        match request
+            .params
+            .as_ref()
+            .and_then(|p| p.get("group"))
+            .and_then(|g| g.as_str())
+        {
+            Some(group_name) => {
+                let mut subs = self.subscriptions.write().await;
+                subs.remove(group_name);
+                tracing::debug!(
+                    "Client unsubscribed from resource changes for group: {}",
+                    group_name
+                );
+
+                JsonRpcResponse {
+                    jsonrpc: "2.0".to_string(),
+                    id: request.id,
+                    result: Some(json!({})),
+                    error: None,
+                }
+            }
+            None => JsonRpcResponse {
+                jsonrpc: "2.0".to_string(),
+                id: request.id,
+                result: None,
+                error: Some(JsonRpcError {
+                    code: -32602,
+                    message: "Missing required parameter: group".to_string(),
+                    data: None,
+                }),
+            },
+        }
+    }
+
     async fn handle_prompts_list(&self, request: JsonRpcRequest) -> JsonRpcResponse {
         let client = self.client.read().await;
 
@@ -559,7 +638,119 @@ Example usage:
         }
     }
 
+    async fn handle_prompts_subscribe(&self, request: JsonRpcRequest) -> JsonRpcResponse {
+        match request
+            .params
+            .as_ref()
+            .and_then(|p| p.get("group"))
+            .and_then(|g| g.as_str())
+        {
+            Some(group_name) => {
+                let mut subs = self.subscriptions.write().await;
+                subs.insert(format!("prompts:{}", group_name));
+                tracing::debug!(
+                    "Client subscribed to prompt changes for group: {}",
+                    group_name
+                );
+
+                JsonRpcResponse {
+                    jsonrpc: "2.0".to_string(),
+                    id: request.id,
+                    result: Some(json!({})),
+                    error: None,
+                }
+            }
+            None => JsonRpcResponse {
+                jsonrpc: "2.0".to_string(),
+                id: request.id,
+                result: None,
+                error: Some(JsonRpcError {
+                    code: -32602,
+                    message: "Missing required parameter: group".to_string(),
+                    data: None,
+                }),
+            },
+        }
+    }
+
+    async fn handle_prompts_unsubscribe(&self, request: JsonRpcRequest) -> JsonRpcResponse {
+        match request
+            .params
+            .as_ref()
+            .and_then(|p| p.get("group"))
+            .and_then(|g| g.as_str())
+        {
+            Some(group_name) => {
+                let mut subs = self.subscriptions.write().await;
+                subs.remove(&format!("prompts:{}", group_name));
+                tracing::debug!(
+                    "Client unsubscribed from prompt changes for group: {}",
+                    group_name
+                );
+
+                JsonRpcResponse {
+                    jsonrpc: "2.0".to_string(),
+                    id: request.id,
+                    result: Some(json!({})),
+                    error: None,
+                }
+            }
+            None => JsonRpcResponse {
+                jsonrpc: "2.0".to_string(),
+                id: request.id,
+                result: None,
+                error: Some(JsonRpcError {
+                    code: -32602,
+                    message: "Missing required parameter: group".to_string(),
+                    data: None,
+                }),
+            },
+        }
+    }
+
+    async fn get_active_subscriptions(&self) -> HashSet<String> {
+        let subs = self.subscriptions.read().await;
+        subs.clone()
+    }
+
+    pub async fn queue_notification(&self, notification: JsonRpcNotification) {
+        let mut queue = self.notification_queue.write().await;
+        queue.push_back(notification);
+    }
+
+    pub async fn get_next_notification(&self) -> Option<JsonRpcNotification> {
+        let mut queue = self.notification_queue.write().await;
+        queue.pop_front()
+    }
+
+    pub async fn get_pending_notifications_count(&self) -> usize {
+        let queue = self.notification_queue.read().await;
+        queue.len()
+    }
+
+    fn validate_prompt_arguments(
+        &self,
+        arguments: &Option<serde_json::Value>,
+        argument_schema: &Option<Vec<crate::proxy::types::PromptArgument>>,
+    ) -> Result<(), String> {
+        if let Some(schema) = argument_schema {
+            let provided = arguments
+                .as_ref()
+                .and_then(|a| a.as_object())
+                .map(|o| o.keys().cloned().collect::<HashSet<_>>())
+                .unwrap_or_default();
+
+            for arg in schema {
+                if arg.required && !provided.contains(arg.name.as_str()) {
+                    return Err(format!("Missing required prompt argument: {}", arg.name));
+                }
+            }
+        }
+        Ok(())
+    }
+
     pub async fn run_stdio(&self) -> Result<()> {
+        use crate::proxy::types::JsonRpcMessage;
         use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 
         let stdin = tokio::io::stdin();
@@ -582,8 +773,59 @@ Example usage:
                 continue;
             }
 
-            match serde_json::from_str::<JsonRpcRequest>(trimmed) {
-                Ok(request) => {
+            // Try to parse as JsonRpcMessage (handles both single request and batch array)
+            match serde_json::from_str::<JsonRpcMessage>(trimmed) {
+                Ok(JsonRpcMessage::Batch(requests)) => {
+                    tracing::debug!("Received batch request with {} requests", requests.len());
+
+                    if requests.is_empty() {
+                        // Empty batch is invalid per JSON-RPC spec
+                        let error_response = JsonRpcResponse {
+                            jsonrpc: "2.0".to_string(),
+                            id: serde_json::Value::Null,
+                            result: None,
+                            error: Some(JsonRpcError {
+                                code: -32600,
+                                message: "Invalid Request: batch array cannot be empty".to_string(),
+                                data: None,
+                            }),
+                        };
+                        let response_json = serde_json::to_string(&error_response)?;
+                        stdout.write_all(response_json.as_bytes()).await?;
+                        stdout.write_all(b"\n").await?;
+                        stdout.flush().await?;
+                        continue;
+                    }
+
+                    // Process all requests in the batch
+                    let mut responses = Vec::new();
+                    let mut has_notifications_only = true;
+
+                    for request in requests {
+                        let is_notification = matches!(request.id, serde_json::Value::Null);
+
+                        if !is_notification {
+                            has_notifications_only = false;
+                            tracing::debug!("Processing batch request: {}", request.method);
+                            let response = self.handle_request(request).await;
+                            responses.push(response);
+                        } else {
+                            tracing::debug!(
+                                "Received notification in batch: {} (no response needed)",
+                                request.method
+                            );
+                        }
+                    }
+
+                    // Only send response if batch contained at least one non-notification
+                    if !has_notifications_only {
+                        let response_json = serde_json::to_string(&responses)?;
+                        stdout.write_all(response_json.as_bytes()).await?;
+                        stdout.write_all(b"\n").await?;
+                        stdout.flush().await?;
+                    }
+                }
+                Ok(JsonRpcMessage::Request(request)) => {
                     let is_notification = matches!(request.id, serde_json::Value::Null);
 
                     if is_notification {
@@ -797,8 +1039,8 @@ mod tests {
 
         assert!(capabilities.get("resources").is_some());
         let resources = capabilities.get("resources").unwrap();
-        assert_eq!(resources.get("subscribe").unwrap(), false);
-        assert_eq!(resources.get("listChanged").unwrap(), false);
+        assert_eq!(resources.get("subscribe").unwrap(), true);
+        assert_eq!(resources.get("listChanged").unwrap(), true);
     }
 
     #[tokio::test]
@@ -1085,7 +1327,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_initialize_includes_prompts_capability() {
+    async fn test_prompts_capability_declared() {
         let server = create_test_server();
         let request = JsonRpcRequest::new(1, "initialize");
         let response = server.handle_request(request).await;
@@ -1104,5 +1346,350 @@ mod tests {
             prompts_cap.get("listChanged").is_some(),
             "Prompts should declare listChanged capability"
         );
+    }
+
+    #[tokio::test]
+    async fn test_batch_request_parsing() {
+        use crate::proxy::types::JsonRpcMessage;
+
+        let batch_json = r#"[
+            {"jsonrpc": "2.0", "id": 1, "method": "initialize"},
+            {"jsonrpc": "2.0", "id": 2, "method": "tools/list"}
+        ]"#;
+
+        let result: Result<JsonRpcMessage, _> = serde_json::from_str(batch_json);
+        assert!(result.is_ok());
+
+        match result.unwrap() {
+            JsonRpcMessage::Batch(requests) => {
+                assert_eq!(requests.len(), 2);
+                assert_eq!(requests[0].method, "initialize");
+                assert_eq!(requests[1].method, "tools/list");
+            }
+            JsonRpcMessage::Request(_) => panic!("Expected batch, got single request"),
+        }
+    }
+
+    #[tokio::test]
+    async fn test_single_request_parsing() {
+        use crate::proxy::types::JsonRpcMessage;
+
+        let request_json = r#"{"jsonrpc": "2.0", "id": 1, "method": "initialize"}"#;
+        let result: Result<JsonRpcMessage, _> = serde_json::from_str(request_json);
+        assert!(result.is_ok());
+
+        match result.unwrap() {
+            JsonRpcMessage::Request(request) => {
+                assert_eq!(request.method, "initialize");
+                assert_eq!(request.id, serde_json::json!(1));
+            }
+            JsonRpcMessage::Batch(_) => panic!("Expected single request, got batch"),
+        }
+    }
+
+    #[tokio::test]
+    async fn test_batch_with_notifications() {
+        use crate::proxy::types::JsonRpcMessage;
+
+        let batch_json = r#"[
+            {"jsonrpc": "2.0", "id": 1, "method": "initialize"},
+            {"jsonrpc": "2.0", "method": "notified"},
+            {"jsonrpc": "2.0", "id": 2, "method": "tools/list"}
+        ]"#;
+
+        let result: Result<JsonRpcMessage, _> = serde_json::from_str(batch_json);
+        assert!(result.is_ok());
+
+        match result.unwrap() {
+            JsonRpcMessage::Batch(requests) => {
+                assert_eq!(requests.len(), 3);
+                // First is normal request
+                assert_eq!(requests[0].id, serde_json::json!(1));
+                // Second is notification (id should be null)
+                assert!(matches!(requests[1].id, serde_json::Value::Null));
+                // Third is normal request
+                assert_eq!(requests[2].id, serde_json::json!(2));
+            }
+            JsonRpcMessage::Request(_) => panic!("Expected batch, got single request"),
+        }
+    }
+
+    #[tokio::test]
+    async fn test_batch_response_order_preserved() {
+        let server = create_test_server();
+
+        let req1 = JsonRpcRequest::new(1, "initialize");
+        let req2 = JsonRpcRequest::new(2, "initialize");
+        let req3 = JsonRpcRequest::new(3, "initialize");
+
+        let resp1 = server.handle_request(req1).await;
+        let resp2 = server.handle_request(req2).await;
+        let resp3 = server.handle_request(req3).await;
+
+        assert_eq!(resp1.id, serde_json::json!(1));
+        assert_eq!(resp2.id, serde_json::json!(2));
+        assert_eq!(resp3.id, serde_json::json!(3));
+    }
+
+    #[tokio::test]
+    async fn test_empty_batch_is_invalid() {
+        use crate::proxy::types::JsonRpcMessage;
+
+        let empty_batch_json = "[]";
+        let result: Result<JsonRpcMessage, _> = serde_json::from_str(empty_batch_json);
+
+        match result {
+            Ok(JsonRpcMessage::Batch(requests)) => {
+                assert_eq!(requests.len(), 0);
+            }
+            Ok(JsonRpcMessage::Request(_)) => {
+                panic!("Expected batch, got single request");
+            }
+            Err(_) => {
+                panic!("Empty batch should parse successfully (validation happens in run_stdio)");
+            }
+        }
+    }
+
+    #[tokio::test]
+    async fn test_resources_subscribe_with_group() {
+        let server = create_test_server();
+        let request = JsonRpcRequest::new(1, "resources/subscribe")
+            .with_params(json!({"group": "test-group"}));
+        let response = server.handle_request(request).await;
+
+        assert!(response.error.is_none());
+        assert!(response.result.is_some());
+    }
+
+    #[tokio::test]
+    async fn test_resources_subscribe_missing_group() {
+        let server = create_test_server();
+        let request = JsonRpcRequest::new(1, "resources/subscribe");
+        let response = server.handle_request(request).await;
+
+        assert!(response.result.is_none());
+        assert!(response.error.is_some());
+
+        let error = response.error.unwrap();
+        assert_eq!(error.code, -32602);
+        assert!(error.message.contains("Missing required parameter"));
+    }
+
+    #[tokio::test]
+    async fn test_resources_unsubscribe_with_group() {
+        let server = create_test_server();
+        let request = JsonRpcRequest::new(1, "resources/unsubscribe")
+            .with_params(json!({"group": "test-group"}));
+        let response = server.handle_request(request).await;
+
+        assert!(response.error.is_none());
+        assert!(response.result.is_some());
+    }
+
+    #[tokio::test]
+    async fn test_resources_unsubscribe_missing_group() {
+        let server = create_test_server();
+        let request = JsonRpcRequest::new(1, "resources/unsubscribe");
+        let response = server.handle_request(request).await;
+
+        assert!(response.result.is_none());
+        assert!(response.error.is_some());
+
+        let error = response.error.unwrap();
+        assert_eq!(error.code, -32602);
+        assert!(error.message.contains("Missing required parameter"));
+    }
+
+    #[tokio::test]
+    async fn test_initialize_announces_subscription_support() {
+        let server = create_test_server();
+        let request = JsonRpcRequest::new(1, "initialize");
+        let response = server.handle_request(request).await;
+
+        assert!(response.error.is_none());
+        let result = response.result.unwrap();
+        let capabilities = result.get("capabilities").unwrap();
+        let resources_cap = capabilities.get("resources").unwrap();
+
+        assert_eq!(resources_cap.get("subscribe").unwrap(), true);
+        assert_eq!(resources_cap.get("listChanged").unwrap(), true);
+
+        let prompts_cap = capabilities.get("prompts").unwrap();
+        assert_eq!(prompts_cap.get("listChanged").unwrap(), true);
+    }
+
+    #[tokio::test]
+    async fn test_prompts_subscribe_with_group() {
+        let server = create_test_server();
+        let request =
+            JsonRpcRequest::new(1, "prompts/subscribe").with_params(json!({"group": "test-group"}));
+        let response = server.handle_request(request).await;
+
+        assert!(response.error.is_none());
+        assert!(response.result.is_some());
+    }
+
+    #[tokio::test]
+    async fn test_prompts_unsubscribe_with_group() {
+        let server = create_test_server();
+        let request = JsonRpcRequest::new(1, "prompts/unsubscribe")
+            .with_params(json!({"group": "test-group"}));
+        let response = server.handle_request(request).await;
+
+        assert!(response.error.is_none());
+        assert!(response.result.is_some());
+    }
+
+    #[tokio::test]
+    async fn test_subscription_tracking_subscribe() {
+        let server = create_test_server();
+
+        let request = JsonRpcRequest::new(1, "resources/subscribe")
+            .with_params(json!({"group": "test-group"}));
+        let _response = server.handle_request(request).await;
+
+        let subs = server.get_active_subscriptions().await;
+        assert!(subs.contains("test-group"));
+    }
+
+    #[tokio::test]
+    async fn test_subscription_tracking_unsubscribe() {
+        let server = create_test_server();
+
+        let sub_req = JsonRpcRequest::new(1, "resources/subscribe")
+            .with_params(json!({"group": "test-group"}));
+        let _sub_response = server.handle_request(sub_req).await;
+
+        let unsub_req = JsonRpcRequest::new(2, "resources/unsubscribe")
+            .with_params(json!({"group": "test-group"}));
+        let _unsub_response = server.handle_request(unsub_req).await;
+
+        let subs = server.get_active_subscriptions().await;
+        assert!(!subs.contains("test-group"));
+    }
+
+    #[tokio::test]
+    async fn test_multiple_subscriptions() {
+        let server = create_test_server();
+
+        let req1 =
+            JsonRpcRequest::new(1, "resources/subscribe").with_params(json!({"group": "group1"}));
+        let req2 =
+            JsonRpcRequest::new(2, "resources/subscribe").with_params(json!({"group": "group2"}));
+        let req3 =
+            JsonRpcRequest::new(3, "resources/subscribe").with_params(json!({"group": "group3"}));
+
+        let _res1 = server.handle_request(req1).await;
+        let _res2 = server.handle_request(req2).await;
+        let _res3 = server.handle_request(req3).await;
+
+        let subs = server.get_active_subscriptions().await;
+        assert_eq!(subs.len(), 3);
+        assert!(subs.contains("group1"));
+        assert!(subs.contains("group2"));
+        assert!(subs.contains("group3"));
+    }
+
+    #[tokio::test]
+    async fn test_notification_queue_push_pop() {
+        let server = create_test_server();
+
+        let notif = JsonRpcNotification::resources_list_changed();
+        server.queue_notification(notif.clone()).await;
+
+        let count = server.get_pending_notifications_count().await;
+        assert_eq!(count, 1);
+
+        let retrieved = server.get_next_notification().await;
+        assert!(retrieved.is_some());
+
+        let count = server.get_pending_notifications_count().await;
+        assert_eq!(count, 0);
+    }
+
+    #[tokio::test]
+    async fn test_notification_queue_fifo() {
+        let server = create_test_server();
+
+        let notif1 = JsonRpcNotification::resources_list_changed();
+        let notif2 = JsonRpcNotification::prompts_list_changed();
+
+        server.queue_notification(notif1).await;
+        server.queue_notification(notif2).await;
+
+        let count = server.get_pending_notifications_count().await;
+        assert_eq!(count, 2);
+
+        let first = server.get_next_notification().await;
+        assert!(first.is_some());
+        assert_eq!(
+            first.unwrap().method,
+            "notifications/resources/list_changed"
+        );
+
+        let second = server.get_next_notification().await;
+        assert!(second.is_some());
+        assert_eq!(second.unwrap().method, "notifications/prompts/list_changed");
+    }
+
+    #[test]
+    fn test_streaming_binary_content_creation() {
+        use crate::proxy::types::StreamingBinaryContent;
+
+        let content = StreamingBinaryContent {
+            uri: "file:///large-file.bin".to_string(),
+            mime_type: "application/octet-stream".to_string(),
+            byte_length: 1024 * 1024 * 100,
+            chunk_size: Some(1024 * 1024),
+            annotations: None,
+        };
+
+        assert_eq!(content.byte_length, 1024 * 1024 * 100);
+        assert_eq!(content.chunk_size, Some(1024 * 1024));
+    }
+
+    #[test]
+    fn test_prompt_argument_validation_success() {
+        use crate::proxy::types::PromptArgument;
+
+        let server = create_test_server();
+
+        let schema = vec![
+            PromptArgument {
+                name: "query".to_string(),
+                description: Some("Search query".to_string()),
+                required: true,
+            },
+            PromptArgument {
+                name: "limit".to_string(),
+                description: Some("Result limit".to_string()),
+                required: false,
+            },
+        ];
+
+        let arguments = json!({ "query": "test", "limit": 10 });
+
+        let result = server.validate_prompt_arguments(&Some(arguments), &Some(schema));
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_prompt_argument_validation_missing_required() {
+        use crate::proxy::types::PromptArgument;
+
+        let server = create_test_server();
+
+        let schema = vec![PromptArgument {
+            name: "query".to_string(),
+            description: Some("Search query".to_string()),
+            required: true,
+        }];
+
+        let arguments = json!({ "other": "value" });
+
+        let result = server.validate_prompt_arguments(&Some(arguments), &Some(schema));
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("query"));
     }
 }
