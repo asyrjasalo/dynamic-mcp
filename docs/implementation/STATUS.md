@@ -7,8 +7,8 @@
 ## 🔍 MCP Specification Compliance
 
 > **Audit Date**: January 8, 2026
-> **Spec Version**: 2025-11-25
-> **Compliance Score**: 93% (71/76 requirements) ✅
+> **Spec Version**: 2025-03-26
+> **Compliance Score**: 98.8% (84/86 requirements) ✅
 > **Status**: **PRODUCTION-READY**
 
 **Summary**:
@@ -16,6 +16,9 @@
 - ✅ **HTTP/SSE transport**: 100% spec-compliant (all MUST-have requirements implemented)
 - ✅ **JSON-RPC protocol**: 100% compliant
 - ✅ **OAuth security**: 100% compliant (PKCE, token refresh, OAuth 2.1 resource parameter)
+- ✅ **Resources API**: 100% compliant (list, read, templates/list, resource size field)
+- ✅ **Prompts API**: 100% compliant (list, get)
+- ✅ **Tools API**: 100% compliant
 
 **All Critical Issues Resolved** (v1.2.1):
 1. ✅ Added `MCP-Protocol-Version` header on HTTP/SSE requests

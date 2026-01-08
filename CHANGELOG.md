@@ -18,14 +18,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Prompt, PromptArgument, PromptMessage, PromptContent, PromptContentType types
   - Support for all content types: text, image, audio, resource
   - Proper serialization with optional field handling
-- **Resources API Proxying** - Support for `resources/list` and `resources/read` endpoints
+- **Resources API Proxying** - Complete support for `resources/list`, `resources/read`, and `resources/templates/list` endpoints
   - Proxy resource discovery from upstream MCP servers
   - Retrieve resource contents (text and binary)
   - Cursor-based pagination support for resource lists
   - Resource annotations (audience, priority, lastModified)
+  - **NEW**: Resource Templates with RFC 6570 URI template support
+  - **NEW**: Resource size field for context window estimation
 - **Resource Type Definitions** - Full support for MCP resource schema
-  - Resource, ResourceContent, ResourceAnnotations, ResourceIcon types
+  - Resource, ResourceContent, ResourceAnnotations, ResourceIcon, ResourceTemplate types
   - Proper serialization with optional field handling
+  - Support for resource size and URI templates
 - **SSE Stream Resumption** - Last-Event-ID tracking for interrupted SSE connections
   - Automatically extracts and stores event IDs from SSE responses
   - Sends Last-Event-ID header on reconnection to prevent event loss
@@ -34,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Updated `initialize` response to advertise `prompts` and `resources` capabilities
 - Improved SSE transport reliability with event ID tracking
+- Expanded Resources API from partial to full MCP specification compliance
 
 ### Fixed
 - SSE connections now properly resume from last known event after network interruptions

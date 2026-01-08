@@ -30,6 +30,7 @@ impl ModularMcpServer {
             "tools/call" => self.handle_call_tool(request).await,
             "resources/list" => self.handle_resources_list(request).await,
             "resources/read" => self.handle_resources_read(request).await,
+            "resources/templates/list" => self.handle_resources_templates_list(request).await,
             "prompts/list" => self.handle_prompts_list(request).await,
             "prompts/get" => self.handle_prompts_get(request).await,
             _ => JsonRpcResponse {
@@ -389,6 +390,50 @@ Example usage:
                 error: Some(JsonRpcError {
                     code: -32603,
                     message: format!("Failed to read resource: {}", e),
+                    data: None,
+                }),
+            },
+        }
+    }
+
+    async fn handle_resources_templates_list(&self, request: JsonRpcRequest) -> JsonRpcResponse {
+        let client = self.client.read().await;
+
+        let group_name = match request
+            .params
+            .as_ref()
+            .and_then(|p| p.get("group"))
+            .and_then(|g| g.as_str())
+        {
+            Some(name) => name.to_string(),
+            None => {
+                return JsonRpcResponse {
+                    jsonrpc: "2.0".to_string(),
+                    id: request.id,
+                    result: None,
+                    error: Some(JsonRpcError {
+                        code: -32602,
+                        message: "Missing required parameter: group".to_string(),
+                        data: None,
+                    }),
+                };
+            }
+        };
+
+        match client.proxy_resources_templates_list(&group_name).await {
+            Ok(result) => JsonRpcResponse {
+                jsonrpc: "2.0".to_string(),
+                id: request.id,
+                result: Some(result),
+                error: None,
+            },
+            Err(e) => JsonRpcResponse {
+                jsonrpc: "2.0".to_string(),
+                id: request.id,
+                result: None,
+                error: Some(JsonRpcError {
+                    code: -32603,
+                    message: format!("Failed to list resource templates: {}", e),
                     data: None,
                 }),
             },

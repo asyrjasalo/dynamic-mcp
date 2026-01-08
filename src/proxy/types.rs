@@ -94,6 +94,8 @@ pub struct Resource {
     #[serde(rename = "mimeType")]
     pub mime_type: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub size: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub icons: Option<Vec<ResourceIcon>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub annotations: Option<ResourceAnnotations>,
@@ -112,6 +114,23 @@ pub struct ResourceContent {
     pub blob: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub annotations: Option<ResourceAnnotations>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[allow(dead_code)]
+pub struct ResourceTemplate {
+    #[serde(rename = "uriTemplate")]
+    pub uri_template: String,
+    pub name: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "mimeType")]
+    pub mime_type: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub annotations: Option<ResourceAnnotations>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub icons: Option<Vec<ResourceIcon>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -205,6 +224,7 @@ mod tests {
             title: Some("Test File".to_string()),
             description: None,
             mime_type: Some("text/plain".to_string()),
+            size: Some(1024),
             icons: None,
             annotations: None,
         };
@@ -214,6 +234,24 @@ mod tests {
         assert_eq!(json["name"], "test.txt");
         assert_eq!(json["title"], "Test File");
         assert_eq!(json["mimeType"], "text/plain");
+        assert_eq!(json["size"], 1024);
+    }
+
+    #[test]
+    fn test_resource_with_size() {
+        let resource = Resource {
+            uri: "file:///large.bin".to_string(),
+            name: "large.bin".to_string(),
+            title: None,
+            description: Some("A large binary file".to_string()),
+            mime_type: Some("application/octet-stream".to_string()),
+            size: Some(5_242_880), // 5 MB
+            icons: None,
+            annotations: None,
+        };
+
+        let json = serde_json::to_value(&resource).unwrap();
+        assert_eq!(json["size"], 5_242_880);
     }
 
     #[test]
@@ -224,6 +262,7 @@ mod tests {
             title: None,
             description: None,
             mime_type: None,
+            size: None,
             icons: None,
             annotations: None,
         };
@@ -232,6 +271,7 @@ mod tests {
         assert!(json["title"].is_null());
         assert!(json["description"].is_null());
         assert!(json["mimeType"].is_null());
+        assert!(json["size"].is_null());
     }
 
     #[test]
@@ -289,6 +329,48 @@ mod tests {
         let json = serde_json::to_value(&icon).unwrap();
         assert_eq!(json["src"], "https://example.com/icon.png");
         assert_eq!(json["sizes"][0], "48x48");
+    }
+
+    #[test]
+    fn test_resource_template_serialization() {
+        let template = ResourceTemplate {
+            uri_template: "file:///{path}".to_string(),
+            name: "Project Files".to_string(),
+            description: Some("Access files in the project directory".to_string()),
+            mime_type: Some("application/octet-stream".to_string()),
+            annotations: Some(ResourceAnnotations {
+                audience: Some(vec!["user".to_string()]),
+                priority: Some(0.8),
+                last_modified: None,
+            }),
+            icons: None,
+        };
+
+        let json = serde_json::to_value(&template).unwrap();
+        assert_eq!(json["uriTemplate"], "file:///{path}");
+        assert_eq!(json["name"], "Project Files");
+        assert_eq!(json["description"], "Access files in the project directory");
+        assert_eq!(json["mimeType"], "application/octet-stream");
+        assert_eq!(json["annotations"]["priority"], 0.8);
+    }
+
+    #[test]
+    fn test_resource_template_minimal() {
+        let template = ResourceTemplate {
+            uri_template: "git:///{repo}/blob/{ref}/{path}".to_string(),
+            name: "Git Files".to_string(),
+            description: None,
+            mime_type: None,
+            annotations: None,
+            icons: None,
+        };
+
+        let json = serde_json::to_value(&template).unwrap();
+        assert_eq!(json["uriTemplate"], "git:///{repo}/blob/{ref}/{path}");
+        assert_eq!(json["name"], "Git Files");
+        assert!(json["description"].is_null());
+        assert!(json["mimeType"].is_null());
+        assert!(json["annotations"].is_null());
     }
 
     #[test]
