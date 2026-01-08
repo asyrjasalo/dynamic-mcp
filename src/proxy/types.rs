@@ -59,6 +59,7 @@ pub struct JsonRpcError {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[allow(dead_code)]
 pub struct ResourceAnnotations {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub audience: Option<Vec<String>>,
@@ -70,6 +71,7 @@ pub struct ResourceAnnotations {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[allow(dead_code)]
 pub struct ResourceIcon {
     pub src: String,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -80,6 +82,7 @@ pub struct ResourceIcon {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[allow(dead_code)]
 pub struct Resource {
     pub uri: String,
     pub name: String,
@@ -97,6 +100,7 @@ pub struct Resource {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[allow(dead_code)]
 pub struct ResourceContent {
     pub uri: String,
     #[serde(skip_serializing_if = "Option::is_none")]
