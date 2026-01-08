@@ -2,20 +2,25 @@
   "mcpServers": {
     "desktop-commander": {
       "command": "npx",
-      "args": ["-y", "@wonderwhy-er/desktop-commander@latest"]
+      "args": ["-y", "@wonderwhy-er/desktop-commander@latest", "${WORKSPACE_ROOT}"],
+      "env": {
+        "LOG_LEVEL": "${LOG_LEVEL}"
+      }
     },
     "github": {
       "command": "docker",
       "args": ["run", "-i", "ghcr.io/github/github-mcp-server:0.24.0"],
       "env": {
-        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}",
+        "API_ENDPOINT": "${GITHUB_API_ENDPOINT}"
       }
     },
     "postgres": {
       "command": "uvx",
       "args": ["mcp-server-postgres"],
       "env": {
-        "DATABASE_URL": "${DATABASE_URL}"
+        "DATABASE_URL": "${DATABASE_URL}",
+        "DB_POOL_SIZE": "${DB_POOL_SIZE}"
       }
     }
   }

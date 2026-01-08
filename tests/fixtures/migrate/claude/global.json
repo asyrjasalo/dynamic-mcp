@@ -2,13 +2,18 @@
   "mcpServers": {
     "sqlite": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-sqlite", "${HOME}/databases/"]
+      "args": ["-y", "@modelcontextprotocol/server-sqlite", "${HOME}/databases/"],
+      "env": {
+        "DB_MODE": "${DB_MODE}",
+        "CACHE_SIZE": "${CACHE_SIZE}"
+      }
     },
     "postgres": {
       "command": "uvx",
       "args": ["mcp-server-postgres"],
       "env": {
-        "DATABASE_URL": "${DATABASE_URL}"
+        "DATABASE_URL": "${DATABASE_URL}",
+        "POOL_SIZE": "${POOL_SIZE}"
       }
     }
   }

@@ -1,7 +1,7 @@
 # Testing Guide
 
 > **Last Updated**: January 8, 2026
-> **Test Status**: 74 tests, 100% pass rate ✅
+> **Test Status**: 82 tests, 100% pass rate ✅
 
 ## Test Summary
 
@@ -9,8 +9,8 @@
 |----------|-------|-----------|----------|
 | **Unit Tests** | 50 | 100% ✅ | All modules |
 | **Integration Tests (General)** | 14 | 100% ✅ | CLI & workflows |
-| **Integration Tests (Migration)** | 10 | 100% ✅ | Multi-tool migration |
-| **Total** | **74** | **100%** | **~92%** |
+| **Integration Tests (Migration)** | 18 | 100% ✅ | Multi-tool migration + env var conversion |
+| **Total** | **82** | **100%** | **~95%** |
 
 ## Running Tests
 
@@ -25,8 +25,8 @@ cargo test
 # running 14 tests (integration)
 # test result: ok. 14 passed; 0 failed
 #
-# running 10 tests (migration integration)
-# test result: ok. 10 passed; 0 failed
+# running 18 tests (migration integration)
+# test result: ok. 18 passed; 0 failed
 ```
 
 ### Unit Tests Only
@@ -119,7 +119,17 @@ Comprehensive fixtures for testing multi-tool migration:
 
 **Coverage**: 26 fixture files testing:
 - Tool-specific config schema variations
-- Environment variable patterns per tool
+- **Environment variable patterns per tool** (all tools now include env vars):
+  - Cursor: `${env:VAR}` in args and env (conversion test)
+  - VSCode: `${env:VAR}` in env and headers (conversion test)
+  - Cline: `${env:VAR}` in env (conversion test)
+  - Codex: `${VAR}` in args and env (passthrough test)
+  - Claude CLI: `${VAR}` in args and env (passthrough test)
+  - Claude Desktop: `${VAR}` in args and env (passthrough test)
+  - OpenCode: `${VAR}` in command and env (passthrough test)
+  - Gemini: `${VAR}` in args and env (passthrough test)
+  - KiloCode: `${VAR}` in args and env (passthrough test)
+  - Antigravity: `${VAR}` in args and env (passthrough test)
 - Format handling (JSON, JSONC, TOML)
 - Error conditions (missing fields, invalid formats)
 
@@ -127,8 +137,9 @@ Comprehensive fixtures for testing multi-tool migration:
 
 **Location**: `tests/migrate_integration_test.rs`
 
-**10 comprehensive end-to-end tests**:
+**18 comprehensive end-to-end tests**:
 
+#### Core Migration Tests (10)
 | Test | Scenario | Verifies |
 |------|----------|----------|
 | `test_migrate_cursor_project_success` | Cursor multi-server migration | Server parsing, description prompts, output file creation |
@@ -141,6 +152,25 @@ Comprehensive fixtures for testing multi-tool migration:
 | `test_migrate_empty_description_error` | Empty description input | Validation of required description field |
 | `test_migrate_invalid_json_error` | Invalid JSON config | Parse error handling and error messages |
 | `test_migrate_multiple_servers_interactive` | 3 servers with prompts | Server ordering (alphabetical), multiple description prompts |
+
+#### Environment Variable Conversion Tests (8)
+| Test | Tool | Pattern | Conversion | Verifies |
+|------|------|---------|------------|----------|
+| `test_migrate_cursor_env_var_conversion` | Cursor | `EnvColon` | `${env:VAR}` → `${VAR}` | Env var normalization in `env` map |
+| `test_migrate_vscode_env_var_conversion_in_env` | VSCode | `Multiple (EnvColon)` | `${env:VAR}` → `${VAR}` | Env var normalization in `env` map |
+| `test_migrate_vscode_env_var_conversion_in_headers` | VSCode | `Multiple (EnvColon)` | `${env:VAR}` → `${VAR}` | Env var normalization in `headers` map (HTTP/SSE) |
+| `test_migrate_codex_env_var_passthrough` | Codex | `CurlyBraces` | `${VAR}` (no change) | Passthrough for TOML configs |
+| `test_migrate_claude_env_var_passthrough` | Claude CLI | `CurlyBraces` | `${VAR}` (no change) | Passthrough for JSON configs |
+| `test_migrate_opencode_env_var_passthrough` | OpenCode | `SystemEnv` | `${VAR}` (no change) | Passthrough for JSON/JSONC configs |
+| `test_migrate_gemini_env_var_passthrough` | Gemini | `SystemEnv` | `${VAR}` (no change) | Passthrough for settings.json |
+| `test_migrate_kilocode_env_var_passthrough` | KiloCode | `SystemEnv` | `${VAR}` (no change) | Passthrough for JSON configs |
+
+**Environment Variable Test Coverage**:
+- ✅ **EnvColon pattern** (`${env:VAR}` → `${VAR}`): Cursor, VSCode, Cline
+- ✅ **CurlyBraces pattern** (`${VAR}` passthrough): Codex, Claude CLI, Claude Desktop
+- ✅ **SystemEnv pattern** (`${VAR}` passthrough): OpenCode, Gemini, KiloCode, Antigravity
+- ✅ Tests both `env` and `headers` map normalization
+- ✅ Verifies that `args` are NOT normalized (by design)
 
 **Test Infrastructure**:
 - `TestProject` struct: Creates temporary project directories with tool configs

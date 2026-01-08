@@ -2,13 +2,17 @@
   "mcpServers": {
     "filesystem": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/workspace"]
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "${WORKSPACE_ROOT}"],
+      "env": {
+        "LOG_LEVEL": "${LOG_LEVEL}"
+      }
     },
     "github": {
       "command": "docker",
       "args": ["run", "-i", "ghcr.io/github/github-mcp-server"],
       "env": {
-        "GITHUB_TOKEN": "${GITHUB_TOKEN}"
+        "GITHUB_TOKEN": "${GITHUB_TOKEN}",
+        "API_URL": "${GITHUB_API_URL}"
       }
     }
   }

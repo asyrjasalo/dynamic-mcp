@@ -502,3 +502,372 @@ fn test_migrate_multiple_servers_interactive() {
         "Description 3"
     );
 }
+
+#[test]
+fn test_migrate_cursor_env_var_conversion() {
+    let config_content = r#"{
+  "mcpServers": {
+    "test": {
+      "command": "npx",
+      "args": ["server"],
+      "env": {
+        "API_KEY": "${env:API_KEY}",
+        "CONFIG_PATH": "${env:CONFIG_PATH}",
+        "HOME_DIR": "${env:HOME}"
+      }
+    }
+  }
+}"#;
+
+    let project = TestProject::new("cursor", ".cursor", "mcp.json", config_content);
+    let output_path = project.output_path();
+
+    let output = run_migrate_with_input(
+        "cursor",
+        project.path(),
+        output_path.to_str().unwrap(),
+        true,
+        false,
+        vec!["Test server"],
+    );
+
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    let output_content = fs::read_to_string(&output_path).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&output_content).unwrap();
+    let test = &parsed["mcpServers"]["test"];
+
+    // Verify ${env:VAR} converted to ${VAR} in env
+    let env = test["env"].as_object().unwrap();
+    assert_eq!(env["API_KEY"].as_str().unwrap(), "${API_KEY}");
+    assert_eq!(env["CONFIG_PATH"].as_str().unwrap(), "${CONFIG_PATH}");
+    assert_eq!(env["HOME_DIR"].as_str().unwrap(), "${HOME}");
+}
+
+#[test]
+fn test_migrate_vscode_env_var_conversion_in_env() {
+    let config_content = r#"{
+  "servers": {
+    "test": {
+      "command": "node",
+      "args": ["server.js"],
+      "env": {
+        "PORT": "${env:SERVER_PORT}",
+        "WORKSPACE": "${env:WORKSPACE_ROOT}",
+        "HOME": "${env:HOME}"
+      }
+    }
+  }
+}"#;
+
+    let project = TestProject::new("vscode", ".vscode", "mcp.json", config_content);
+    let output_path = project.output_path();
+
+    let output = run_migrate_with_input(
+        "vscode",
+        project.path(),
+        output_path.to_str().unwrap(),
+        true,
+        false,
+        vec!["Test server"],
+    );
+
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    let output_content = fs::read_to_string(&output_path).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&output_content).unwrap();
+    let test = &parsed["mcpServers"]["test"];
+
+    // Verify ${env:VAR} converted to ${VAR} in env
+    let env = test["env"].as_object().unwrap();
+    assert_eq!(env["PORT"].as_str().unwrap(), "${SERVER_PORT}");
+    assert_eq!(env["WORKSPACE"].as_str().unwrap(), "${WORKSPACE_ROOT}");
+    assert_eq!(env["HOME"].as_str().unwrap(), "${HOME}");
+}
+
+#[test]
+fn test_migrate_vscode_env_var_conversion_in_headers() {
+    let config_content = r#"{
+  "servers": {
+    "api": {
+      "type": "http",
+      "url": "https://api.example.com",
+      "headers": {
+        "Authorization": "${env:API_TOKEN}",
+        "X-Custom-Header": "${env:CUSTOM_VALUE}"
+      }
+    }
+  }
+}"#;
+
+    let project = TestProject::new("vscode", ".vscode", "mcp.json", config_content);
+    let output_path = project.output_path();
+
+    let output = run_migrate_with_input(
+        "vscode",
+        project.path(),
+        output_path.to_str().unwrap(),
+        true,
+        false,
+        vec!["API server"],
+    );
+
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    let output_content = fs::read_to_string(&output_path).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&output_content).unwrap();
+    let api = &parsed["mcpServers"]["api"];
+
+    let headers = api["headers"].as_object().unwrap();
+    assert_eq!(headers["Authorization"].as_str().unwrap(), "${API_TOKEN}");
+    assert_eq!(
+        headers["X-Custom-Header"].as_str().unwrap(),
+        "${CUSTOM_VALUE}"
+    );
+}
+
+#[test]
+fn test_migrate_codex_env_var_passthrough() {
+    let config_content = r#"
+[mcp.test]
+command = "node"
+args = ["server.js"]
+
+[mcp.test.env]
+API_KEY = "${API_KEY}"
+CONFIG_PATH = "${CONFIG_PATH}"
+WORKSPACE = "${WORKSPACE_ROOT}"
+"#;
+
+    let home = std::env::var("HOME")
+        .or_else(|_| std::env::var("USERPROFILE"))
+        .unwrap();
+
+    let dir = tempfile::TempDir::new().expect("Failed to create temp dir");
+    let codex_dir = dir.path().join(".codex");
+    std::fs::create_dir_all(&codex_dir).expect("Failed to create .codex dir");
+    std::fs::write(&codex_dir.join("config.toml"), config_content).expect("Failed to write config");
+
+    std::env::set_var("HOME", dir.path());
+
+    let output_path = dir.path().join("dynamic-mcp.json");
+
+    let output = run_migrate_with_input(
+        "codex",
+        dir.path(),
+        output_path.to_str().unwrap(),
+        true,
+        true,
+        vec!["Test server"],
+    );
+
+    std::env::set_var("HOME", home);
+
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    let output_content = fs::read_to_string(&output_path).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&output_content).unwrap();
+    let test = &parsed["mcpServers"]["test"];
+
+    // Verify ${VAR} stays as ${VAR} in env
+    let env = test["env"].as_object().unwrap();
+    assert_eq!(env["API_KEY"].as_str().unwrap(), "${API_KEY}");
+    assert_eq!(env["CONFIG_PATH"].as_str().unwrap(), "${CONFIG_PATH}");
+    assert_eq!(env["WORKSPACE"].as_str().unwrap(), "${WORKSPACE_ROOT}");
+}
+
+#[test]
+fn test_migrate_claude_env_var_passthrough() {
+    let config_content = r#"{
+  "mcpServers": {
+    "test": {
+      "command": "node",
+      "args": ["server.js"],
+      "env": {
+        "DATABASE_URL": "${DATABASE_URL}",
+        "API_KEY": "${API_KEY}",
+        "WORKSPACE": "${WORKSPACE_ROOT}"
+      }
+    }
+  }
+}"#;
+
+    let project = TestProject::new("claude", ".", ".mcp.json", config_content);
+    let output_path = project.output_path();
+
+    let output = run_migrate_with_input(
+        "claude",
+        project.path(),
+        output_path.to_str().unwrap(),
+        true,
+        false,
+        vec!["Test server"],
+    );
+
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    let output_content = fs::read_to_string(&output_path).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&output_content).unwrap();
+    let test = &parsed["mcpServers"]["test"];
+
+    // Verify ${VAR} stays as ${VAR} in env
+    let env = test["env"].as_object().unwrap();
+    assert_eq!(env["DATABASE_URL"].as_str().unwrap(), "${DATABASE_URL}");
+    assert_eq!(env["API_KEY"].as_str().unwrap(), "${API_KEY}");
+    assert_eq!(env["WORKSPACE"].as_str().unwrap(), "${WORKSPACE_ROOT}");
+}
+
+#[test]
+fn test_migrate_opencode_env_var_passthrough() {
+    let config_content = r#"{
+  "mcp": {
+    "test": {
+      "command": ["node", "server.js"],
+      "env": {
+        "API_KEY": "${API_KEY}",
+        "PORT": "${PORT}",
+        "WORKSPACE": "${WORKSPACE_ROOT}"
+      },
+      "enabled": true
+    }
+  }
+}"#;
+
+    let project = TestProject::new("opencode", ".opencode", "mcp.json", config_content);
+    let output_path = project.output_path();
+
+    let output = run_migrate_with_input(
+        "opencode",
+        project.path(),
+        output_path.to_str().unwrap(),
+        true,
+        false,
+        vec!["Test server"],
+    );
+
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    let output_content = fs::read_to_string(&output_path).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&output_content).unwrap();
+    let test = &parsed["mcpServers"]["test"];
+
+    // Verify ${VAR} stays as ${VAR} in env
+    let env = test["env"].as_object().unwrap();
+    assert_eq!(env["API_KEY"].as_str().unwrap(), "${API_KEY}");
+    assert_eq!(env["PORT"].as_str().unwrap(), "${PORT}");
+    assert_eq!(env["WORKSPACE"].as_str().unwrap(), "${WORKSPACE_ROOT}");
+}
+
+#[test]
+fn test_migrate_gemini_env_var_passthrough() {
+    let config_content = r#"{
+  "mcpServers": {
+    "test": {
+      "command": "npx",
+      "args": ["-y", "server"],
+      "env": {
+        "GEMINI_API_KEY": "${GEMINI_API_KEY}",
+        "LOG_LEVEL": "${LOG_LEVEL}",
+        "DATA_DIR": "${DATA_DIR}"
+      }
+    }
+  }
+}"#;
+
+    let project = TestProject::new("gemini", ".gemini", "settings.json", config_content);
+    let output_path = project.output_path();
+
+    let output = run_migrate_with_input(
+        "gemini",
+        project.path(),
+        output_path.to_str().unwrap(),
+        true,
+        false,
+        vec!["Test server"],
+    );
+
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    let output_content = fs::read_to_string(&output_path).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&output_content).unwrap();
+    let test = &parsed["mcpServers"]["test"];
+
+    // Verify ${VAR} stays as ${VAR} in env
+    let env = test["env"].as_object().unwrap();
+    assert_eq!(env["GEMINI_API_KEY"].as_str().unwrap(), "${GEMINI_API_KEY}");
+    assert_eq!(env["LOG_LEVEL"].as_str().unwrap(), "${LOG_LEVEL}");
+    assert_eq!(env["DATA_DIR"].as_str().unwrap(), "${DATA_DIR}");
+}
+
+#[test]
+fn test_migrate_kilocode_env_var_passthrough() {
+    let config_content = r#"{
+  "mcpServers": {
+    "test": {
+      "command": "npx",
+      "args": ["server"],
+      "env": {
+        "API_KEY": "${API_KEY}",
+        "CONFIG": "${CONFIG}",
+        "WORKSPACE": "${WORKSPACE_ROOT}"
+      }
+    }
+  }
+}"#;
+
+    let project = TestProject::new("kilocode", ".kilocode", "mcp.json", config_content);
+    let output_path = project.output_path();
+
+    let output = run_migrate_with_input(
+        "kilocode",
+        project.path(),
+        output_path.to_str().unwrap(),
+        true,
+        false,
+        vec!["Test server"],
+    );
+
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    let output_content = fs::read_to_string(&output_path).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&output_content).unwrap();
+    let test = &parsed["mcpServers"]["test"];
+
+    // Verify ${VAR} stays as ${VAR} in env
+    let env = test["env"].as_object().unwrap();
+    assert_eq!(env["API_KEY"].as_str().unwrap(), "${API_KEY}");
+    assert_eq!(env["CONFIG"].as_str().unwrap(), "${CONFIG}");
+    assert_eq!(env["WORKSPACE"].as_str().unwrap(), "${WORKSPACE_ROOT}");
+}

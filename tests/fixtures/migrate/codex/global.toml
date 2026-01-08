@@ -1,9 +1,10 @@
 [mcp.filesystem]
 command = "npx"
-args = ["-y", "@modelcontextprotocol/server-filesystem", "/workspace"]
+args = ["-y", "@modelcontextprotocol/server-filesystem", "${WORKSPACE_ROOT}"]
 
 [mcp.filesystem.env]
-LOG_LEVEL = "info"
+LOG_LEVEL = "${LOG_LEVEL}"
+FS_MODE = "${FS_MODE}"
 
 [mcp.github]
 command = "docker"
@@ -11,3 +12,4 @@ args = ["run", "-i", "ghcr.io/github/github-mcp-server"]
 
 [mcp.github.env]
 GITHUB_TOKEN = "${GITHUB_TOKEN}"
+API_URL = "${GITHUB_API_URL}"

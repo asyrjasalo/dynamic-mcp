@@ -2,9 +2,10 @@
   "mcpServers": {
     "filesystem": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-filesystem"],
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "${env:WORKSPACE_ROOT}"],
       "env": {
-        "FILESYSTEM_ROOT": "/workspace"
+        "FILESYSTEM_ROOT": "${env:FILESYSTEM_ROOT}",
+        "LOG_LEVEL": "${env:LOG_LEVEL}"
       },
       "alwaysAllow": ["read_file", "write_file"],
       "disabled": false
@@ -12,6 +13,9 @@
     "memory": {
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-memory"],
+      "env": {
+        "MEMORY_DIR": "${env:MEMORY_DIR}"
+      },
       "disabled": false
     }
   }

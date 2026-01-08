@@ -4,14 +4,19 @@
       "command": "uvx",
       "args": ["mcp-server-terraform"],
       "env": {
-        "TF_STATE_PATH": "/workspace/terraform.tfstate"
+        "TF_STATE_PATH": "${TF_STATE_PATH}",
+        "AWS_REGION": "${AWS_REGION}",
+        "TF_LOG": "${TF_LOG}"
       },
       "alwaysAllow": ["terraform_plan", "terraform_apply"],
       "disabled": false
     },
     "sqlite": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-sqlite", "./data"],
+      "args": ["-y", "@modelcontextprotocol/server-sqlite", "${DB_DIR}"],
+      "env": {
+        "DB_READONLY": "${DB_READONLY}"
+      },
       "disabled": false
     }
   }

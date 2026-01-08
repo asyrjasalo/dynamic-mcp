@@ -10,9 +10,10 @@
   "servers": {
     "filesystem": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/workspace"],
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "${env:WORKSPACE_ROOT}"],
       "env": {
-        "LOG_LEVEL": "info"
+        "LOG_LEVEL": "${env:LOG_LEVEL}",
+        "FS_MODE": "${env:FS_MODE}"
       }
     },
     "github": {
@@ -26,7 +27,8 @@
       "type": "http",
       "url": "https://api.example.com",
       "headers": {
-        "API_Key": "${env:API_KEY}"
+        "API_Key": "${env:API_KEY}",
+        "Authorization": "${env:API_AUTH_TOKEN}"
       }
     }
   }

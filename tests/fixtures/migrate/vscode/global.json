@@ -2,14 +2,17 @@
   "servers": {
     "postgres": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-postgres", "postgresql://localhost/mydb"],
-      "env": {}
+      "args": ["-y", "@modelcontextprotocol/server-postgres", "${env:DATABASE_URL}"],
+      "env": {
+        "DB_POOL_SIZE": "${env:DB_POOL_SIZE}"
+      }
     },
     "github": {
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-github"],
       "env": {
-        "GITHUB_TOKEN": "${env:GITHUB_TOKEN}"
+        "GITHUB_TOKEN": "${env:GITHUB_TOKEN}",
+        "API_ENDPOINT": "${env:GITHUB_API_ENDPOINT}"
       }
     }
   }

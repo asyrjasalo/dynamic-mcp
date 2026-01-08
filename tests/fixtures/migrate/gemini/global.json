@@ -4,14 +4,16 @@
       "command": "uvx",
       "args": ["gram-mcp-server"],
       "env": {
-        "GRAM_API_KEY": "your-api-key"
+        "GRAM_API_KEY": "${GRAM_API_KEY}",
+        "API_ENDPOINT": "${GRAM_API_ENDPOINT}"
       }
     },
     "postgres": {
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-postgres"],
       "env": {
-        "DATABASE_URL": "postgresql://localhost/mydb"
+        "DATABASE_URL": "${DATABASE_URL}",
+        "DB_POOL_SIZE": "${DB_POOL_SIZE}"
       }
     }
   }

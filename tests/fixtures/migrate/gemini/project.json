@@ -4,12 +4,15 @@
       "command": "uvx",
       "args": ["gram-mcp-server"],
       "env": {
-        "GRAM_API_KEY": "your-api-key"
+        "GRAM_API_KEY": "${GRAM_API_KEY}"
       }
     },
     "filesystem": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-filesystem", "./data"]
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "${DATA_DIR}"],
+      "env": {
+        "FS_READONLY": "${FS_READONLY}"
+      }
     }
   }
 }

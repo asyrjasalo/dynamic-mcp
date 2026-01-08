@@ -1,7 +1,16 @@
 {
   "mcp": {
     "dynamic-mcp": {
-      "command": ["dmcp"],
+      "command": ["dmcp", "${CONFIG_PATH}"],
+      "enabled": true,
+      "type": "local"
+    },
+    "github": {
+      "command": ["npx", "-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_TOKEN": "${GITHUB_TOKEN}",
+        "API_URL": "${GITHUB_API_URL}"
+      },
       "enabled": true,
       "type": "local"
     }

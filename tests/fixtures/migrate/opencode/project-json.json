@@ -1,7 +1,10 @@
 {
   "mcp": {
     "filesystem": {
-      "command": ["npx", "-y", "@modelcontextprotocol/server-filesystem", "/tmp"],
+      "command": ["npx", "-y", "@modelcontextprotocol/server-filesystem", "${WORKSPACE_ROOT}"],
+      "env": {
+        "LOG_LEVEL": "${LOG_LEVEL}"
+      },
       "enabled": true,
       "type": "local"
     }

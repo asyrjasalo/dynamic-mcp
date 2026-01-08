@@ -2,11 +2,17 @@
   "mcpServers": {
     "dynamic-mcp": {
       "command": "uvx",
-      "args": ["dmcp", "${env:HOME}/.config/dynamic-mcp.json"]
+      "args": ["dmcp", "${env:HOME}/.config/dynamic-mcp.json"],
+      "env": {
+        "CONFIG_DIR": "${env:XDG_CONFIG_HOME}"
+      }
     },
     "sqlite": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-sqlite", "${env:HOME}/data/"]
+      "args": ["-y", "@modelcontextprotocol/server-sqlite", "${env:HOME}/data/"],
+      "env": {
+        "DB_PASSWORD": "${env:SQLITE_PASSWORD}"
+      }
     }
   }
 }
