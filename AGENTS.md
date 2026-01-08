@@ -39,12 +39,12 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for detailed system design.
 - **Testing**: cargo test + integration tests
 
 ### Current Status
-- **Version**: 1.0.0 (Production Release)
-- **Phase**: Phase 6 Complete ✅
-- **LOC**: ~2,900 Rust
-- **Tests**: 46 (37 unit + 9 integration), 100% pass rate
+- **Version**: 1.2.0 (Multi-Tool Migration Support)
+- **Phase**: Phase 8 Complete ✅
+- **LOC**: ~4,765 Rust
+- **Tests**: 74 (50 unit + 14 integration + 10 migration integration), 100% pass rate
 - **Platforms**: Linux (x86_64, ARM64), macOS (ARM64), Windows (x86_64, ARM64)
-- **Published**: [crates.io](https://crates.io/crates/dynamic-mcp), [GitHub Releases](https://github.com/asyrjasalo/dynamic-mcp/releases)
+- **Published**: [crates.io](https://crates.io/crates/dynamic-mcp), [PyPI](https://pypi.org/project/dmcp/), [GitHub Releases](https://github.com/asyrjasalo/dynamic-mcp/releases)
 
 ---
 
@@ -148,7 +148,7 @@ RUST_LOG=debug cargo run -- examples/config.example.json
 - [ ] Integration tests for user-facing features
 - [ ] Error case coverage
 - [ ] Edge case coverage
-- [ ] All tests passing (`cargo test` 100% pass rate)
+- [ ] All tests passing (`cargo test` 100% pass rate - currently 74 total)
 
 **Example test structure:**
 ```rust
@@ -560,7 +560,7 @@ Update TESTING.md:
 - Document how to run WebSocket tests
 
 Update STATUS.md:
-- Update "Tests" metric (37 → 42)
+- Update "Tests" metric (currently 74 total)
 - Update test coverage percentage if measured
 ```
 
@@ -605,10 +605,10 @@ Legend: ✅ Always update | ⚠️ Update if applicable | ❌ Usually no update
 ### When to Update Metrics
 
 **STATUS.md** should be updated when:
-- LOC changes by >10% (currently ~2,900)
-- Test count changes (currently 46 total)
+- LOC changes by >10% (currently ~4,765)
+- Test count changes (currently 74 total)
 - New module added or removed
-- Dependencies change significantly (currently 114 crates)
+- Dependencies change significantly (currently 53 direct crates)
 - Test coverage changes significantly
 
 ### When to Create New Docs
@@ -695,10 +695,9 @@ When updating README.md or MIGRATION.md:
 
 ## 📊 Current Project State (Reference)
 
-**Phase**: Phase 6 Complete ✅
-**Version**: 1.0.0 (Production Release)
-**LOC**: ~2,900 Rust
-**Tests**: 46 (37 unit + 9 integration)
+**Phase**: Phase 8 Complete ✅
+**LOC**: ~4,765 Rust
+**Tests**: 74 (50 unit + 14 integration + 10 migration integration)
 **Modules**: config, proxy, server, cli, auth
 **Transports**: stdio, HTTP, SSE
 **Key Features**: OAuth2, Live Reload, Migration Command, CI/CD

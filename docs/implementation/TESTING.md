@@ -1,15 +1,16 @@
 # Testing Guide
 
-> **Last Updated**: January 6, 2026
-> **Test Status**: 46 tests, 100% pass rate ✅
+> **Last Updated**: January 8, 2026
+> **Test Status**: 74 tests, 100% pass rate ✅
 
 ## Test Summary
 
 | Category | Count | Pass Rate | Coverage |
 |----------|-------|-----------|----------|
-| **Unit Tests** | 37 | 100% ✅ | All modules |
-| **Integration Tests** | 9 | 100% ✅ | CLI & workflows |
-| **Total** | **46** | **100%** | **~90%** |
+| **Unit Tests** | 50 | 100% ✅ | All modules |
+| **Integration Tests (General)** | 14 | 100% ✅ | CLI & workflows |
+| **Integration Tests (Migration)** | 10 | 100% ✅ | Multi-tool migration |
+| **Total** | **74** | **100%** | **~92%** |
 
 ## Running Tests
 
@@ -18,11 +19,14 @@
 cargo test
 
 # Results:
-# running 37 tests (unit)
-# test result: ok. 37 passed; 0 failed
+# running 50 tests (unit)
+# test result: ok. 50 passed; 0 failed
 #
-# running 9 tests (integration)
-# test result: ok. 9 passed; 0 failed
+# running 14 tests (integration)
+# test result: ok. 14 passed; 0 failed
+#
+# running 10 tests (migration integration)
+# test result: ok. 10 passed; 0 failed
 ```
 
 ### Unit Tests Only
@@ -32,7 +36,8 @@ cargo test --lib
 
 ### Integration Tests Only
 ```bash
-cargo test --test integration_test
+cargo test --test integration_test        # General integration tests
+cargo test --test migrate_integration_test  # Migration workflow tests
 ```
 
 ### Specific Module
@@ -76,8 +81,72 @@ cargo test -- --nocapture  # Show println! output
 ### CLI Module (100%)
 - ✅ Argument parsing
 - ✅ Config path resolution (CLI arg vs env var)
-- ✅ Migration command
+- ✅ Migration command (legacy and tool-based)
 - ✅ Help and version flags
+- ✅ Tool detector (tool name parsing, path resolution)
+- ✅ Config parser (JSON, JSONC, TOML)
+- ✅ Environment variable normalization
+- ✅ Multi-tool migration workflow
+- ✅ **NEW: End-to-end migration workflow tests**
+  - Cursor project migration
+  - OpenCode JSONC with comments
+  - VS Code environment variable normalization
+  - Claude Code CLI project config
+  - Cline with env var patterns
+  - Force flag behavior
+  - Error handling (missing configs, invalid JSON, empty descriptions)
+  - Multiple servers with interactive prompts
+
+## Test Fixtures
+
+### Migration Test Fixtures
+
+**Location**: `tests/fixtures/migrate/`
+
+Comprehensive fixtures for testing multi-tool migration:
+
+| Tool | Project Config | Global Config | Invalid Config |
+|------|---------------|---------------|----------------|
+| Cursor | ✅ JSON | ✅ JSON | ✅ |
+| OpenCode | ✅ JSONC | ✅ JSONC | ✅ |
+| Claude Desktop | N/A | ✅ JSON | ✅ |
+| VS Code | ✅ JSON | N/A | ✅ |
+| Cline | ✅ JSON | N/A | ✅ |
+| KiloCode | ✅ JSON | N/A | ✅ |
+| Codex | N/A | ✅ TOML | ✅ |
+| Antigravity | N/A | ✅ JSON | N/A |
+| Gemini | N/A | ✅ JSON | N/A |
+
+**Coverage**: 26 fixture files testing:
+- Tool-specific config schema variations
+- Environment variable patterns per tool
+- Format handling (JSON, JSONC, TOML)
+- Error conditions (missing fields, invalid formats)
+
+### Migration Integration Test Fixtures
+
+**Location**: `tests/migrate_integration_test.rs`
+
+**10 comprehensive end-to-end tests**:
+
+| Test | Scenario | Verifies |
+|------|----------|----------|
+| `test_migrate_cursor_project_success` | Cursor multi-server migration | Server parsing, description prompts, output file creation |
+| `test_migrate_opencode_jsonc_success` | OpenCode JSONC with comments | JSONC parsing, comment stripping, env var preservation |
+| `test_migrate_vscode_env_var_normalization` | VS Code `${env:VAR}` pattern | Environment variable normalization from `${env:VAR}` to `${VAR}` |
+| `test_migrate_claude_project_success` | Claude CLI `.mcp.json` | Project-level config detection and migration |
+| `test_migrate_cline_success` | Cline with env vars | Env var normalization and Cline-specific patterns |
+| `test_migrate_force_flag_skips_overwrite_prompt` | Force flag behavior | Overwrite existing files without user prompt |
+| `test_migrate_missing_config_file_error` | Missing config file | Proper error message when config not found |
+| `test_migrate_empty_description_error` | Empty description input | Validation of required description field |
+| `test_migrate_invalid_json_error` | Invalid JSON config | Parse error handling and error messages |
+| `test_migrate_multiple_servers_interactive` | 3 servers with prompts | Server ordering (alphabetical), multiple description prompts |
+
+**Test Infrastructure**:
+- `TestProject` struct: Creates temporary project directories with tool configs
+- `run_migrate_with_input()`: Runs `dmcp migrate` with automated stdin input
+- Binary built once at test start (via `Once` synchronization)
+- Tests run in parallel with isolated temp directories
 
 ## Manual Testing
 

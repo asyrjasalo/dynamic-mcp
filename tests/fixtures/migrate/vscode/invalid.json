@@ -1,0 +1,7 @@
+{
+  "servers": {
+    "no-command-no-url": {
+      "args": ["missing", "command"]
+    }
+  }
+}

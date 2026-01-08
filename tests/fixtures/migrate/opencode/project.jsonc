@@ -1,0 +1,16 @@
+{
+  // OpenCode MCP Configuration
+  // Supports comments
+  "mcp": {
+    "filesystem": {
+      "command": ["npx", "-y", "@modelcontextprotocol/server-filesystem", "/tmp"],
+      "enabled": true,
+      "type": "local"
+    },
+    "postgres": {
+      "command": ["uvx", "mcp-server-postgres"],
+      "enabled": true,
+      "type": "remote"
+    }
+  }
+}

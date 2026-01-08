@@ -48,7 +48,7 @@ fn test_migrate_command_help() {
 
     let stdout = String::from_utf8_lossy(&output.stdout);
     assert!(stdout.contains("migrate"));
-    assert!(stdout.contains("standard MCP config"));
+    assert!(stdout.contains("Tool name") || stdout.contains("AI coding tools"));
 }
 
 #[test]
@@ -132,4 +132,76 @@ fn test_config_schema_validation() {
         parsed.get("mcpServers").is_some(),
         "Config should have mcpServers"
     );
+}
+
+#[test]
+fn test_migrate_with_tool_name_cursor() {
+    use std::fs;
+    let fixture_path = "tests/fixtures/migrate/cursor/project.json";
+
+    assert!(
+        std::path::Path::new(fixture_path).exists(),
+        "Cursor fixture should exist"
+    );
+
+    let content = fs::read_to_string(fixture_path).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&content).unwrap();
+
+    assert!(parsed.get("mcpServers").is_some());
+}
+
+#[test]
+fn test_migrate_with_tool_name_opencode() {
+    let fixture_path = "tests/fixtures/migrate/opencode/project.jsonc";
+
+    assert!(
+        std::path::Path::new(fixture_path).exists(),
+        "OpenCode fixture should exist"
+    );
+}
+
+#[test]
+fn test_migrate_with_tool_name_claude() {
+    use std::fs;
+    let fixture_path = "tests/fixtures/migrate/claude-desktop/global.json";
+
+    assert!(
+        std::path::Path::new(fixture_path).exists(),
+        "Claude Desktop fixture should exist"
+    );
+
+    let content = fs::read_to_string(fixture_path).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&content).unwrap();
+
+    assert!(parsed.get("mcpServers").is_some());
+}
+
+#[test]
+fn test_migrate_with_tool_name_vscode() {
+    use std::fs;
+    let fixture_path = "tests/fixtures/migrate/vscode/project.json";
+
+    assert!(
+        std::path::Path::new(fixture_path).exists(),
+        "VS Code fixture should exist"
+    );
+
+    let content = fs::read_to_string(fixture_path).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&content).unwrap();
+
+    assert!(parsed.get("servers").is_some());
+}
+
+#[test]
+fn test_migrate_with_tool_name_codex_toml() {
+    use std::fs;
+    let fixture_path = "tests/fixtures/migrate/codex/global.toml";
+
+    assert!(
+        std::path::Path::new(fixture_path).exists(),
+        "Codex fixture should exist"
+    );
+
+    let content = fs::read_to_string(fixture_path).unwrap();
+    assert!(content.contains("[mcp."));
 }

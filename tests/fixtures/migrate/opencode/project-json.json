@@ -1,0 +1,9 @@
+{
+  "mcp": {
+    "filesystem": {
+      "command": ["npx", "-y", "@modelcontextprotocol/server-filesystem", "/tmp"],
+      "enabled": true,
+      "type": "local"
+    }
+  }
+}

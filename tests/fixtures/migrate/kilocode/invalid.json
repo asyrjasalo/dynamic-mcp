@@ -1,0 +1,7 @@
+{
+  "mcpServers": {
+    "invalid": {
+      "alwaysAllow": ["tool1"]
+    }
+  }
+}

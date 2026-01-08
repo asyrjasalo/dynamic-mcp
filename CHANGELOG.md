@@ -5,6 +5,37 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-01-08
+
+### Added
+- **Multi-Tool Migration Support** - Automatically import configs from 10 AI coding tools
+  - Cursor, OpenCode, Claude Desktop, Claude Code CLI, VS Code
+  - Cline, KiloCode, Codex CLI, Gemini CLI, Google Antigravity
+- **Tool Detection Module** - Smart path resolution for project/global configs per tool
+- **Config Parser Module** - Support for JSON, JSONC (with comments), and TOML formats
+- **Environment Variable Normalization** - Automatic conversion of tool-specific env var patterns
+- **Enhanced CLI** - `--global` flag for user-level configs, `--force` flag to skip prompts
+- **Comprehensive Test Coverage** - 10 new end-to-end migration integration tests
+- **26 Test Fixtures** - Real-world config examples for all 10 supported tools
+
+### Changed
+- Migration command now uses tool names instead of file paths: `dmcp migrate cursor`
+- Server processing order is now alphabetical (consistent interactive prompts)
+- JSONC parsing improved with line comment stripping for better compatibility
+
+### Documentation
+- New MIGRATION_INTEGRATION_TESTS.md with detailed test documentation
+- Updated README.md with tool-specific migration examples
+- Updated MIGRATION.md with comprehensive tool guides
+- MIGRATE_MULTI_TOOL.md technical specification document
+- Updated STATUS.md, TESTING.md, and DEVELOPMENT.md with Phase 8 completion
+
+### Metrics
+- LOC increased: ~2,900 → ~4,765 Rust
+- Tests increased: 46 → 74 (50 unit + 14 integration + 10 migration integration)
+- Test coverage: ~90% → ~92%
+- Source files: 17 → 24 Rust files
+
 ## [1.1.0] - 2026-01-07
 
 ### Added
@@ -89,5 +120,6 @@ cargo install dynamic-mcp
 - **Documentation**: https://docs.rs/dynamic-mcp
 - **Release Notes**: [docs/implementation/RELEASE_v1.0.0.md](docs/implementation/RELEASE_v1.0.0.md)
 
+[1.2.0]: https://github.com/asyrjasalo/dynamic-mcp/releases/tag/v1.2.0
 [1.1.0]: https://github.com/asyrjasalo/dynamic-mcp/releases/tag/v1.1.0
 [1.0.0]: https://github.com/asyrjasalo/dynamic-mcp/releases/tag/v1.0.0

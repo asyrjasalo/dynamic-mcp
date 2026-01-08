@@ -1,6 +1,6 @@
 [package]
 name = "dynamic-mcp"
-version = "1.1.0"
+version = "1.2.0"
 edition = "2021"
 rust-version = "1.75"
 authors = ["Anssi Syrjäsalo"]
@@ -44,6 +44,8 @@ reqwest = { version = "0.12", default-features = false, features = ["json", "str
 # Serialization
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+json_comments = "0.2"
+toml = "0.8"
 
 # Configuration validation
 schemars = { version = "0.8", features = ["preserve_order"] }

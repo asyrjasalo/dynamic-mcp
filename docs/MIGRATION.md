@@ -1,6 +1,6 @@
 # Migration Guide
 
-This guide explains how to migrate from standard MCP configuration to dynamic-mcp format.
+This guide explains how to migrate to dynamic-mcp from AI coding tools and standard MCP configurations.
 
 ## Why Migrate?
 
@@ -10,14 +10,35 @@ Standard MCP clients load all tool schemas from all servers upfront, consuming s
 2. Loading specific tool schemas on-demand
 3. Grouping servers for organized access
 
-## Migration Methods
+## Quick Start
 
-### Method 1: Automatic Migration (Recommended)
+### Migrate from AI Coding Tools
 
-Use the built-in migration command:
+**Project-level config** (run in project directory):
+```bash
+dmcp migrate cursor
+dmcp migrate vscode
+dmcp migrate cline
+```
+
+**Global/user-level config**:
+```bash
+dmcp migrate --global claude-desktop
+dmcp migrate --global opencode
+dmcp migrate --global codex
+```
+
+**Force overwrite**:
+```bash
+dmcp migrate cursor --force
+```
+
+### Migrate from Generic MCP Config
+
+For backward compatibility with generic configs:
 
 ```bash
-dmcp migrate ~/.config/mcp/config.json -o dynamic-mcp.json
+dmcp migrate config.json -o dynamic-mcp.json
 ```
 
 **What it does**:
@@ -416,6 +437,232 @@ dmcp dynamic-mcp.json
 
 # 6. Restart your LLM client
 ```
+
+## Tool-Specific Migration Guides
+
+### Cursor
+
+**Config Locations**:
+- Project: `.cursor/mcp.json` (in project root)
+- Global: `~/.cursor/mcp.json`
+
+**Migration**:
+```bash
+# From project config
+cd /path/to/project
+dmcp migrate cursor
+
+# From global config
+dmcp migrate --global cursor
+```
+
+**Environment Variables**: Cursor uses `${env:VAR}` format, automatically converted to `${VAR}`.
+
+---
+
+### OpenCode
+
+**Config Locations**:
+- Project: `.opencode/mcp.json` or `.opencode/mcp.jsonc`
+- Global: `~/.config/opencode/opencode.json` or `~/.config/opencode/opencode.jsonc`
+
+**Migration**:
+```bash
+# From project config (auto-detects .json or .jsonc)
+dmcp migrate opencode
+
+# From global config (auto-detects .json or .jsonc)
+dmcp migrate --global opencode
+```
+
+**Special Notes**:
+- Supports both JSON and JSONC (JSON with comments) formats
+- Auto-detects file extension (.json or .jsonc)
+- Prefers .jsonc if both exist
+- Uses `command` as array: `["npx", "-y", "package"]` instead of separate command/args
+- Automatically parsed and normalized
+
+---
+
+### Claude Desktop
+
+**Config Locations** (global only):
+- macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- Windows: `%APPDATA%\Claude\claude_desktop_config.json`
+- Linux: `~/.config/Claude/claude_desktop_config.json`
+
+**Migration**:
+```bash
+dmcp migrate --global claude-desktop
+# or
+dmcp migrate --global claude
+```
+
+**Environment Variables**: Uses `${VAR}` format (already compatible).
+
+---
+
+### Claude Code CLI
+
+**Config Locations**:
+- Project: `.mcp.json` (in project root - shared with team, version-controlled)
+- Global: `~/.claude/mcp.json`
+
+**Migration**:
+```bash
+# From project config (.mcp.json in project root)
+cd /path/to/project
+dmcp migrate claude
+
+# From global config
+dmcp migrate --global claude
+```
+
+**Environment Variables**: Uses `${VAR}` format (already compatible).
+
+**Special Notes**:
+- Uses `.mcp.json` in project root (NOT `.claude/mcp.json`)
+- Different from Claude Desktop (which uses `~/Library/Application Support/Claude/`)
+- Supports multiple scopes: project (`.mcp.json`), local (`~/.claude.json` per project), user (global)
+- Ideal for developers using Claude Code via CLI
+- Project config can be version-controlled and shared with team
+
+---
+
+### Visual Studio Code
+
+**Config Locations**:
+- Project: `.vscode/mcp.json` (workspace-level)
+- Global: 
+  - macOS: `~/Library/Application Support/Code/User/mcp.json`
+  - Windows: `%APPDATA%\Code\User\mcp.json`
+  - Linux: `~/.config/Code/User/mcp.json`
+
+**Migration**:
+```bash
+# From project config
+dmcp migrate vscode
+
+# From global/user config
+dmcp migrate --global vscode
+```
+
+**Special Notes**:
+- Uses `servers` instead of `mcpServers`
+- Supports `${input:ID}` for secure credential prompts (cannot auto-convert)
+- VS Code specific `inputs` array not migrated
+- Can also use Command Palette: `MCP: Open User Configuration`
+- Supports both dedicated `mcp.json` or settings in `settings.json`
+
+**Manual Steps After Migration**:
+If your config used `${input:credential-id}`:
+1. Replace with environment variable: `${API_KEY}`
+2. Export the variable: `export API_KEY=your-key`
+
+---
+
+### Cline (VS Code Extension)
+
+**Config Location**:
+- Project: `.cline/mcp.json`
+
+**Migration**:
+```bash
+dmcp migrate cline
+```
+
+**Special Notes**:
+- `alwaysAllow` field is not migrated (Cline-specific)
+- `disabled` field is not migrated
+- Environment variables use `${env:VAR}` format (auto-converted)
+
+---
+
+### KiloCode
+
+**Config Location**:
+- Project: `.kilocode/mcp.json`
+
+**Migration**:
+```bash
+dmcp migrate kilocode
+```
+
+**Similar to Cline**: Extension-specific fields (`alwaysAllow`, `disabled`) are not migrated.
+
+---
+
+### Codex CLI
+
+**Config Location**:
+- Global: `~/.codex/config.toml`
+
+**Migration**:
+```bash
+dmcp migrate --global codex
+```
+
+**Special Notes**:
+- Uses TOML format instead of JSON
+- Format: `[mcp.server-name]` sections
+- Environment variables: TOML string syntax automatically handled
+
+**Example TOML**:
+```toml
+[mcp.github]
+command = "docker"
+args = ["run", "-i", "ghcr.io/github/github-mcp-server"]
+
+[mcp.github.env]
+GITHUB_TOKEN = "${GITHUB_TOKEN}"
+```
+
+---
+
+### Google Antigravity
+
+**Config Location**:
+- UI-managed: `mcp_config.json`
+
+**Migration**:
+```bash
+# Locate the config file through Antigravity UI
+# Then migrate using file path:
+dmcp migrate /path/to/mcp_config.json -o dynamic-mcp.json
+```
+
+**Finding Config**:
+1. Open Antigravity
+2. Click "..." dropdown in agent panel
+3. Select "Manage MCP Servers"
+4. Click "View raw config"
+5. Note the file location
+
+---
+
+### Gemini CLI
+
+**Config Locations**:
+- Project: `.gemini/settings.json` (in project root)
+- Global: `~/.gemini/settings.json`
+
+**Migration**:
+```bash
+# From project config
+cd /path/to/project
+dmcp migrate gemini
+
+# From global config
+dmcp migrate --global gemini
+```
+
+**Environment Variables**: Uses standard environment variables (no special syntax).
+
+**Special Notes**:
+- Project config allows per-project MCP server configuration
+- Useful for different contexts in different projects
+
+---
 
 ## Getting Help
 

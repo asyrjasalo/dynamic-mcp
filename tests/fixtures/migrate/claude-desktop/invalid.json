@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "no-command": {
+      "env": {
+        "KEY": "value"
+      }
+    }
+  }
+}

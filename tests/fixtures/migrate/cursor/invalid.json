@@ -1,0 +1,7 @@
+{
+  "mcpServers": {
+    "invalid-server": {
+      "args": ["-y", "missing-command"]
+    }
+  }
+}

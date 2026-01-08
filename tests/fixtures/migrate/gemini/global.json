@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "gram": {
+      "command": "uvx",
+      "args": ["gram-mcp-server"],
+      "env": {
+        "GRAM_API_KEY": "your-api-key"
+      }
+    },
+    "postgres": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-postgres"],
+      "env": {
+        "DATABASE_URL": "postgresql://localhost/mydb"
+      }
+    }
+  }
+}

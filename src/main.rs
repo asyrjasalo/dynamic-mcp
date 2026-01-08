@@ -28,10 +28,18 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    /// Migrate standard MCP config to dynamic-mcp format
+    /// Migrate MCP config from AI coding tools to dynamic-mcp format
     Migrate {
-        /// Path to standard MCP config file
-        mcp_config_path: String,
+        /// Tool name: cursor, opencode, claude-desktop, claude, vscode, cline, kilocode, codex, gemini, antigravity
+        tool_name: String,
+
+        /// Use global/user config instead of project config
+        #[arg(short, long)]
+        global: bool,
+
+        /// Force overwrite existing output file without prompting
+        #[arg(short, long)]
+        force: bool,
 
         /// Output path for dynamic-mcp.json
         #[arg(short, long, default_value = "dynamic-mcp.json")]
@@ -59,7 +67,9 @@ async fn main() -> Result<()> {
 
     match cli.command {
         Some(Commands::Migrate {
-            mcp_config_path,
+            tool_name,
+            global,
+            force,
             output,
         }) => {
             tracing_subscriber::fmt()
@@ -67,7 +77,7 @@ async fn main() -> Result<()> {
                     EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("warn")),
                 )
                 .init();
-            cli::migrate::run_migration(&mcp_config_path, &output).await
+            cli::migrate::run_migration_from_tool(&tool_name, global, force, &output).await
         }
         None => {
             tracing_subscriber::fmt()

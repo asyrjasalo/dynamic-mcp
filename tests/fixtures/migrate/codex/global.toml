@@ -1,0 +1,13 @@
+[mcp.filesystem]
+command = "npx"
+args = ["-y", "@modelcontextprotocol/server-filesystem", "/workspace"]
+
+[mcp.filesystem.env]
+LOG_LEVEL = "info"
+
+[mcp.github]
+command = "docker"
+args = ["run", "-i", "ghcr.io/github/github-mcp-server"]
+
+[mcp.github.env]
+GITHUB_TOKEN = "${GITHUB_TOKEN}"

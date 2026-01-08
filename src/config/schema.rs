@@ -203,3 +203,61 @@ pub struct StandardServerConfig {
     #[serde(rename = "mcpServers")]
     pub mcp_servers: HashMap<String, StandardMcpServerConfig>,
 }
+
+/// Intermediate representation for migration from various tools
+/// Normalized format that can be converted to McpServerConfig
+#[derive(Debug, Clone)]
+pub struct IntermediateServerConfig {
+    /// Command executable (for stdio servers)
+    pub command: Option<String>,
+    /// Command arguments
+    pub args: Option<Vec<String>>,
+    /// Environment variables
+    pub env: Option<HashMap<String, String>>,
+    /// Server URL (for http/sse servers)
+    pub url: Option<String>,
+    /// HTTP headers (for http/sse servers)
+    pub headers: Option<HashMap<String, String>>,
+    /// Server type hint
+    pub server_type: Option<String>,
+}
+
+impl IntermediateServerConfig {
+    /// Convert to McpServerConfig with a description
+    #[allow(clippy::wrong_self_convention)]
+    pub fn to_mcp_config(self, description: String) -> Result<McpServerConfig, String> {
+        // Determine server type
+        if let Some(url) = self.url {
+            // HTTP or SSE server
+            let server_type = self.server_type.as_deref().unwrap_or("http").to_lowercase();
+
+            if server_type == "sse" {
+                Ok(McpServerConfig::Sse {
+                    description,
+                    url,
+                    headers: self.headers,
+                    oauth_client_id: None,
+                    oauth_scopes: None,
+                })
+            } else {
+                Ok(McpServerConfig::Http {
+                    description,
+                    url,
+                    headers: self.headers,
+                    oauth_client_id: None,
+                    oauth_scopes: None,
+                })
+            }
+        } else if let Some(command) = self.command {
+            // Stdio server
+            Ok(McpServerConfig::Stdio {
+                description,
+                command,
+                args: self.args,
+                env: self.env,
+            })
+        } else {
+            Err("Server config must have either 'command' or 'url'".to_string())
+        }
+    }
+}

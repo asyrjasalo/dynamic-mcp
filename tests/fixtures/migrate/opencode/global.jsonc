@@ -1,0 +1,10 @@
+{
+  // Global OpenCode Configuration
+  "mcp": {
+    "dynamic-mcp": {
+      "command": ["dmcp"],
+      "enabled": true,
+      "type": "local"
+    }
+  }
+}

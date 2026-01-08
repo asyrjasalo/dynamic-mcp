@@ -1,0 +1,9 @@
+{
+  "mcp": {
+    "dynamic-mcp": {
+      "command": ["dmcp"],
+      "enabled": true,
+      "type": "local"
+    }
+  }
+}

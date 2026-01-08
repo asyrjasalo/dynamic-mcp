@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "dynamic-mcp": {
+      "command": "uvx",
+      "args": ["dmcp", "${env:HOME}/.config/dynamic-mcp.json"]
+    },
+    "sqlite": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-sqlite", "${env:HOME}/data/"]
+    }
+  }
+}

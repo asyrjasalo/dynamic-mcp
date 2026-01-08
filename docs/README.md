@@ -15,8 +15,17 @@ This directory contains comprehensive documentation for dynamic-mcp.
 
 Detailed implementation documentation is available in `docs/implementation/`:
 
+### Current Status & Testing
 - **[STATUS.md](implementation/STATUS.md)** - Current implementation status and metrics
 - **[TESTING.md](implementation/TESTING.md)** - Testing strategy and coverage
+- **[DEVELOPMENT.md](implementation/DEVELOPMENT.md)** - Project status, roadmap, and metrics
+
+### Feature Documentation
 - **[ENV_VAR_CONFIG.md](implementation/ENV_VAR_CONFIG.md)** - Environment variable implementation
 - **[LIVE_RELOAD.md](implementation/LIVE_RELOAD.md)** - Live reload implementation details
+- **[MIGRATE_MULTI_TOOL.md](implementation/MIGRATE_MULTI_TOOL.md)** - Multi-tool migration implementation
+- **[MIGRATION_INTEGRATION_TESTS.md](implementation/MIGRATION_INTEGRATION_TESTS.md)** - End-to-end migration test documentation
+
+### Phase Completion Reports
+- **[PHASE1_COMPLETE.md](implementation/PHASE1_COMPLETE.md)** through **[PHASE6_COMPLETE.md](implementation/PHASE6_COMPLETE.md)** - Historical phase completion records
 

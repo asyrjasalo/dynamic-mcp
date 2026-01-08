@@ -1,10 +1,23 @@
-use crate::config::{McpServerConfig, ServerConfig, StandardServerConfig};
-use anyhow::{Context, Result};
-use std::collections::HashMap;
-use std::io::{self, Write};
-use tokio::fs;
+use crate::cli::migrate_enhanced;
+use crate::cli::tool_detector::Tool;
+use anyhow::Result;
 
-pub async fn run_migration(input_path: &str, output_path: &str) -> Result<()> {
+pub async fn run_migration_from_tool(
+    tool_name: &str,
+    is_global: bool,
+    force: bool,
+    output_path: &str,
+) -> Result<()> {
+    let tool = Tool::from_name(tool_name)?;
+    migrate_enhanced::run_migration_from_tool(tool, is_global, force, output_path).await
+}
+
+#[allow(dead_code)]
+pub async fn run_migration_legacy(input_path: &str, output_path: &str) -> Result<()> {
+    use crate::config::{McpServerConfig, ServerConfig, StandardServerConfig};
+    use anyhow::Context;
+    use std::collections::HashMap;
+    use tokio::fs;
     println!("🔄 Starting migration from standard MCP config to dynamic-mcp format");
     println!("📖 Reading config from: {}", input_path);
 
@@ -73,6 +86,8 @@ pub async fn run_migration(input_path: &str, output_path: &str) -> Result<()> {
 }
 
 fn prompt_for_description(server_name: &str, config: &serde_json::Value) -> Result<String> {
+    use anyhow::Context;
+    use std::io::{self, Write};
     println!("\nConfig details:");
     if let Some(obj) = config.as_object() {
         for (key, value) in obj {

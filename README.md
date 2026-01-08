@@ -52,23 +52,53 @@ Install from [crates.io](https://crates.io/crates/dynamic-mcp):
 
 The binary is then available at `~/.cargo/bin/dmcp` (`$CARGO_HOME/bin/dmcp`).
 
-### Migrate from an existing MCP config
+### Migrate from AI Coding Tools
 
-If you have an existing MCP config without descriptions, use the `migrate` command.
+Dynamic-mcp can automatically import MCP server configurations from popular AI coding tools.
 
-**Note**: There is no standard MCP config format. Not all IDEs or agents are supported.
+**Supported Tools** (`<tool-name>`):
+- Cursor (`cursor`)
+- OpenCode (`opencode`)
+- Claude Desktop (`claude-desktop`)
+- Claude Code CLI (`claude`)
+- Visual Studio Code (`vscode`)
+- Cline (`cline`)
+- KiloCode (`kilocode`)
+- Codex CLI (`codex`)
+- Gemini CLI (`gemini`)
+- Google Antigravity (`antigravity`)
 
-Migrate from an existing MCP config to the dynamic-mcp format:
+#### Quick Start
 
-    uvx dmcp migrate mcp.json -o dynamic-mcp.json
-
-The command will interactively prompt for descriptions for each upstream server.
-
-Example migration session:
-
+**Migrate from project config** (run in project directory):
+```bash
+dmcp migrate <tool-name>
 ```
-🔄 Starting migration from standard MCP config to dynamic-mcp format
-📖 Reading config from: mcp.json
+
+**Migrate from global/user config**:
+```bash
+dmcp migrate --global <tool-name>
+```
+
+**Force overwrite** (skip confirmation prompt):
+```bash
+dmcp migrate <tool-name> --force
+```
+
+The command will:
+1. Detect your tool's config location
+2. Parse the existing MCP servers
+3. Interactively prompt for descriptions
+4. Normalize environment variable formats
+5. Generate `dynamic-mcp.json`
+
+#### Example Migration
+
+```bash
+$ dmcp migrate cursor
+
+🔄 Starting migration from cursor to dynamic-mcp format
+📖 Reading config from: .cursor/mcp.json
 
 ✅ Found 2 MCP server(s) to migrate
 
@@ -87,6 +117,36 @@ Config details:
 ✅ Migration complete!
 📝 Output saved to: dynamic-mcp.json
 ```
+
+#### Tool-Specific Notes
+
+- **Cursor**: Supports both `.cursor/mcp.json` (project) and `~/.cursor/mcp.json` (global)
+- **Claude Desktop**: Global config only, location varies by OS:
+  - macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
+  - Windows: `%APPDATA%\Claude\claude_desktop_config.json`
+  - Linux: `~/.config/Claude/claude_desktop_config.json`
+- **Claude Code CLI**: Supports both `.mcp.json` (project root) and `~/.claude/mcp.json` (global)
+- **Gemini CLI**: Supports both `.gemini/settings.json` (project) and `~/.gemini/settings.json` (global)
+- **VS Code**: Supports both `.vscode/mcp.json` (project) and user-level config (OS-specific paths)
+- **OpenCode**: Supports both JSON and JSONC formats (JSON with comments)
+- **Codex CLI**: Global only - uses TOML format (`~/.codex/config.toml`)
+- **Antigravity**: Global only - `~/.gemini/antigravity/mcp_config.json`
+
+#### Environment Variable Conversion
+
+The migrate command automatically normalizes environment variables to dynamic-mcp's `${VAR}` format:
+
+| Tool | Original Format | Converted To |
+|------|----------------|--------------|
+| Cursor | `${env:GITHUB_TOKEN}` | `${GITHUB_TOKEN}` |
+| Claude Desktop | `${GITHUB_TOKEN}` | `${GITHUB_TOKEN}` |
+| Claude Code CLI | `${GITHUB_TOKEN}` | `${GITHUB_TOKEN}` |
+| VS Code | `${env:GITHUB_TOKEN}` | `${GITHUB_TOKEN}` |
+| Codex | `"${GITHUB_TOKEN}"` | `${GITHUB_TOKEN}` |
+
+**Note**: VS Code's `${input:ID}` secure prompts cannot be automatically converted. You'll need to manually configure these after migration.
+
+See [docs/MIGRATION.md](docs/MIGRATION.md) for detailed tool-specific migration guides.
 
 ## Dynamic MCP format
 
