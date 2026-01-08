@@ -134,15 +134,15 @@ fn determine_opencode_path(is_global: bool) -> Result<PathBuf> {
             Ok(jsonc_path)
         }
     } else {
-        let jsonc_path = PathBuf::from(".opencode/mcp.jsonc");
-        let json_path = PathBuf::from(".opencode/mcp.json");
+        let jsonc_path = PathBuf::from(".opencode/opencode.jsonc");
+        let json_path = PathBuf::from(".opencode/opencode.json");
 
         if jsonc_path.exists() {
             Ok(jsonc_path)
         } else if json_path.exists() {
             Ok(json_path)
         } else {
-            Ok(json_path)
+            Ok(jsonc_path)
         }
     }
 }

@@ -67,7 +67,7 @@ impl Tool {
     pub fn project_config_path(&self) -> Option<PathBuf> {
         match self {
             Tool::Cursor => Some(PathBuf::from(".cursor/mcp.json")),
-            Tool::OpenCode => Some(PathBuf::from(".opencode/mcp.json")),
+            Tool::OpenCode => Some(PathBuf::from(".opencode/opencode.jsonc")),
             Tool::ClaudeCodeCli => Some(PathBuf::from(".mcp.json")),
             Tool::Gemini => Some(PathBuf::from(".gemini/settings.json")),
             Tool::VSCode => Some(PathBuf::from(".vscode/mcp.json")),
@@ -222,7 +222,7 @@ mod tests {
         );
         assert_eq!(
             Tool::OpenCode.project_config_path(),
-            Some(PathBuf::from(".opencode/mcp.json"))
+            Some(PathBuf::from(".opencode/opencode.jsonc"))
         );
         assert_eq!(
             Tool::VSCode.project_config_path(),

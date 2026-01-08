@@ -40,7 +40,7 @@ The import command currently supports the following AI coding tools:
 | Tool | Tool Name | Config Locations |
 |------|-----------|------------------|
 | **Cursor** | `cursor` | Project: `.cursor/mcp.json`<br>Global: `~/.cursor/mcp.json` |
-| **OpenCode** | `opencode` | Project: `.opencode/mcp.json(c)`<br>Global: `~/.config/opencode/opencode.json(c)` |
+| **OpenCode** | `opencode` | Project: `.opencode/opencode.json(c)`<br>Global: `~/.config/opencode/opencode.json(c)` |
 | **Claude Desktop** | `claude-desktop` | Global only (OS-specific paths) |
 | **Claude Code CLI** | `claude` | Project: `.mcp.json`<br>Global: `~/.claude/mcp.json` |
 | **Visual Studio Code** | `vscode` | Project: `.vscode/mcp.json`<br>Global: OS-specific |
@@ -480,7 +480,7 @@ dmcp import --global cursor
 ### OpenCode
 
 **Config Locations**:
-- Project: `.opencode/mcp.json` or `.opencode/mcp.jsonc`
+- Project: `.opencode/opencode.json` or `.opencode/opencode.jsonc`
 - Global: `~/.config/opencode/opencode.json` or `~/.config/opencode/opencode.jsonc`
 
 **Import**:

@@ -40,7 +40,7 @@ Extends the `import` command to support importing MCP server configurations from
 | Priority | Tool | Global Config | Project Config | Env Var Pattern | Format |
 |----------|------|--------------|----------------|-----------------|--------|
 | 1 | **Cursor** | `~/.cursor/mcp.json` | `.cursor/mcp.json` | `${env:VAR}` | JSON |
-| 2 | **OpenCode** | `~/.config/opencode/opencode.{json,jsonc}` | `.opencode/mcp.{json,jsonc}` | System env | JSON/JSONC |
+| 2 | **OpenCode** | `~/.config/opencode/opencode.{json,jsonc}` | `.opencode/opencode.{json,jsonc}` | System env | JSON/JSONC |
 | 3 | **Claude Desktop** | `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS)<br>`%APPDATA%\Claude\claude_desktop_config.json` (Windows)<br>`~/.config/Claude/claude_desktop_config.json` (Linux) | N/A | `${VAR}` | JSON |
 | 4 | **VS Code** | User `settings.json` | `.vscode/mcp.json` | `${input:ID}`, `${env:VAR}` | JSON |
 | 5 | **Antigravity** | UI-managed `mcp_config.json` | N/A | System env | JSON |
@@ -373,7 +373,7 @@ tests/fixtures/import/
 │   ├── global.json           # ~/.cursor/mcp.json format
 │   └── invalid.json
 ├── opencode/
-│   ├── project.jsonc         # .opencode/mcp.json format
+│   ├── project.jsonc         # .opencode/opencode.json format
 │   ├── global.jsonc          # ~/.config/opencode/opencode.jsonc format
 │   └── invalid.jsonc
 ├── claude-desktop/

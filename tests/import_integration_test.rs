@@ -169,7 +169,7 @@ fn test_import_opencode_jsonc_success() {
   }
 }"#;
 
-    let project = TestProject::new("opencode", ".opencode", "mcp.jsonc", config_content);
+    let project = TestProject::new("opencode", ".opencode", "opencode.jsonc", config_content);
     let output_path = project.output_path();
 
     let output = run_import_with_input(
@@ -753,7 +753,7 @@ fn test_import_opencode_env_var_passthrough() {
   }
 }"#;
 
-    let project = TestProject::new("opencode", ".opencode", "mcp.json", config_content);
+    let project = TestProject::new("opencode", ".opencode", "opencode.json", config_content);
     let output_path = project.output_path();
 
     let output = run_import_with_input(
