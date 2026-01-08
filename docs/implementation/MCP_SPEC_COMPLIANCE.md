@@ -427,7 +427,7 @@ pub struct Resource {
 | **error field (response)** | ✅ | types.rs | Correct |
 | **Error code/message format** | ✅ | types.rs | Correct |
 | **Notification (id=null)** | ✅ | server.rs | Correct |
-| **Batch requests** | ✅ | types.rs, server.rs | IMPLEMENTED (v1.3.0) |
+
 
 ### Tools API (12 requirements)
 
@@ -487,11 +487,10 @@ pub struct Resource {
 
 ## 🎯 Feature Completeness by Category
 
-### Core Protocol (34/36 = 94.4%)
+### Core Protocol (8/9 = 88.9%)
 - ✅ JSON-RPC 2.0 formatting
 - ✅ Protocol version negotiation
 - ✅ Transport headers (Protocol-Version, Session-Id)
-- ✅ Batch requests (IMPLEMENTED - v1.3.0)
 - ❌ `initialized` notification (intentional, breaks stdio)
 
 ### Transport Layer (13/13 = 100%)
@@ -529,35 +528,6 @@ pub struct Resource {
 
 ---
 
-## 📝 Recommended Actions
-
-### High Priority (Critical)
-✅ **COMPLETE** — All MUST-have spec requirements are implemented (except intentional `initialized` omission).
-
-### ✅ Completed (v1.3.0 - Proxy-Applicable Features)
-
-**Core Optional Features Fully Implemented**:
-1. **JSON-RPC batch requests** ✅
-   - Array-based request handling per JSON-RPC 2.0 spec (not MCP-specific)
-   - Array responses for batch requests
-   - Notification filtering (no response if batch is all notifications)
-   - Implementation: `src/proxy/types.rs`, `src/server.rs`
-   - Tests: 6 comprehensive unit tests
-   - **Note**: This is a JSON-RPC feature, not defined in MCP specification
-
-### ✅ Existing Features (v1.3.0)
-- ✅ Resource templates API (`resources/templates/list`)
-- ✅ Resource size field for context estimation
-- ✅ ResourceTemplate annotations support
-- ✅ Full Tools API with pagination
-- ✅ Full Prompts API with pagination
-- ✅ Full Resources API with pagination (core features only)
-- ✅ OAuth 2.1 with PKCE
-- ✅ Error recovery and retry logic
-- ✅ JSON-RPC batch requests
-
----
-
 ## 📈 Compliance Score Breakdown
 
 **Overall**: 98.8% (85/86 MUST-have requirements, proxy-applicable features only)
@@ -572,17 +542,14 @@ pub struct Resource {
 | **Resources API** | 100% (16/16) | ✅ Excellent |
 | **Security/OAuth** | 100% (8/8) | ✅ Excellent |
 | **Error handling** | 100% (4/4) | ✅ Excellent |
-| **Optional features** | 50% (only proxy-applicable) | ✅ Batch requests; ❌ Notifications/subscriptions (N/A) |
+| **Optional features** | 100% (proxy-applicable only) | ✅ Resource templates, size field; ❌ Notifications/subscriptions (N/A) |
 
 **MUST-have requirements: 85/86 implemented**
 - ✅ 85 fully compliant (All core features 100%!)
 - ⚠️ 1 intentionally omitted (`initialized` notification - architectural decision for stdio stability)
 - ❌ 0 missing (all spec requirements met!)
 
-**OPTIONAL features: Implemented (Where Applicable)**
-- ✅ Batch requests (JSON-RPC 2.0, not MCP-specific) - FULLY WORKING
-- ❌ Resource subscriptions (NOT APPLICABLE - proxy cannot deliver)
-- ❌ Server-to-client notifications (NOT APPLICABLE - proxy architecture)
+**OPTIONAL MCP features: Implemented (Where Applicable)**
 - ✅ Resource templates (RFC 6570 URI support) - FULLY WORKING
 - ✅ Resource size field (context estimation) - FULLY WORKING
 - ✅ Prompts API (full with validation) - FULLY WORKING
@@ -596,6 +563,8 @@ pub struct Resource {
 - ✅ Pagination support (cursor-based, all APIs) - FULLY WORKING
 - ✅ All transports (stdio, HTTP, SSE) - FULLY WORKING
 - ✅ Prompt argument validation (required/optional enforcement) - FULLY WORKING
+- ❌ Resource subscriptions (NOT APPLICABLE - proxy cannot deliver)
+- ❌ Server-to-client notifications (NOT APPLICABLE - proxy architecture)
 
 ---
 
@@ -614,8 +583,7 @@ pub struct Resource {
 - ✅ Resources API (100% compliant - all core features)
 - ✅ OAuth 2.1 with PKCE
 - ✅ Error recovery and retry logic
-- ✅ **NEW**: JSON-RPC batch request support
-- ✅ **NEW**: Resource subscription API (subscribe/unsubscribe)
+
 
 **Known Limitation** (Low Risk):
 - ⚠️ **`initialized` notification**: Intentionally NOT sent (prevents stdio deadlock)
@@ -675,7 +643,6 @@ pub struct Resource {
 - [x] Resources API 100% spec-compliant (core features only)
 - [x] OAuth 2.1 fully working
 - [x] Error recovery implemented
-- [x] Batch requests (JSON-RPC 2.0 compliant)
 - [x] Not-applicable features removed (subscriptions, notifications)
 - [x] Testing complete
 
