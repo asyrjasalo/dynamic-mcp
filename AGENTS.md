@@ -57,10 +57,6 @@ git clone https://github.com/asyrjasalo/dynamic-mcp.git
 cd dynamic-mcp
 cargo build
 
-# Install pre-commit hooks (recommended)
-pip install pre-commit
-pre-commit install --hook-type pre-commit --hook-type commit-msg
-
 # Run tests
 cargo test
 
@@ -76,27 +72,28 @@ RUST_LOG=debug cargo run -- examples/config.example.json
 2. **Understand the codebase**: Browse module structure in `src/`
 3. **Check existing patterns**: Look at similar implementations before adding new code
 4. **Review tests**: See `tests/` and module tests for examples
-5. **Install pre-commit hooks**: Enforces code quality automatically on commit
 
-### ⚠️ CRITICAL: No Git Commits
+### ⚠️ CRITICAL: No Git Commits Without Asking
 
-**You MUST NOT commit changes to the repository.** Only the project owner commits and pushes to the main branch.
+**You MUST NOT commit changes to the repository without explicit permission from the project owner.** Only the project owner commits and pushes to the main branch.
 
 Your responsibilities:
 - ✅ Write code in your local working directory
 - ✅ Run tests to verify functionality
 - ✅ Update documentation
 - ✅ Verify build passes (`cargo build --release`)
-- ❌ **DO NOT** run `git commit` or `git push`
-- ❌ **DO NOT** stage changes with `git add`
+- ✅ **ASK FIRST** before running `git commit`
+- ❌ **DO NOT** run `git commit` or `git push` without explicit approval
+- ❌ **DO NOT** stage changes with `git add` for committing
 - ❌ **DO NOT** push to any branches
 
 The project owner will:
 - Review your changes
-- Create appropriate commits with proper messages
+- Decide whether to create commits
+- Create appropriate commits with proper messages if approved
 - Manage all git operations and releases
 
-**Why this matters**: Maintains clean git history, proper attribution, and version control integrity.
+**Why this matters**: Maintains clean git history, proper attribution, version control integrity, and ensures the project owner has full control over what gets committed.
 
 ---
 
@@ -142,27 +139,16 @@ The project owner will:
    ```
 
 5. **Check code quality**
-   ```bash
-   cargo fmt               # Format code
-   cargo clippy            # Lint and catch issues
-   ```
+    ```bash
+    cargo fmt               # Format code
+    cargo clippy            # Lint and catch issues
+    ```
 
 6. **Verify with LSP diagnostics**
-   ```bash
-   # If using rust-analyzer
-   # Check for warnings/errors in your editor
-   ```
-
-7. **Verify pre-commit hooks** (if installed)
-   ```bash
-   pre-commit run --all-files  # Run all hooks manually
-   ```
-
-   Note: Pre-commit hooks run automatically on `git commit` and check:
-   - File quality (merge conflicts, large files, JSON/TOML/YAML syntax)
-   - Shell scripts (shellcheck, shfmt)
-   - Spelling (codespell)
-   - Commit message format (conventional commits via commitizen)
+    ```bash
+    # If using rust-analyzer
+    # Check for warnings/errors in your editor
+    ```
 
 ### 3. Testing Requirements
 

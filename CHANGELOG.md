@@ -16,10 +16,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Resource Type Definitions** - Full support for MCP resource schema
   - Resource, ResourceContent, ResourceAnnotations, ResourceIcon types
   - Proper serialization with optional field handling
+- **SSE Stream Resumption** - Last-Event-ID tracking for interrupted SSE connections
+  - Automatically extracts and stores event IDs from SSE responses
+  - Sends Last-Event-ID header on reconnection to prevent event loss
+  - Handles both `id: value` and compact formats
 
 ### Changed
 - Updated `initialize` response to advertise `resources` capability
-- Expanded test suite with 9 new Resources API tests (100 tests total)
+- Improved SSE transport reliability with event ID tracking
+
+### Fixed
+- SSE connections now properly resume from last known event after network interruptions
 
 ## [1.2.0] - 2026-01-08
 
