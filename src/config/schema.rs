@@ -186,24 +186,6 @@ pub struct ServerConfig {
     pub mcp_servers: HashMap<String, McpServerConfig>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StandardMcpServerConfig {
-    #[serde(default = "default_stdio_type")]
-    pub r#type: String,
-    #[serde(flatten)]
-    pub config: serde_json::Value,
-}
-
-fn default_stdio_type() -> String {
-    "stdio".to_string()
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StandardServerConfig {
-    #[serde(rename = "mcpServers")]
-    pub mcp_servers: HashMap<String, StandardMcpServerConfig>,
-}
-
 /// Intermediate representation for migration from various tools
 /// Normalized format that can be converted to McpServerConfig
 #[derive(Debug, Clone)]
