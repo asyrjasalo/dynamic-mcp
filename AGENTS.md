@@ -130,11 +130,13 @@ RUST_LOG=debug cargo run -- examples/config.example.json
 
 ### 3. Testing Requirements
 
-**⚠️ CRITICAL: Tests are MANDATORY for ALL new features. No exceptions.**
+**⚠️ CRITICAL: Tests are MANDATORY for ALL code changes. No exceptions.**
+
+**Exception: Documentation-only changes do NOT require running tests.**
 
 **A feature is NOT complete until it has comprehensive tests.**
 
-**All features must include:**
+**All code changes must include:**
 
 | Test Type | Location | When Required |
 |-----------|----------|---------------|
@@ -263,22 +265,23 @@ cargo test -- --test-threads=1
 
 ### Documentation Update Matrix
 
-| Change Type | README | ARCHITECTURE | STATUS | TESTING | CONTRIBUTING |
-|-------------|--------|--------------|--------|---------|--------------|
-| New user-facing feature | ✅ | ⚠️ | ✅ | ✅ | ❌ |
-| New internal feature | ❌ | ⚠️ | ✅ | ✅ | ❌ |
-| Bug fix | ⚠️ | ❌ | ⚠️ | ⚠️ | ❌ |
-| Config schema change | ✅ | ❌ | ⚠️ | ❌ | ❌ |
-| New tests | ❌ | ❌ | ✅ | ✅ | ⚠️ |
-| Build process change | ❌ | ❌ | ⚠️ | ❌ | ✅ |
-| New module | ❌ | ✅ | ✅ | ✅ | ❌ |
-| Phase completion | ❌ | ❌ | ✅ | ⚠️ | ❌ |
+| Change Type | README | ARCHITECTURE | STATUS | TESTING | CONTRIBUTING | Run Tests? |
+|-------------|--------|--------------|--------|---------|--------------|------------|
+| New user-facing feature | ✅ | ⚠️ | ✅ | ✅ | ❌ | ✅ Required |
+| New internal feature | ❌ | ⚠️ | ✅ | ✅ | ❌ | ✅ Required |
+| Bug fix | ⚠️ | ❌ | ⚠️ | ⚠️ | ❌ | ✅ Required |
+| Config schema change | ✅ | ❌ | ⚠️ | ❌ | ❌ | ✅ Required |
+| New tests | ❌ | ❌ | ✅ | ✅ | ⚠️ | ✅ Required |
+| Build process change | ❌ | ❌ | ⚠️ | ❌ | ✅ | ✅ Required |
+| New module | ❌ | ✅ | ✅ | ✅ | ❌ | ✅ Required |
+| Phase completion | ❌ | ❌ | ✅ | ⚠️ | ❌ | ✅ Required |
+| **Documentation-only** | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ **Skip tests** |
 
 Legend: ✅ Always | ⚠️ If applicable | ❌ Rarely
 
 ### Documentation Checklist
 
-Before completing any feature, verify:
+Before completing any change, verify:
 
 - [ ] User-facing changes reflected in README.md
 - [ ] New features added to STATUS.md
@@ -288,6 +291,12 @@ Before completing any feature, verify:
 - [ ] Metrics updated if changed significantly (LOC, tests, dependencies)
 - [ ] Cross-references between docs still valid
 - [ ] Examples still work and are accurate
+
+**For documentation-only changes:**
+- [ ] Skip running tests (`cargo test`, `cargo clippy`, `cargo build`)
+- [ ] Only verify documentation consistency and accuracy
+- [ ] Ensure cross-references are valid
+- [ ] Check for typos and formatting
 
 ---
 
