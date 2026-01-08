@@ -74,6 +74,7 @@ pub struct JsonRpcNotification {
 }
 
 impl JsonRpcNotification {
+    #[allow(dead_code)]
     pub fn resources_list_changed() -> Self {
         Self {
             jsonrpc: "2.0".to_string(),
@@ -82,6 +83,7 @@ impl JsonRpcNotification {
         }
     }
 
+    #[allow(dead_code)]
     pub fn prompts_list_changed() -> Self {
         Self {
             jsonrpc: "2.0".to_string(),
@@ -90,6 +92,7 @@ impl JsonRpcNotification {
         }
     }
 
+    #[allow(dead_code)]
     pub fn resources_updated(uri: String) -> Self {
         Self {
             jsonrpc: "2.0".to_string(),
@@ -100,6 +103,7 @@ impl JsonRpcNotification {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[allow(dead_code)]
 pub struct ProgressToken {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub progress_token: Option<String>,

@@ -10,6 +10,7 @@ pub struct ModularMcpServer {
     name: String,
     version: String,
     subscriptions: Arc<tokio::sync::RwLock<HashSet<String>>>,
+    #[allow(dead_code)]
     notification_queue: Arc<tokio::sync::RwLock<VecDeque<JsonRpcNotification>>>,
 }
 
@@ -708,26 +709,31 @@ Example usage:
         }
     }
 
+    #[allow(dead_code)]
     async fn get_active_subscriptions(&self) -> HashSet<String> {
         let subs = self.subscriptions.read().await;
         subs.clone()
     }
 
+    #[allow(dead_code)]
     pub async fn queue_notification(&self, notification: JsonRpcNotification) {
         let mut queue = self.notification_queue.write().await;
         queue.push_back(notification);
     }
 
+    #[allow(dead_code)]
     pub async fn get_next_notification(&self) -> Option<JsonRpcNotification> {
         let mut queue = self.notification_queue.write().await;
         queue.pop_front()
     }
 
+    #[allow(dead_code)]
     pub async fn get_pending_notifications_count(&self) -> usize {
         let queue = self.notification_queue.read().await;
         queue.len()
     }
 
+    #[allow(dead_code)]
     fn validate_prompt_arguments(
         &self,
         arguments: &Option<serde_json::Value>,
