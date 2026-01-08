@@ -348,6 +348,81 @@ impl ModularMcpClient {
         }
     }
 
+    pub async fn proxy_resources_list(
+        &self,
+        group_name: &str,
+        cursor: Option<String>,
+    ) -> Result<serde_json::Value> {
+        let group = self.groups.get(group_name).context("Group not found")?;
+
+        match group {
+            GroupState::Connected { transport, .. } => {
+                let mut params = json!({});
+                if let Some(cursor) = cursor {
+                    params["cursor"] = json!(cursor);
+                }
+
+                let request =
+                    JsonRpcRequest::new(uuid::Uuid::new_v4().to_string(), "resources/list")
+                        .with_params(params);
+
+                let response =
+                    tokio::time::timeout(Duration::from_secs(10), transport.send_request(&request))
+                        .await
+                        .with_context(|| "resources/list request timed out")?
+                        .with_context(|| "Failed to list resources from upstream server")?;
+
+                if let Some(error) = response.error {
+                    return Err(anyhow::anyhow!("Upstream error: {}", error.message));
+                }
+
+                Ok(response.result.unwrap_or(json!({})))
+            }
+            GroupState::Failed {
+                error, retry_count, ..
+            } => Err(anyhow::anyhow!(
+                "Group failed to connect after {} attempts: {}",
+                retry_count + 1,
+                error
+            )),
+        }
+    }
+
+    pub async fn proxy_resources_read(
+        &self,
+        group_name: &str,
+        uri: String,
+    ) -> Result<serde_json::Value> {
+        let group = self.groups.get(group_name).context("Group not found")?;
+
+        match group {
+            GroupState::Connected { transport, .. } => {
+                let request =
+                    JsonRpcRequest::new(uuid::Uuid::new_v4().to_string(), "resources/read")
+                        .with_params(json!({ "uri": uri }));
+
+                let response =
+                    tokio::time::timeout(Duration::from_secs(10), transport.send_request(&request))
+                        .await
+                        .with_context(|| "resources/read request timed out")?
+                        .with_context(|| "Failed to read resource from upstream server")?;
+
+                if let Some(error) = response.error {
+                    return Err(anyhow::anyhow!("Upstream error: {}", error.message));
+                }
+
+                Ok(response.result.unwrap_or(json!({})))
+            }
+            GroupState::Failed {
+                error, retry_count, ..
+            } => Err(anyhow::anyhow!(
+                "Group failed to connect after {} attempts: {}",
+                retry_count + 1,
+                error
+            )),
+        }
+    }
+
     pub async fn disconnect_all(&mut self) -> Result<()> {
         tracing::info!("Disconnecting {} groups", self.groups.len());
         for (name, state) in self.groups.drain() {

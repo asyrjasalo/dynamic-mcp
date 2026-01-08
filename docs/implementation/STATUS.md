@@ -2,7 +2,7 @@
 
 > **Last Updated**: January 8, 2026
 > **Current Phase**: Phase 8 Complete ✅ (with comprehensive integration tests)
-> **Version**: 1.2.0 (Multi-Tool Import Support)
+> **Version**: 1.3.0 (Resources API Support)
 
 ## 🔍 MCP Specification Compliance
 
@@ -67,8 +67,8 @@ See [MCP_SPEC_COMPLIANCE.md](MCP_SPEC_COMPLIANCE.md) for detailed compliance aud
 - [x] JSON output with proper formatting
 
 ### Phase 5: Tests & Documentation
-- [x] Comprehensive test suite (83 tests total)
-  - 51 unit tests covering all modules
+- [x] Comprehensive test suite (100 tests total)
+  - 68 unit tests covering all modules (including 9 Resources API tests)
   - 14 integration tests for CLI and workflows
   - 18 import integration tests (core + env var conversion)
 
@@ -132,6 +132,26 @@ See [MCP_SPEC_COMPLIANCE.md](MCP_SPEC_COMPLIANCE.md) for detailed compliance aud
   - System env `${VAR}` passthrough (OpenCode, Antigravity, Gemini, KiloCode) - **4 tools tested**
   - **Normalization applies to**: `env` and `headers` maps only (not `args` by design)
   - **All 10 tools have env var test fixtures**
+
+### Phase 9: Resources API Support
+- [x] **Resource Type Definitions**
+  - Resource, ResourceContent, ResourceAnnotations, ResourceIcon types
+  - Full serialization/deserialization with optional field handling
+  - 6 unit tests for type serialization
+- [x] **Client-Side Resource Proxying**
+  - `proxy_resources_list()` with cursor-based pagination support
+  - `proxy_resources_read()` for text and binary content
+  - Timeout handling (10s per operation)
+  - Group-based routing with error propagation
+- [x] **Server-Side Request Handling**
+  - `handle_resources_list()` request handler
+  - `handle_resources_read()` request handler
+  - Updated `initialize` response with resources capability
+  - Parameter validation with proper error codes (-32602, -32603)
+- [x] **Comprehensive Test Coverage**
+  - 9 new unit tests for Resources API functionality
+  - Test parameter validation, error handling, group routing
+  - Test capability advertisement in initialize response
 - [x] **Enhanced CLI Interface**
   - `dmcp import <tool-name>` for tool-based import
   - `--global` flag for user-level configs

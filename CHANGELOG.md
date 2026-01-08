@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-01-08
+
+### Added
+- **Resources API Proxying** - Support for `resources/list` and `resources/read` endpoints
+  - Proxy resource discovery from upstream MCP servers
+  - Retrieve resource contents (text and binary)
+  - Cursor-based pagination support for resource lists
+  - Resource annotations (audience, priority, lastModified)
+- **Resource Type Definitions** - Full support for MCP resource schema
+  - Resource, ResourceContent, ResourceAnnotations, ResourceIcon types
+  - Proper serialization with optional field handling
+
+### Changed
+- Updated `initialize` response to advertise `resources` capability
+- Expanded test suite with 9 new Resources API tests (100 tests total)
+
 ## [1.2.0] - 2026-01-08
 
 ### Added

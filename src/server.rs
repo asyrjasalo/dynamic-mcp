@@ -28,6 +28,8 @@ impl ModularMcpServer {
             "initialize" => self.handle_initialize(request).await,
             "tools/list" => self.handle_list_tools(request).await,
             "tools/call" => self.handle_call_tool(request).await,
+            "resources/list" => self.handle_resources_list(request).await,
+            "resources/read" => self.handle_resources_read(request).await,
             _ => JsonRpcResponse {
                 jsonrpc: "2.0".to_string(),
                 id: request.id,
@@ -48,7 +50,11 @@ impl ModularMcpServer {
             result: Some(json!({
                 "protocolVersion": "2024-11-05",
                 "capabilities": {
-                    "tools": {}
+                    "tools": {},
+                    "resources": {
+                        "subscribe": false,
+                        "listChanged": false
+                    }
                 },
                 "serverInfo": {
                     "name": self.name,
@@ -266,6 +272,118 @@ Example usage:
                 error: Some(JsonRpcError {
                     code: -32601,
                     message: format!("Unknown tool: {}", tool_name),
+                    data: None,
+                }),
+            },
+        }
+    }
+
+    async fn handle_resources_list(&self, request: JsonRpcRequest) -> JsonRpcResponse {
+        let client = self.client.read().await;
+
+        let group_name = match request
+            .params
+            .as_ref()
+            .and_then(|p| p.get("group"))
+            .and_then(|g| g.as_str())
+        {
+            Some(name) => name.to_string(),
+            None => {
+                return JsonRpcResponse {
+                    jsonrpc: "2.0".to_string(),
+                    id: request.id,
+                    result: None,
+                    error: Some(JsonRpcError {
+                        code: -32602,
+                        message: "Missing required parameter: group".to_string(),
+                        data: None,
+                    }),
+                };
+            }
+        };
+
+        let cursor = request
+            .params
+            .as_ref()
+            .and_then(|p| p.get("cursor"))
+            .and_then(|c| c.as_str())
+            .map(String::from);
+
+        match client.proxy_resources_list(&group_name, cursor).await {
+            Ok(result) => JsonRpcResponse {
+                jsonrpc: "2.0".to_string(),
+                id: request.id,
+                result: Some(result),
+                error: None,
+            },
+            Err(e) => JsonRpcResponse {
+                jsonrpc: "2.0".to_string(),
+                id: request.id,
+                result: None,
+                error: Some(JsonRpcError {
+                    code: -32603,
+                    message: format!("Failed to list resources: {}", e),
+                    data: None,
+                }),
+            },
+        }
+    }
+
+    async fn handle_resources_read(&self, request: JsonRpcRequest) -> JsonRpcResponse {
+        let client = self.client.read().await;
+
+        let (group_name, uri) = match request.params.as_ref() {
+            Some(params) => {
+                let group = params
+                    .get("group")
+                    .and_then(|g| g.as_str())
+                    .map(String::from);
+                let uri = params.get("uri").and_then(|u| u.as_str()).map(String::from);
+
+                match (group, uri) {
+                    (Some(g), Some(u)) => (g, u),
+                    _ => {
+                        return JsonRpcResponse {
+                            jsonrpc: "2.0".to_string(),
+                            id: request.id,
+                            result: None,
+                            error: Some(JsonRpcError {
+                                code: -32602,
+                                message: "Missing required parameters: group, uri".to_string(),
+                                data: None,
+                            }),
+                        };
+                    }
+                }
+            }
+            None => {
+                return JsonRpcResponse {
+                    jsonrpc: "2.0".to_string(),
+                    id: request.id,
+                    result: None,
+                    error: Some(JsonRpcError {
+                        code: -32602,
+                        message: "Missing params object".to_string(),
+                        data: None,
+                    }),
+                };
+            }
+        };
+
+        match client.proxy_resources_read(&group_name, uri).await {
+            Ok(result) => JsonRpcResponse {
+                jsonrpc: "2.0".to_string(),
+                id: request.id,
+                result: Some(result),
+                error: None,
+            },
+            Err(e) => JsonRpcResponse {
+                jsonrpc: "2.0".to_string(),
+                id: request.id,
+                result: None,
+                error: Some(JsonRpcError {
+                    code: -32603,
+                    message: format!("Failed to read resource: {}", e),
                     data: None,
                 }),
             },
@@ -496,5 +614,116 @@ mod tests {
 
         let error = response.error.unwrap();
         assert_eq!(error.code, -32602);
+    }
+
+    #[tokio::test]
+    async fn test_initialize_includes_resources_capability() {
+        let server = create_test_server();
+        let request = JsonRpcRequest::new(1, "initialize");
+        let response = server.handle_request(request).await;
+
+        assert!(response.error.is_none());
+        let result = response.result.unwrap();
+        let capabilities = result.get("capabilities").unwrap();
+
+        assert!(capabilities.get("resources").is_some());
+        let resources = capabilities.get("resources").unwrap();
+        assert_eq!(resources.get("subscribe").unwrap(), false);
+        assert_eq!(resources.get("listChanged").unwrap(), false);
+    }
+
+    #[tokio::test]
+    async fn test_handle_resources_list_missing_group() {
+        let server = create_test_server();
+        let request = JsonRpcRequest::new(1, "resources/list").with_params(json!({
+            "cursor": None::<String>
+        }));
+        let response = server.handle_request(request).await;
+
+        assert!(response.result.is_none());
+        assert!(response.error.is_some());
+
+        let error = response.error.unwrap();
+        assert_eq!(error.code, -32602);
+        assert!(error.message.contains("Missing required parameter: group"));
+    }
+
+    #[tokio::test]
+    async fn test_handle_resources_list_nonexistent_group() {
+        let server = create_test_server();
+        let request = JsonRpcRequest::new(1, "resources/list").with_params(json!({
+            "group": "nonexistent"
+        }));
+        let response = server.handle_request(request).await;
+
+        assert!(response.result.is_none());
+        assert!(response.error.is_some());
+
+        let error = response.error.unwrap();
+        assert_eq!(error.code, -32603);
+        assert!(error.message.contains("Failed to list resources"));
+    }
+
+    #[tokio::test]
+    async fn test_handle_resources_read_missing_group() {
+        let server = create_test_server();
+        let request = JsonRpcRequest::new(1, "resources/read").with_params(json!({
+            "uri": "file:///test.txt"
+        }));
+        let response = server.handle_request(request).await;
+
+        assert!(response.result.is_none());
+        assert!(response.error.is_some());
+
+        let error = response.error.unwrap();
+        assert_eq!(error.code, -32602);
+        assert!(error.message.contains("Missing required parameters"));
+    }
+
+    #[tokio::test]
+    async fn test_handle_resources_read_missing_uri() {
+        let server = create_test_server();
+        let request = JsonRpcRequest::new(1, "resources/read").with_params(json!({
+            "group": "some-group"
+        }));
+        let response = server.handle_request(request).await;
+
+        assert!(response.result.is_none());
+        assert!(response.error.is_some());
+
+        let error = response.error.unwrap();
+        assert_eq!(error.code, -32602);
+        assert!(error.message.contains("Missing required parameters"));
+    }
+
+    #[tokio::test]
+    async fn test_handle_resources_read_no_params() {
+        let server = create_test_server();
+        let request = JsonRpcRequest::new(1, "resources/read");
+        let response = server.handle_request(request).await;
+
+        assert!(response.result.is_none());
+        assert!(response.error.is_some());
+
+        let error = response.error.unwrap();
+        assert_eq!(error.code, -32602);
+        assert!(error.message.contains("Missing params object"));
+    }
+
+    #[tokio::test]
+    async fn test_handle_resources_read_nonexistent_group() {
+        let server = create_test_server();
+        let request = JsonRpcRequest::new(1, "resources/read").with_params(json!({
+            "group": "nonexistent",
+            "uri": "file:///test.txt"
+        }));
+        let response = server.handle_request(request).await;
+
+        assert!(response.result.is_none());
+        assert!(response.error.is_some());
+
+        let error = response.error.unwrap();
+        assert_eq!(error.code, -32603);
+        assert!(error.message.contains("Failed to read resource"));
     }
 }

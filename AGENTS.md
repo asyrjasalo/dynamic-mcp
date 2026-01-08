@@ -78,6 +78,26 @@ RUST_LOG=debug cargo run -- examples/config.example.json
 4. **Review tests**: See `tests/` and module tests for examples
 5. **Install pre-commit hooks**: Enforces code quality automatically on commit
 
+### ⚠️ CRITICAL: No Git Commits
+
+**You MUST NOT commit changes to the repository.** Only the project owner commits and pushes to the main branch.
+
+Your responsibilities:
+- ✅ Write code in your local working directory
+- ✅ Run tests to verify functionality
+- ✅ Update documentation
+- ✅ Verify build passes (`cargo build --release`)
+- ❌ **DO NOT** run `git commit` or `git push`
+- ❌ **DO NOT** stage changes with `git add`
+- ❌ **DO NOT** push to any branches
+
+The project owner will:
+- Review your changes
+- Create appropriate commits with proper messages
+- Manage all git operations and releases
+
+**Why this matters**: Maintains clean git history, proper attribution, and version control integrity.
+
 ---
 
 ## ✨ Feature Development

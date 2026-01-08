@@ -357,6 +357,7 @@ pub struct SseTransport {
     headers: std::collections::HashMap<String, String>,
     session_id: Arc<Mutex<Option<String>>>,
     protocol_version: Arc<Mutex<String>>,
+    last_event_id: Arc<Mutex<Option<String>>>,
 }
 
 impl SseTransport {
@@ -379,6 +380,7 @@ impl SseTransport {
             headers: headers_map,
             session_id: Arc::new(Mutex::new(None)),
             protocol_version: Arc::new(Mutex::new("2024-11-05".to_string())),
+            last_event_id: Arc::new(Mutex::new(None)),
         })
     }
 
@@ -394,9 +396,16 @@ impl SseTransport {
         }
     }
 
-    fn parse_sse_response(&self, sse_text: &str) -> Result<JsonRpcResponse> {
-        // Parse SSE format: event: message\ndata: {...}
+    fn set_last_event_id(&self, event_id: String) {
+        if let Ok(mut id) = self.last_event_id.try_lock() {
+            *id = Some(event_id);
+        }
+    }
+
+    fn parse_sse_response(&self, sse_text: &str) -> Result<(JsonRpcResponse, Option<String>)> {
+        // Parse SSE format: id: <id>\nevent: message\ndata: {...}
         let mut data_content = String::new();
+        let mut event_id: Option<String> = None;
 
         for line in sse_text.lines() {
             let line = line.trim();
@@ -404,7 +413,9 @@ impl SseTransport {
                 continue;
             }
 
-            if let Some(data) = line.strip_prefix("data: ") {
+            if let Some(id) = line.strip_prefix("id: ") {
+                event_id = Some(id.to_string());
+            } else if let Some(data) = line.strip_prefix("data: ") {
                 data_content.push_str(data);
             } else if line.starts_with("event:") {
                 // Skip event lines
@@ -413,6 +424,11 @@ impl SseTransport {
                 // Handle data without space after colon
                 if let Some(data) = line.strip_prefix("data:") {
                     data_content.push_str(data.trim());
+                }
+            } else if line.starts_with("id:") {
+                // Handle id without space after colon
+                if let Some(id) = line.strip_prefix("id:") {
+                    event_id = Some(id.trim().to_string());
                 }
             }
         }
@@ -425,7 +441,7 @@ impl SseTransport {
         let json_response: JsonRpcResponse = serde_json::from_str(&data_content)
             .with_context(|| format!("Failed to parse SSE data as JSON: {}", data_content))?;
 
-        Ok(json_response)
+        Ok((json_response, event_id))
     }
 
     pub async fn send_request(&self, request: &JsonRpcRequest) -> Result<JsonRpcResponse> {
@@ -445,6 +461,12 @@ impl SseTransport {
         if let Ok(session_id_lock) = self.session_id.try_lock() {
             if let Some(ref session_id) = *session_id_lock {
                 req = req.header("MCP-Session-Id", session_id);
+            }
+        }
+
+        if let Ok(last_event_id_lock) = self.last_event_id.try_lock() {
+            if let Some(ref last_event_id) = *last_event_id_lock {
+                req = req.header("Last-Event-ID", last_event_id);
             }
         }
 
@@ -472,8 +494,11 @@ impl SseTransport {
             );
         }
 
-        // Parse SSE format
-        let json_response = self.parse_sse_response(&response_text)?;
+        let (json_response, event_id) = self.parse_sse_response(&response_text)?;
+
+        if let Some(id) = event_id {
+            self.set_last_event_id(id);
+        }
 
         // Check for JSON-RPC errors in the response
         if let Some(error) = &json_response.error {
@@ -701,5 +726,66 @@ mod tests {
         assert!(discriminant(&http_config) != discriminant(&sse_config));
         assert!(discriminant(&http_config) != discriminant(&stdio_config));
         assert!(discriminant(&sse_config) != discriminant(&stdio_config));
+    }
+
+    #[tokio::test]
+    async fn test_sse_last_event_id_tracking() {
+        let transport = SseTransport::new("http://localhost:8080/sse", None)
+            .await
+            .expect("Failed to create SSE transport");
+
+        let sse_response =
+            "id: test-event-123\ndata: {\"jsonrpc\": \"2.0\", \"id\": 1, \"result\": {}}";
+        let (_, event_id) = transport
+            .parse_sse_response(sse_response)
+            .expect("Failed to parse SSE response");
+
+        assert_eq!(event_id, Some("test-event-123".to_string()));
+    }
+
+    #[tokio::test]
+    async fn test_sse_last_event_id_without_id() {
+        let transport = SseTransport::new("http://localhost:8080/sse", None)
+            .await
+            .expect("Failed to create SSE transport");
+
+        let sse_response = "data: {\"jsonrpc\": \"2.0\", \"id\": 1, \"result\": {}}";
+        let (_, event_id) = transport
+            .parse_sse_response(sse_response)
+            .expect("Failed to parse SSE response");
+
+        assert_eq!(event_id, None);
+    }
+
+    #[tokio::test]
+    async fn test_sse_last_event_id_storage() {
+        let transport = SseTransport::new("http://localhost:8080/sse", None)
+            .await
+            .expect("Failed to create SSE transport");
+
+        transport.set_last_event_id("event-456".to_string());
+
+        {
+            let lock = transport.last_event_id.try_lock();
+            assert!(lock.is_ok(), "Failed to acquire lock on last_event_id");
+            if let Ok(id_guard) = lock {
+                assert_eq!(*id_guard, Some("event-456".to_string()));
+            }
+        }
+    }
+
+    #[tokio::test]
+    async fn test_sse_last_event_id_with_compact_format() {
+        let transport = SseTransport::new("http://localhost:8080/sse", None)
+            .await
+            .expect("Failed to create SSE transport");
+
+        let sse_response =
+            "id:test-event-789\ndata:{\"jsonrpc\": \"2.0\", \"id\": 1, \"result\": {}}";
+        let (_, event_id) = transport
+            .parse_sse_response(sse_response)
+            .expect("Failed to parse SSE response");
+
+        assert_eq!(event_id, Some("test-event-789".to_string()));
     }
 }

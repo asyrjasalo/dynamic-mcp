@@ -340,27 +340,90 @@ Err(e) => JsonRpcResponse {
 ## 📋 Optional Improvements (SHOULD/MAY)
 
 ### SSE Resumability
-**Status**: ❌ Not implemented
+**Status**: ✅ **IMPLEMENTED** (v1.2.1)
 **Priority**: 🟢 LOW
 **Spec Requirement**: SHOULD support `Last-Event-ID` for reconnection
 
 **Benefit**: Resume SSE streams after network interruption without losing events.
 
-**Implementation**:
+**Implementation** (v1.2.1):
 ```rust
-.header("Last-Event-ID", last_event_id)
+// src/proxy/transport.rs:360, 402-406 - Last-Event-ID tracking
+pub struct SseTransport {
+    ...
+    last_event_id: Arc<Mutex<Option<String>>>,  // ✅ Per-transport tracking
+}
+
+// src/proxy/transport.rs:467-471 - Last-Event-ID header on reconnect
+if let Ok(last_event_id_lock) = self.last_event_id.try_lock() {
+    if let Some(ref last_event_id) = *last_event_id_lock {
+        req = req.header("Last-Event-ID", last_event_id);  // ✅ Added
+    }
+}
+
+// src/proxy/transport.rs:412-422 - Extract event ID from SSE response
+fn parse_sse_response(&self, sse_text: &str) -> Result<(JsonRpcResponse, Option<String>)> {
+    for line in sse_text.lines() {
+        if let Some(id) = line.strip_prefix("id: ") {
+            event_id = Some(id.to_string());  // ✅ Track latest event ID
+        }
+        // ... parse data
+    }
+    Ok((json_response, event_id))
+}
 ```
+
+**Features**:
+1. ✅ Extracts event ID from SSE responses
+2. ✅ Stores latest event ID per transport
+3. ✅ Sends `Last-Event-ID` header on next request (reconnection)
+4. ✅ Thread-safe (Arc<Mutex<>>)
+5. ✅ Handles both `id: value` and `id:value` (compact) formats
+
+**Impact**: Enables SSE stream resumption after network interruptions, preventing loss of events during reconnection.
 
 ---
 
 ### Resources API
-**Status**: ❌ Not implemented
+**Status**: ✅ Implemented (v1.3.0)
 **Priority**: 🟢 LOW
 **Spec Requirement**: MAY implement `resources/list`, `resources/read`
 
 **Benefit**: Allows servers to expose file-like resources.
 
-**Notes**: Not required for tool-only proxying (current use case).
+**Implementation** (v1.3.0):
+- ✅ `resources/list` proxying with cursor-based pagination
+- ✅ `resources/read` proxying with text and binary content support
+- ✅ Resource annotations (audience, priority, lastModified)
+- ✅ Proper error handling (-32002 for not found, -32603 for server errors)
+- ⏳ Subscriptions not implemented (optional feature)
+- ⏳ Resource templates not implemented (optional feature)
+
+**Files Changed**:
+- `src/proxy/types.rs`: Added Resource, ResourceContent, ResourceAnnotations, ResourceIcon types
+- `src/proxy/client.rs`: Added `proxy_resources_list()` and `proxy_resources_read()` methods
+- `src/server.rs`: Added `handle_resources_list()` and `handle_resources_read()` handlers, updated initialize capability
+
+**Usage**:
+```json
+{
+  "method": "resources/list",
+  "params": {
+    "group": "filesystem",
+    "cursor": "optional-pagination-cursor"
+  }
+}
+```
+
+```json
+{
+  "method": "resources/read",
+  "params": {
+    "group": "filesystem",
+    "uri": "file:///path/to/file"
+  }
+}
+```
 
 ---
 
@@ -432,6 +495,14 @@ Err(e) => JsonRpcResponse {
    - Implementation: OAuth 2.1 resource parameter
    - **Fully spec-compliant**
 
+6. ✅ **SSE `Last-Event-ID` support** (v1.2.1)
+   - Files: `src/proxy/transport.rs:360, 402-406, 467-471, 412-422`
+   - Implementation: Tracks last event ID from SSE responses, sends on reconnect
+   - Extracts event ID from SSE `id:` field
+   - Stores per-transport (Arc<Mutex<>>)
+   - Sends `Last-Event-ID` header on next request for stream resumption
+   - **Fully spec-compliant**: Supports SSE resumability per MCP spec
+
 ### ❌ Intentionally NOT Implemented
 
 6. ❌ **`initialized` notification** - **INTENTIONALLY OMITTED**
@@ -445,9 +516,10 @@ Err(e) => JsonRpcResponse {
 
 **Not blocking production deployment:**
 
-7. ⏳ **SSE `Last-Event-ID` support** (Optional)
+7. ✅ **SSE `Last-Event-ID` support** (v1.2.1)
    - Priority: LOW
    - Benefit: Resume SSE streams after network interruption
+   - Status: Implemented in v1.2.1
 
 8. ⏳ **Resources API** (Optional)
    - Priority: LOW
@@ -472,7 +544,7 @@ Err(e) => JsonRpcResponse {
 
 ## 📊 Compliance Matrix
 
-### Transport Layer (23 requirements)
+### Transport Layer (24 requirements)
 
 | Requirement | Status | Location | Notes |
 |-------------|--------|----------|-------|
@@ -484,11 +556,11 @@ Err(e) => JsonRpcResponse {
 | **Custom headers forwarded** | ✅ | transport.rs:266-268, 451-453 | Correct |
 | **OAuth Authorization header** | ✅ | transport.rs:521-524, 547-550 | Bearer token |
 | **HTTP status code handling** | ✅ | transport.rs:269-280 | Correct |
-| **SSE format parsing** | ✅ | transport.rs:289-345 | Correct |
+| **SSE format parsing** | ✅ | transport.rs:412-445 | Extracts event ID |
 | **stdio line-delimited JSON** | ✅ | transport.rs:80-138 | Correct |
 | **stdio bidirectional communication** | ✅ | transport.rs:15-76 | Correct |
 | **Timeout handling** | ✅ | client.rs:46-125 | 5s per operation |
-| **Last-Event-ID support** | ❌ | N/A | Optional |
+| **Last-Event-ID support** | ✅ | transport.rs:360, 467-471 | Tracks and sends event ID on reconnect |
 
 ### JSON-RPC Protocol (9 requirements)
 
@@ -604,16 +676,19 @@ Err(e) => JsonRpcResponse {
 |----------|-------|--------|
 | **stdio transport** | 100% (11/11) | ✅ Excellent |
 | **JSON-RPC protocol** | 88.9% (8/9) | ⚠️ Missing `initialized` notification (intentional) |
-| **HTTP/SSE transport** | 100% (13/13) | ✅ Excellent |
+| **HTTP/SSE transport** | 100% (14/14) | ✅ Excellent (Last-Event-ID added v1.2.1) |
 | **Message types (tools)** | 100% (9/9) | ✅ Excellent |
 | **Security/OAuth** | 100% (8/8) | ✅ Excellent |
 | **Error handling** | 100% (4/4) | ✅ Excellent |
 | **Protocol version negotiation** | 100% (18/18) | ✅ Excellent (intelligent fallback) |
-| **Optional features (SHOULD/MAY)** | 9% (2/22) | ⏳ Not needed yet |
+| **Optional features (SHOULD/MAY)** | 13.6% (3/22) | ⏳ SSE Last-Event-ID implemented |
 
 **MUST-have requirements: 71/72 implemented**
 - ❌ 1 intentionally omitted (`initialized` notification due to stdio deadlock)
 - ✅ Protocol version negotiation works correctly (adapts to upstream)
+
+**SHOULD/MAY requirements: 3/22 implemented**
+- ✅ SSE Last-Event-ID support (v1.2.1)
 
 ---
 
@@ -629,6 +704,7 @@ Err(e) => JsonRpcResponse {
 - ✅ MCP-Protocol-Version header (uses negotiated version per connection)
 - ✅ MCP-Session-Id tracking for stateful connections
 - ✅ Correct tool error format (isError flag)
+- ✅ SSE Last-Event-ID support for stream resumption (v1.2.1)
 - ✅ OAuth 2.1 (PKCE, token refresh, resource parameter)
 - ✅ Error recovery and retry logic (exponential backoff)
 
@@ -655,11 +731,13 @@ Err(e) => JsonRpcResponse {
 ### Optional Future Enhancements
 
 Consider implementing only if users request:
-- SSE Last-Event-ID resumability (network interruption recovery)
 - Resources API (proxy resource operations)
 - Prompts API (proxy prompt templates)
 - Progress tokens (long-running operation progress)
 - Pagination (servers with 100+ tools)
+
+**Already Implemented** (v1.2.1):
+- ✅ SSE Last-Event-ID resumability (network interruption recovery)
 
 ---
 
