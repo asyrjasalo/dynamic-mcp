@@ -300,19 +300,6 @@ impl OAuthClient {
 
         Ok((code, state))
     }
-
-    #[allow(dead_code)]
-    pub async fn get_valid_token(&self, server_name: &str) -> Result<Option<String>> {
-        let token = self.store.load_token(server_name).await?;
-
-        if let Some(token) = token {
-            if !token.is_expired() {
-                return Ok(Some(token.access_token));
-            }
-        }
-
-        Ok(None)
-    }
 }
 
 #[cfg(test)]

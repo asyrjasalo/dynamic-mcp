@@ -137,47 +137,6 @@ impl McpServerConfig {
             McpServerConfig::Sse { description, .. } => description,
         }
     }
-
-    #[allow(dead_code)]
-    pub fn set_description(&mut self, new_description: String) {
-        match self {
-            McpServerConfig::Stdio { description, .. } => *description = new_description,
-            McpServerConfig::Http { description, .. } => *description = new_description,
-            McpServerConfig::Sse { description, .. } => *description = new_description,
-        }
-    }
-
-    #[allow(dead_code)]
-    pub fn requires_oauth(&self) -> bool {
-        match self {
-            McpServerConfig::Http {
-                oauth_client_id, ..
-            }
-            | McpServerConfig::Sse {
-                oauth_client_id, ..
-            } => oauth_client_id.is_some(),
-            _ => false,
-        }
-    }
-
-    #[allow(dead_code)]
-    pub fn oauth_config(&self) -> Option<(String, String, Option<Vec<String>>)> {
-        match self {
-            McpServerConfig::Http {
-                url,
-                oauth_client_id: Some(client_id),
-                oauth_scopes,
-                ..
-            }
-            | McpServerConfig::Sse {
-                url,
-                oauth_client_id: Some(client_id),
-                oauth_scopes,
-                ..
-            } => Some((url.clone(), client_id.clone(), oauth_scopes.clone())),
-            _ => None,
-        }
-    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]

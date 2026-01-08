@@ -1,8 +1,8 @@
-use crate::proxy::types::{JsonRpcError, JsonRpcNotification, JsonRpcRequest, JsonRpcResponse};
+use crate::proxy::types::{JsonRpcError, JsonRpcRequest, JsonRpcResponse};
 use crate::proxy::ModularMcpClient;
 use anyhow::Result;
 use serde_json::json;
-use std::collections::{HashSet, VecDeque};
+use std::collections::HashSet;
 use std::sync::Arc;
 
 pub struct ModularMcpServer {
@@ -10,8 +10,6 @@ pub struct ModularMcpServer {
     name: String,
     version: String,
     subscriptions: Arc<tokio::sync::RwLock<HashSet<String>>>,
-    #[allow(dead_code)]
-    notification_queue: Arc<tokio::sync::RwLock<VecDeque<JsonRpcNotification>>>,
 }
 
 impl ModularMcpServer {
@@ -25,7 +23,6 @@ impl ModularMcpServer {
             name,
             version,
             subscriptions: Arc::new(tokio::sync::RwLock::new(HashSet::new())),
-            notification_queue: Arc::new(tokio::sync::RwLock::new(VecDeque::new())),
         }
     }
 
@@ -63,12 +60,9 @@ impl ModularMcpServer {
                 "capabilities": {
                     "tools": {},
                     "resources": {
-                        "subscribe": true,
-                        "listChanged": true
+                        "subscribe": true
                     },
-                    "prompts": {
-                        "listChanged": true
-                    }
+                    "prompts": {}
                 },
                 "serverInfo": {
                     "name": self.name,
@@ -644,24 +638,6 @@ Example usage:
     }
 
     #[allow(dead_code)]
-    pub async fn queue_notification(&self, notification: JsonRpcNotification) {
-        let mut queue = self.notification_queue.write().await;
-        queue.push_back(notification);
-    }
-
-    #[allow(dead_code)]
-    pub async fn get_next_notification(&self) -> Option<JsonRpcNotification> {
-        let mut queue = self.notification_queue.write().await;
-        queue.pop_front()
-    }
-
-    #[allow(dead_code)]
-    pub async fn get_pending_notifications_count(&self) -> usize {
-        let queue = self.notification_queue.read().await;
-        queue.len()
-    }
-
-    #[allow(dead_code)]
     fn validate_prompt_arguments(
         &self,
         arguments: &Option<serde_json::Value>,
@@ -974,7 +950,6 @@ mod tests {
         assert!(capabilities.get("resources").is_some());
         let resources = capabilities.get("resources").unwrap();
         assert_eq!(resources.get("subscribe").unwrap(), true);
-        assert_eq!(resources.get("listChanged").unwrap(), true);
     }
 
     #[tokio::test]
@@ -1274,12 +1249,6 @@ mod tests {
             capabilities.get("prompts").is_some(),
             "Should have prompts capability"
         );
-
-        let prompts_cap = capabilities.get("prompts").unwrap();
-        assert!(
-            prompts_cap.get("listChanged").is_some(),
-            "Prompts should declare listChanged capability"
-        );
     }
 
     #[tokio::test]
@@ -1447,10 +1416,6 @@ mod tests {
         let resources_cap = capabilities.get("resources").unwrap();
 
         assert_eq!(resources_cap.get("subscribe").unwrap(), true);
-        assert_eq!(resources_cap.get("listChanged").unwrap(), true);
-
-        let prompts_cap = capabilities.get("prompts").unwrap();
-        assert_eq!(prompts_cap.get("listChanged").unwrap(), true);
     }
 
     #[tokio::test]
@@ -1501,64 +1466,6 @@ mod tests {
         assert!(subs.contains("group1"));
         assert!(subs.contains("group2"));
         assert!(subs.contains("group3"));
-    }
-
-    #[tokio::test]
-    async fn test_notification_queue_push_pop() {
-        let server = create_test_server();
-
-        let notif = JsonRpcNotification::resources_list_changed();
-        server.queue_notification(notif.clone()).await;
-
-        let count = server.get_pending_notifications_count().await;
-        assert_eq!(count, 1);
-
-        let retrieved = server.get_next_notification().await;
-        assert!(retrieved.is_some());
-
-        let count = server.get_pending_notifications_count().await;
-        assert_eq!(count, 0);
-    }
-
-    #[tokio::test]
-    async fn test_notification_queue_fifo() {
-        let server = create_test_server();
-
-        let notif1 = JsonRpcNotification::resources_list_changed();
-        let notif2 = JsonRpcNotification::prompts_list_changed();
-
-        server.queue_notification(notif1).await;
-        server.queue_notification(notif2).await;
-
-        let count = server.get_pending_notifications_count().await;
-        assert_eq!(count, 2);
-
-        let first = server.get_next_notification().await;
-        assert!(first.is_some());
-        assert_eq!(
-            first.unwrap().method,
-            "notifications/resources/list_changed"
-        );
-
-        let second = server.get_next_notification().await;
-        assert!(second.is_some());
-        assert_eq!(second.unwrap().method, "notifications/prompts/list_changed");
-    }
-
-    #[test]
-    fn test_streaming_binary_content_creation() {
-        use crate::proxy::types::StreamingBinaryContent;
-
-        let content = StreamingBinaryContent {
-            uri: "file:///large-file.bin".to_string(),
-            mime_type: "application/octet-stream".to_string(),
-            byte_length: 1024 * 1024 * 100,
-            chunk_size: Some(1024 * 1024),
-            annotations: None,
-        };
-
-        assert_eq!(content.byte_length, 1024 * 1024 * 100);
-        assert_eq!(content.chunk_size, Some(1024 * 1024));
     }
 
     #[test]
