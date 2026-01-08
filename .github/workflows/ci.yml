@@ -115,19 +115,19 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         uses: actions/upload-artifact@v4
         with:
-          name: dynamic-mcp-linux-x86_64
-          path: target/release/dynamic-mcp
+          name: dmcp-linux-x86_64
+          path: target/release/dmcp
       
       - name: Upload binary (macOS)
         if: matrix.os == 'macos-latest'
         uses: actions/upload-artifact@v4
         with:
-          name: dynamic-mcp-macos-x86_64
-          path: target/release/dynamic-mcp
+          name: dmcp-macos-x86_64
+          path: target/release/dmcp
       
       - name: Upload binary (Windows)
         if: matrix.os == 'windows-latest'
         uses: actions/upload-artifact@v4
         with:
-          name: dynamic-mcp-windows-x86_64.exe
-          path: target/release/dynamic-mcp.exe
+          name: dmcp-windows-x86_64.exe
+          path: target/release/dmcp.exe

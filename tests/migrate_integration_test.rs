@@ -658,7 +658,7 @@ WORKSPACE = "${WORKSPACE_ROOT}"
     let dir = tempfile::TempDir::new().expect("Failed to create temp dir");
     let codex_dir = dir.path().join(".codex");
     std::fs::create_dir_all(&codex_dir).expect("Failed to create .codex dir");
-    std::fs::write(&codex_dir.join("config.toml"), config_content).expect("Failed to write config");
+    std::fs::write(codex_dir.join("config.toml"), config_content).expect("Failed to write config");
 
     std::env::set_var("HOME", dir.path());
 
