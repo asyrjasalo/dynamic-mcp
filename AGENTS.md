@@ -702,6 +702,12 @@ These are historical records and should remain unchanged.
 - ✅ Breaking changes ("Removed support for legacy config format")
 - ✅ Deprecation notices ("Deprecated `--old-flag`, use `--new-flag` instead")
 
+**⚠️ CRITICAL: DO NOT INCLUDE TEST COUNTS IN CHANGELOG**
+- ❌ NEVER add "Added 8 unit tests" or "Added 14 integration tests"
+- ❌ NEVER mention test metrics (test counts, coverage percentages)
+- ✅ Tests are implementation details, not user-facing features
+- Put test documentation in STATUS.md and TESTING.md instead
+
 **Ordering within each section**:
 1. **User-facing changes FIRST** (CLI flags, new commands, behavior changes)
 2. **Technical modules LAST** (internal modules, parsers, detection logic)

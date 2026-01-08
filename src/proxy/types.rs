@@ -114,6 +114,69 @@ pub struct ResourceContent {
     pub annotations: Option<ResourceAnnotations>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[allow(dead_code)]
+pub struct PromptArgument {
+    pub name: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default)]
+    pub required: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "type")]
+#[allow(dead_code)]
+pub enum PromptContentType {
+    #[serde(rename = "text")]
+    Text { text: String },
+    #[serde(rename = "image")]
+    Image {
+        data: String,
+        #[serde(rename = "mimeType")]
+        mime_type: String,
+    },
+    #[serde(rename = "audio")]
+    Audio {
+        data: String,
+        #[serde(rename = "mimeType")]
+        mime_type: String,
+    },
+    #[serde(rename = "resource")]
+    Resource { resource: ResourceContent },
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[allow(dead_code)]
+pub struct PromptMessage {
+    pub role: String,
+    pub content: PromptContentType,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub annotations: Option<ResourceAnnotations>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[allow(dead_code)]
+pub struct Prompt {
+    pub name: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub title: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub arguments: Option<Vec<PromptArgument>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub icons: Option<Vec<ResourceIcon>>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[allow(dead_code)]
+pub struct PromptContent {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    pub messages: Vec<PromptMessage>,
+}
+
 impl JsonRpcRequest {
     pub fn new(id: impl Into<serde_json::Value>, method: impl Into<String>) -> Self {
         Self {
@@ -226,5 +289,125 @@ mod tests {
         let json = serde_json::to_value(&icon).unwrap();
         assert_eq!(json["src"], "https://example.com/icon.png");
         assert_eq!(json["sizes"][0], "48x48");
+    }
+
+    #[test]
+    fn test_prompt_argument_serialization() {
+        let arg = PromptArgument {
+            name: "code".to_string(),
+            description: Some("The code to review".to_string()),
+            required: true,
+        };
+
+        let json = serde_json::to_value(&arg).unwrap();
+        assert_eq!(json["name"], "code");
+        assert_eq!(json["description"], "The code to review");
+        assert_eq!(json["required"], true);
+    }
+
+    #[test]
+    fn test_prompt_argument_optional_description() {
+        let arg = PromptArgument {
+            name: "code".to_string(),
+            description: None,
+            required: false,
+        };
+
+        let json = serde_json::to_value(&arg).unwrap();
+        assert_eq!(json["name"], "code");
+        assert!(json["description"].is_null());
+        assert_eq!(json["required"], false);
+    }
+
+    #[test]
+    fn test_prompt_content_type_text() {
+        let content = PromptContentType::Text {
+            text: "Hello, world!".to_string(),
+        };
+
+        let json = serde_json::to_value(&content).unwrap();
+        assert_eq!(json["type"], "text");
+        assert_eq!(json["text"], "Hello, world!");
+    }
+
+    #[test]
+    fn test_prompt_content_type_image() {
+        let content = PromptContentType::Image {
+            data: "base64imagedata".to_string(),
+            mime_type: "image/png".to_string(),
+        };
+
+        let json = serde_json::to_value(&content).unwrap();
+        assert_eq!(json["type"], "image");
+        assert_eq!(json["mimeType"], "image/png");
+        assert_eq!(json["data"], "base64imagedata");
+    }
+
+    #[test]
+    fn test_prompt_content_type_audio() {
+        let content = PromptContentType::Audio {
+            data: "base64audiodata".to_string(),
+            mime_type: "audio/wav".to_string(),
+        };
+
+        let json = serde_json::to_value(&content).unwrap();
+        assert_eq!(json["type"], "audio");
+        assert_eq!(json["mimeType"], "audio/wav");
+    }
+
+    #[test]
+    fn test_prompt_message() {
+        let message = PromptMessage {
+            role: "user".to_string(),
+            content: PromptContentType::Text {
+                text: "Please review this code".to_string(),
+            },
+            annotations: None,
+        };
+
+        let json = serde_json::to_value(&message).unwrap();
+        assert_eq!(json["role"], "user");
+        assert_eq!(json["content"]["type"], "text");
+        assert_eq!(json["content"]["text"], "Please review this code");
+    }
+
+    #[test]
+    fn test_prompt_basic() {
+        let prompt = Prompt {
+            name: "code_review".to_string(),
+            title: Some("Request Code Review".to_string()),
+            description: Some("Asks the LLM to analyze code quality".to_string()),
+            arguments: Some(vec![PromptArgument {
+                name: "code".to_string(),
+                description: Some("The code to review".to_string()),
+                required: true,
+            }]),
+            icons: None,
+        };
+
+        let json = serde_json::to_value(&prompt).unwrap();
+        assert_eq!(json["name"], "code_review");
+        assert_eq!(json["title"], "Request Code Review");
+        assert_eq!(json["arguments"][0]["name"], "code");
+        assert_eq!(json["arguments"][0]["required"], true);
+    }
+
+    #[test]
+    fn test_prompt_content() {
+        let content = PromptContent {
+            description: Some("Code review prompt".to_string()),
+            messages: vec![PromptMessage {
+                role: "user".to_string(),
+                content: PromptContentType::Text {
+                    text: "Please review this Python code".to_string(),
+                },
+                annotations: None,
+            }],
+        };
+
+        let json = serde_json::to_value(&content).unwrap();
+        assert_eq!(json["description"], "Code review prompt");
+        assert_eq!(json["messages"][0]["role"], "user");
+        assert_eq!(json["messages"][0]["content"]["type"], "text");
     }
 }

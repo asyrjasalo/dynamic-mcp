@@ -8,6 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.3.0] - 2026-01-08
 
 ### Added
+- **Prompts API Proxying** - Support for `prompts/list` and `prompts/get` endpoints
+  - Proxy prompt discovery from upstream MCP servers
+  - Retrieve prompt templates with argument substitution
+  - Cursor-based pagination support for prompt lists
+  - Multi-modal prompt content (text, image, audio, embedded resources)
+  - Prompt metadata (name, title, description, arguments, icons)
+- **Prompt Type Definitions** - Full support for MCP prompt schema
+  - Prompt, PromptArgument, PromptMessage, PromptContent, PromptContentType types
+  - Support for all content types: text, image, audio, resource
+  - Proper serialization with optional field handling
 - **Resources API Proxying** - Support for `resources/list` and `resources/read` endpoints
   - Proxy resource discovery from upstream MCP servers
   - Retrieve resource contents (text and binary)
@@ -22,7 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Handles both `id: value` and compact formats
 
 ### Changed
-- Updated `initialize` response to advertise `resources` capability
+- Updated `initialize` response to advertise `prompts` and `resources` capabilities
 - Improved SSE transport reliability with event ID tracking
 
 ### Fixed

@@ -30,6 +30,8 @@ impl ModularMcpServer {
             "tools/call" => self.handle_call_tool(request).await,
             "resources/list" => self.handle_resources_list(request).await,
             "resources/read" => self.handle_resources_read(request).await,
+            "prompts/list" => self.handle_prompts_list(request).await,
+            "prompts/get" => self.handle_prompts_get(request).await,
             _ => JsonRpcResponse {
                 jsonrpc: "2.0".to_string(),
                 id: request.id,
@@ -53,6 +55,9 @@ impl ModularMcpServer {
                     "tools": {},
                     "resources": {
                         "subscribe": false,
+                        "listChanged": false
+                    },
+                    "prompts": {
                         "listChanged": false
                     }
                 },
@@ -384,6 +389,125 @@ Example usage:
                 error: Some(JsonRpcError {
                     code: -32603,
                     message: format!("Failed to read resource: {}", e),
+                    data: None,
+                }),
+            },
+        }
+    }
+
+    async fn handle_prompts_list(&self, request: JsonRpcRequest) -> JsonRpcResponse {
+        let client = self.client.read().await;
+
+        let group_name = match request
+            .params
+            .as_ref()
+            .and_then(|p| p.get("group"))
+            .and_then(|g| g.as_str())
+        {
+            Some(name) => name.to_string(),
+            None => {
+                return JsonRpcResponse {
+                    jsonrpc: "2.0".to_string(),
+                    id: request.id,
+                    result: None,
+                    error: Some(JsonRpcError {
+                        code: -32602,
+                        message: "Missing required parameter: group".to_string(),
+                        data: None,
+                    }),
+                };
+            }
+        };
+
+        let cursor = request
+            .params
+            .as_ref()
+            .and_then(|p| p.get("cursor"))
+            .and_then(|c| c.as_str())
+            .map(String::from);
+
+        match client.proxy_prompts_list(&group_name, cursor).await {
+            Ok(result) => JsonRpcResponse {
+                jsonrpc: "2.0".to_string(),
+                id: request.id,
+                result: Some(result),
+                error: None,
+            },
+            Err(e) => JsonRpcResponse {
+                jsonrpc: "2.0".to_string(),
+                id: request.id,
+                result: None,
+                error: Some(JsonRpcError {
+                    code: -32603,
+                    message: format!("Failed to list prompts: {}", e),
+                    data: None,
+                }),
+            },
+        }
+    }
+
+    async fn handle_prompts_get(&self, request: JsonRpcRequest) -> JsonRpcResponse {
+        let client = self.client.read().await;
+
+        let (group_name, prompt_name, arguments) = match request.params.as_ref() {
+            Some(params) => {
+                let group = params
+                    .get("group")
+                    .and_then(|g| g.as_str())
+                    .map(String::from);
+                let name = params
+                    .get("name")
+                    .and_then(|n| n.as_str())
+                    .map(String::from);
+                let args = params.get("arguments").cloned();
+
+                match (group, name) {
+                    (Some(g), Some(n)) => (g, n, args),
+                    _ => {
+                        return JsonRpcResponse {
+                            jsonrpc: "2.0".to_string(),
+                            id: request.id,
+                            result: None,
+                            error: Some(JsonRpcError {
+                                code: -32602,
+                                message: "Missing required parameters: group, name".to_string(),
+                                data: None,
+                            }),
+                        };
+                    }
+                }
+            }
+            None => {
+                return JsonRpcResponse {
+                    jsonrpc: "2.0".to_string(),
+                    id: request.id,
+                    result: None,
+                    error: Some(JsonRpcError {
+                        code: -32602,
+                        message: "Missing params object".to_string(),
+                        data: None,
+                    }),
+                };
+            }
+        };
+
+        match client
+            .proxy_prompts_get(&group_name, prompt_name, arguments)
+            .await
+        {
+            Ok(result) => JsonRpcResponse {
+                jsonrpc: "2.0".to_string(),
+                id: request.id,
+                result: Some(result),
+                error: None,
+            },
+            Err(e) => JsonRpcResponse {
+                jsonrpc: "2.0".to_string(),
+                id: request.id,
+                result: None,
+                error: Some(JsonRpcError {
+                    code: -32603,
+                    message: format!("Failed to get prompt: {}", e),
                     data: None,
                 }),
             },
@@ -823,6 +947,117 @@ mod tests {
         assert!(
             resources_cap.get("subscribe").is_some(),
             "Resources should declare subscribe capability"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_handle_prompts_list_missing_group() {
+        let server = create_test_server();
+        let request = JsonRpcRequest::new(1, "prompts/list");
+        let response = server.handle_request(request).await;
+
+        assert!(response.error.is_some());
+        let error = response.error.unwrap();
+        assert_eq!(error.code, -32602);
+        assert!(error.message.contains("group"));
+    }
+
+    #[tokio::test]
+    async fn test_handle_prompts_list_nonexistent_group() {
+        let server = create_test_server();
+        let request =
+            JsonRpcRequest::new(1, "prompts/list").with_params(json!({ "group": "nonexistent" }));
+        let response = server.handle_request(request).await;
+
+        assert!(response.error.is_some());
+        let error = response.error.unwrap();
+        assert_eq!(error.code, -32603);
+    }
+
+    #[tokio::test]
+    async fn test_handle_prompts_get_missing_group() {
+        let server = create_test_server();
+        let request =
+            JsonRpcRequest::new(1, "prompts/get").with_params(json!({ "name": "test_prompt" }));
+        let response = server.handle_request(request).await;
+
+        assert!(response.error.is_some());
+        let error = response.error.unwrap();
+        assert_eq!(error.code, -32602);
+        assert!(error.message.contains("group"));
+    }
+
+    #[tokio::test]
+    async fn test_handle_prompts_get_missing_name() {
+        let server = create_test_server();
+        let request = JsonRpcRequest::new(1, "prompts/get").with_params(json!({ "group": "test" }));
+        let response = server.handle_request(request).await;
+
+        assert!(response.error.is_some());
+        let error = response.error.unwrap();
+        assert_eq!(error.code, -32602);
+        assert!(error.message.contains("name"));
+    }
+
+    #[tokio::test]
+    async fn test_handle_prompts_get_nonexistent_group() {
+        let server = create_test_server();
+        let request = JsonRpcRequest::new(1, "prompts/get")
+            .with_params(json!({ "group": "nonexistent", "name": "test_prompt" }));
+        let response = server.handle_request(request).await;
+
+        assert!(response.error.is_some());
+        let error = response.error.unwrap();
+        assert_eq!(error.code, -32603);
+    }
+
+    #[tokio::test]
+    async fn test_prompts_list_protocol_compliance() {
+        let server = create_test_server();
+        let request =
+            JsonRpcRequest::new(1, "prompts/list").with_params(json!({ "group": "test" }));
+        let response = server.handle_request(request).await;
+
+        assert!(response.jsonrpc == "2.0");
+        assert!(response.error.is_some());
+
+        let error = response.error.unwrap();
+        assert!(error.code <= -32600);
+    }
+
+    #[tokio::test]
+    async fn test_prompts_get_protocol_compliance() {
+        let server = create_test_server();
+        let request = JsonRpcRequest::new(1, "prompts/get")
+            .with_params(json!({ "group": "test", "name": "test_prompt" }));
+        let response = server.handle_request(request).await;
+
+        assert!(response.jsonrpc == "2.0");
+        assert!(response.error.is_some());
+
+        let error = response.error.unwrap();
+        assert!(error.code <= -32600);
+    }
+
+    #[tokio::test]
+    async fn test_initialize_includes_prompts_capability() {
+        let server = create_test_server();
+        let request = JsonRpcRequest::new(1, "initialize");
+        let response = server.handle_request(request).await;
+
+        assert!(response.error.is_none());
+        let result = response.result.unwrap();
+        let capabilities = result.get("capabilities").unwrap();
+
+        assert!(
+            capabilities.get("prompts").is_some(),
+            "Should have prompts capability"
+        );
+
+        let prompts_cap = capabilities.get("prompts").unwrap();
+        assert!(
+            prompts_cap.get("listChanged").is_some(),
+            "Prompts should declare listChanged capability"
         );
     }
 }

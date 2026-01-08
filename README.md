@@ -4,7 +4,7 @@ MCP proxy server that reduces LLM context overhead by grouping tools from multip
 
 Instead of requiring you to expose all MCP servers upfront (which can consume thousands of tokens), dynamic-mcp exposes only two MCP tools initially.
 
-It supports tool functionality of upstream MCP servers, stdio, HTTP, and SSE transports, handles OAuth, and automatically retries failed connections.
+It supports tools, resources, and prompts from upstream MCP servers with stdio, HTTP, and SSE transports, handles OAuth, and automatically retries failed connections.
 
 ## Quick Start
 

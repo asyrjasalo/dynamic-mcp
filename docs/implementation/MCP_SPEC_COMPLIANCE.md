@@ -2,7 +2,7 @@
 
 > **Last Updated**: January 8, 2026
 > **Spec Version**: 2025-11-25
-> **dynamic-mcp Version**: 1.2.1
+> **dynamic-mcp Version**: 1.3.0
 > **Overall Compliance**: 98.6% (71/72 MUST-have requirements) ⚠️ (1 intentional omission)
 >
 > **⚠️ KNOWN LIMITATION**:
@@ -428,13 +428,56 @@ fn parse_sse_response(&self, sse_text: &str) -> Result<(JsonRpcResponse, Option<
 ---
 
 ### Prompts API
-**Status**: ❌ Not implemented
+**Status**: ✅ Implemented (v1.3.0)
 **Priority**: 🟢 LOW
 **Spec Requirement**: MAY implement `prompts/list`, `prompts/get`
 
 **Benefit**: Allows servers to expose prompt templates.
 
-**Notes**: Not required for tool-only proxying (current use case).
+**Implementation** (v1.3.0):
+- ✅ `prompts/list` proxying with cursor-based pagination
+- ✅ `prompts/get` proxying with argument support
+- ✅ Prompt metadata (name, title, description, arguments, icons)
+- ✅ Multiple prompt content types (text, image, audio, embedded resources)
+- ✅ Proper error handling (-32602 for invalid params, -32603 for server errors)
+- ✅ Integration tested with @modelcontextprotocol/server-everything
+- ⏳ List changed notifications not implemented (optional feature)
+
+**Files Changed**:
+- `src/proxy/types.rs`: Added Prompt, PromptArgument, PromptContentType, PromptMessage, PromptContent types
+- `src/proxy/client.rs`: Added `proxy_prompts_list()` and `proxy_prompts_get()` methods
+- `src/server.rs`: Added `handle_prompts_list()` and `handle_prompts_get()` handlers, updated initialize capability
+- `tests/prompts_integration_test.rs`: Added 14 integration tests
+
+**Testing**:
+- ✅ 8 unit tests for Prompt types
+- ✅ 8 unit tests for server handler methods
+- ✅ 14 integration tests with everything server (request/response formats, pagination, content types)
+- ✅ All tests passing (138 total tests: 89 unit + 3 everything + 18 import + 14 integration + 14 prompts)
+
+**Usage**:
+```json
+{
+  "method": "prompts/list",
+  "params": {
+    "group": "example",
+    "cursor": "optional-pagination-cursor"
+  }
+}
+```
+
+```json
+{
+  "method": "prompts/get",
+  "params": {
+    "group": "example",
+    "name": "code_review",
+    "arguments": {
+      "code": "def hello(): pass"
+    }
+  }
+}
+```
 
 ---
 
@@ -496,19 +539,26 @@ fn parse_sse_response(&self, sse_text: &str) -> Result<(JsonRpcResponse, Option<
    - **Fully spec-compliant**
 
 6. ✅ **SSE `Last-Event-ID` support** (v1.2.1)
-   - Files: `src/proxy/transport.rs:360, 402-406, 467-471, 412-422`
-   - Implementation: Tracks last event ID from SSE responses, sends on reconnect
-   - Extracts event ID from SSE `id:` field
-   - Stores per-transport (Arc<Mutex<>>)
-   - Sends `Last-Event-ID` header on next request for stream resumption
-   - **Fully spec-compliant**: Supports SSE resumability per MCP spec
+    - Files: `src/proxy/transport.rs:360, 402-406, 467-471, 412-422`
+    - Implementation: Tracks last event ID from SSE responses, sends on reconnect
+    - Extracts event ID from SSE `id:` field
+    - Stores per-transport (Arc<Mutex<>>)
+    - Sends `Last-Event-ID` header on next request for stream resumption
+    - **Fully spec-compliant**: Supports SSE resumability per MCP spec
+
+7. ✅ **Prompts API** (v1.3.0)
+    - Files: `src/proxy/client.rs:426-494`, `src/server.rs:401-492`, `src/proxy/types.rs:139-185`
+    - Implementation: `prompts/list` and `prompts/get` with full support
+    - Features: Prompt metadata, content types (text, image, audio, resource), pagination support
+    - Proper error handling with JSON-RPC error codes
+    - **Fully spec-compliant**: All required and optional prompt features
 
 ### ❌ Intentionally NOT Implemented
 
-6. ❌ **`initialized` notification** - **INTENTIONALLY OMITTED**
-   - **Reason**: Causes stdio transport deadlock (see section 1 above)
-   - **Impact**: Works with all tested servers, may break with strict servers
-   - **Decision**: Do not implement until proven necessary
+8. ❌ **`initialized` notification** - **INTENTIONALLY OMITTED**
+    - **Reason**: Causes stdio transport deadlock (see section 1 above)
+    - **Impact**: Works with all tested servers, may break with strict servers
+    - **Decision**: Do not implement until proven necessary
 
 ---
 
@@ -521,15 +571,15 @@ fn parse_sse_response(&self, sse_text: &str) -> Result<(JsonRpcResponse, Option<
    - Benefit: Resume SSE streams after network interruption
    - Status: Implemented in v1.2.1
 
-8. ⏳ **Resources API** (Optional)
+8. ✅ **Resources API** (Optional)
    - Priority: LOW
    - Benefit: Proxy resource operations
-   - Note: Not required for tool-only proxying
+   - Status: Implemented (v1.3.0)
 
-9. ⏳ **Prompts API** (Optional)
+9. ✅ **Prompts API** (Optional)
    - Priority: LOW
    - Benefit: Proxy prompt templates
-   - Note: Not required for tool-only proxying
+   - Status: Implemented (v1.3.0)
 
 10. ⏳ **Progress token support** (Optional)
     - Priority: LOW
@@ -589,10 +639,10 @@ fn parse_sse_response(&self, sse_text: &str) -> Result<(JsonRpcResponse, Option<
 | **tools/call response format** | ✅ | server.rs:248-256 | v1.2.1 (isError flag) |
 | **Tool inputSchema format** | ✅ | server.rs:114-124 | Correct |
 | **Tool name/description fields** | ✅ | types.rs:18-22 | Correct |
-| **resources/list** | ❌ | N/A | Not implemented (optional) |
-| **resources/read** | ❌ | N/A | Not implemented (optional) |
-| **prompts/list** | ❌ | N/A | Not implemented (optional) |
-| **prompts/get** | ❌ | N/A | Not implemented (optional) |
+| **prompts/list request** | ✅ | server.rs:401 | Handled (v1.3.0) |
+| **prompts/list response format** | ✅ | server.rs:401-437 | Correct (v1.3.0) |
+| **prompts/get request** | ✅ | server.rs:439 | Handled (v1.3.0) |
+| **prompts/get response format** | ✅ | server.rs:439-492 | Correct (v1.3.0) |
 
 ### Security & Authentication (8 requirements)
 
@@ -681,14 +731,16 @@ fn parse_sse_response(&self, sse_text: &str) -> Result<(JsonRpcResponse, Option<
 | **Security/OAuth** | 100% (8/8) | ✅ Excellent |
 | **Error handling** | 100% (4/4) | ✅ Excellent |
 | **Protocol version negotiation** | 100% (18/18) | ✅ Excellent (intelligent fallback) |
-| **Optional features (SHOULD/MAY)** | 13.6% (3/22) | ⏳ SSE Last-Event-ID implemented |
+| **Optional features (SHOULD/MAY)** | 18.2% (4/22) | ✅ SSE Last-Event-ID, Resources API, Prompts API |
 
 **MUST-have requirements: 71/72 implemented**
 - ❌ 1 intentionally omitted (`initialized` notification due to stdio deadlock)
 - ✅ Protocol version negotiation works correctly (adapts to upstream)
 
-**SHOULD/MAY requirements: 3/22 implemented**
+**SHOULD/MAY requirements: 4/22 implemented**
 - ✅ SSE Last-Event-ID support (v1.2.1)
+- ✅ Resources API proxying (v1.3.0)
+- ✅ Prompts API proxying (v1.3.0)
 
 ---
 
@@ -705,6 +757,8 @@ fn parse_sse_response(&self, sse_text: &str) -> Result<(JsonRpcResponse, Option<
 - ✅ MCP-Session-Id tracking for stateful connections
 - ✅ Correct tool error format (isError flag)
 - ✅ SSE Last-Event-ID support for stream resumption (v1.2.1)
+- ✅ Resources API (list and read operations) (v1.3.0)
+- ✅ Prompts API (list and get operations) (v1.3.0)
 - ✅ OAuth 2.1 (PKCE, token refresh, resource parameter)
 - ✅ Error recovery and retry logic (exponential backoff)
 
@@ -731,13 +785,15 @@ fn parse_sse_response(&self, sse_text: &str) -> Result<(JsonRpcResponse, Option<
 ### Optional Future Enhancements
 
 Consider implementing only if users request:
-- Resources API (proxy resource operations)
-- Prompts API (proxy prompt templates)
 - Progress tokens (long-running operation progress)
 - Pagination (servers with 100+ tools)
+- Prompt list changed notifications (optional feature)
+- Resource subscriptions (optional feature)
 
-**Already Implemented** (v1.2.1):
-- ✅ SSE Last-Event-ID resumability (network interruption recovery)
+**Already Implemented**:
+- ✅ SSE Last-Event-ID resumability (v1.2.1)
+- ✅ Resources API (v1.3.0)
+- ✅ Prompts API (v1.3.0)
 
 ---
 
