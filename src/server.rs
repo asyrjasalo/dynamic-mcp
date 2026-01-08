@@ -41,8 +41,6 @@ impl ModularMcpServer {
             "resources/unsubscribe" => self.handle_resources_unsubscribe(request).await,
             "prompts/list" => self.handle_prompts_list(request).await,
             "prompts/get" => self.handle_prompts_get(request).await,
-            "prompts/subscribe" => self.handle_prompts_subscribe(request).await,
-            "prompts/unsubscribe" => self.handle_prompts_unsubscribe(request).await,
             _ => JsonRpcResponse {
                 jsonrpc: "2.0".to_string(),
                 id: request.id,
@@ -633,76 +631,6 @@ Example usage:
                 error: Some(JsonRpcError {
                     code: -32603,
                     message: format!("Failed to get prompt: {}", e),
-                    data: None,
-                }),
-            },
-        }
-    }
-
-    async fn handle_prompts_subscribe(&self, request: JsonRpcRequest) -> JsonRpcResponse {
-        match request
-            .params
-            .as_ref()
-            .and_then(|p| p.get("group"))
-            .and_then(|g| g.as_str())
-        {
-            Some(group_name) => {
-                let mut subs = self.subscriptions.write().await;
-                subs.insert(format!("prompts:{}", group_name));
-                tracing::debug!(
-                    "Client subscribed to prompt changes for group: {}",
-                    group_name
-                );
-
-                JsonRpcResponse {
-                    jsonrpc: "2.0".to_string(),
-                    id: request.id,
-                    result: Some(json!({})),
-                    error: None,
-                }
-            }
-            None => JsonRpcResponse {
-                jsonrpc: "2.0".to_string(),
-                id: request.id,
-                result: None,
-                error: Some(JsonRpcError {
-                    code: -32602,
-                    message: "Missing required parameter: group".to_string(),
-                    data: None,
-                }),
-            },
-        }
-    }
-
-    async fn handle_prompts_unsubscribe(&self, request: JsonRpcRequest) -> JsonRpcResponse {
-        match request
-            .params
-            .as_ref()
-            .and_then(|p| p.get("group"))
-            .and_then(|g| g.as_str())
-        {
-            Some(group_name) => {
-                let mut subs = self.subscriptions.write().await;
-                subs.remove(&format!("prompts:{}", group_name));
-                tracing::debug!(
-                    "Client unsubscribed from prompt changes for group: {}",
-                    group_name
-                );
-
-                JsonRpcResponse {
-                    jsonrpc: "2.0".to_string(),
-                    id: request.id,
-                    result: Some(json!({})),
-                    error: None,
-                }
-            }
-            None => JsonRpcResponse {
-                jsonrpc: "2.0".to_string(),
-                id: request.id,
-                result: None,
-                error: Some(JsonRpcError {
-                    code: -32602,
-                    message: "Missing required parameter: group".to_string(),
                     data: None,
                 }),
             },
@@ -1523,28 +1451,6 @@ mod tests {
 
         let prompts_cap = capabilities.get("prompts").unwrap();
         assert_eq!(prompts_cap.get("listChanged").unwrap(), true);
-    }
-
-    #[tokio::test]
-    async fn test_prompts_subscribe_with_group() {
-        let server = create_test_server();
-        let request =
-            JsonRpcRequest::new(1, "prompts/subscribe").with_params(json!({"group": "test-group"}));
-        let response = server.handle_request(request).await;
-
-        assert!(response.error.is_none());
-        assert!(response.result.is_some());
-    }
-
-    #[tokio::test]
-    async fn test_prompts_unsubscribe_with_group() {
-        let server = create_test_server();
-        let request = JsonRpcRequest::new(1, "prompts/unsubscribe")
-            .with_params(json!({"group": "test-group"}));
-        let response = server.handle_request(request).await;
-
-        assert!(response.error.is_none());
-        assert!(response.result.is_some());
     }
 
     #[tokio::test]

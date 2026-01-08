@@ -14,7 +14,6 @@
 > **✅ FULLY IMPLEMENTED (Core Features)**:
 > - JSON-RPC batch requests: ✅ (Array-based request handling)
 > - Resource subscriptions API: ✅ (subscribe/unsubscribe with tracking)
-> - Prompt subscriptions API: ✅ (subscribe/unsubscribe with tracking)
 > - Prompt argument validation: ✅ (Required/optional enforcement)
 >
 > **✅ INFRASTRUCTURE READY (Notifications)**:
@@ -583,13 +582,6 @@ pub struct Resource {
    - Implementation: `src/server.rs:448-505`
    - Tests: 8 subscription tests (tracking, lifecycle, multiple)
 
-3. **Prompt subscriptions API** ✅
-   - `prompts/subscribe` / `prompts/unsubscribe` request handlers
-   - Per-group subscription tracking (namespaced as `prompts:groupname`)
-   - **Note**: API endpoints exist, but notifications NOT actively sent to clients
-   - Implementation: `src/server.rs:640-699`
-   - Tests: 2 prompt subscription tests
-
 **Infrastructure Ready (Awaiting Push Implementation)**:
 4. **Notification infrastructure** ✅
    - `JsonRpcNotification` types for list changed and resource updates
@@ -640,9 +632,8 @@ pub struct Resource {
 **OPTIONAL features: Infrastructure Ready, Selective Implementation**
 - ✅ Batch requests (JSON-RPC 2.0) - FULLY WORKING
 - ⚠️ Resource subscriptions (API exists, notifications NOT sent)
-- ⚠️ Prompt subscriptions (API exists, notifications NOT sent)
 - ⚠️ Resource list changed notifications (capability declared, NOT sent)
-- ⚠️ Prompt list changed notifications (capability declared, NOT sent)
+- ⚠️ Prompt list changed notifications (capability declared, NOT sent - per spec, server SHOULD send notification when list changes)
 - ⚠️ Resource update notifications (infrastructure ready, NOT sent)
 - ⚠️ Progress tokens (data structure ready, not integrated with tool execution)
 - ✅ Resource templates (RFC 6570 URI support) - FULLY WORKING
@@ -691,7 +682,7 @@ pub struct Resource {
 **Optional Features Not Implemented** (No Production Impact):
 - ⏳ Streaming/chunked binary content for large files
 - ⏳ Progress tokens
-- ⏳ Prompt subscriptions and list changed notifications
+- ⏳ Prompt list changed notifications (capability declared, but notifications not actively sent)
 
 ---
 
@@ -738,9 +729,8 @@ pub struct Resource {
 - [x] Error recovery implemented
 - [x] **NEW**: Batch requests (JSON-RPC 2.0 compliant)
 - [x] **NEW**: Resource subscriptions API
-- [x] **NEW**: Prompt subscriptions API
 - [x] **NEW**: Resource list changed notifications
-- [x] **NEW**: Prompt list changed notifications
+- [x] **NEW**: Prompt list changed notifications (capability declared, per spec server SHOULD send notification when list changes)
 - [x] **NEW**: Resource update notifications
 - [x] **NEW**: Progress tokens infrastructure
 - [x] Testing complete (107 unit tests + 60 integration tests passing)
@@ -775,12 +765,6 @@ pub struct Resource {
    - `resources/subscribe` and `resources/unsubscribe` handlers
    - `HashSet<String>` subscription tracking
    - 8 subscription tests
-
-3. ✅ Prompt subscriptions API
-   - `prompts/subscribe` and `prompts/unsubscribe` handlers
-   - Namespaced subscription tracking (`prompts:groupname`)
-   - 2 prompt subscription tests
-   - Updated capabilities to declare `prompts.listChanged: true`
 
 **Phase 3: Notifications (Hours 7-8)**
 4. ✅ Notification factory methods
