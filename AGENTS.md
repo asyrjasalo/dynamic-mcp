@@ -317,9 +317,8 @@ Before releasing a new version:
 - [ ] **No clippy warnings**: `cargo clippy -- -D warnings`
 - [ ] **Code formatted**: `cargo fmt --check`
 - [ ] **Documentation complete**:
-  - [ ] README.md updated with new features
-  - [ ] CHANGELOG.md has entry for this version
-  - [ ] STATUS.md metrics updated
+  - [ ] README.md updated with new user-facing features
+  - [ ] CHANGELOG.md has entry with user-facing changes only (no metrics/internal details)
   - [ ] API docs complete: `cargo doc --no-deps`
 - [ ] **Version bumped** in `Cargo.toml`
 - [ ] **Git tag prepared**: `git tag -a v1.x.x -m "Release v1.x.x"`
@@ -328,12 +327,8 @@ Before releasing a new version:
 
 **1. Update Version**
 ```bash
-# Edit Cargo.toml
+# Edit Cargo.toml and pyproject.toml
 version = "1.x.x"
-
-# Update STATUS.md
-## 📊 Project Metrics
-| **Version** | 1.x.x |
 ```
 
 **2. Update CHANGELOG.md**
@@ -341,18 +336,20 @@ version = "1.x.x"
 ## [1.x.x] - 2026-XX-XX
 
 ### Added
-- New feature descriptions
+- User-facing feature descriptions (e.g., "Added WebSocket transport support")
 
 ### Changed
-- Changed feature descriptions
+- User-facing behavior changes (e.g., "Changed default timeout to 30s")
 
 ### Fixed
-- Bug fix descriptions
+- User-facing bug fixes (e.g., "Fixed OAuth token refresh failing after expiry")
 ```
+
+**Note**: Do NOT include technical metrics, internal refactorings, or implementation details in CHANGELOG.md.
 
 **3. Commit and Tag**
 ```bash
-git add Cargo.toml pyproject.toml CHANGELOG.md docs/implementation/STATUS.md
+git add Cargo.toml pyproject.toml CHANGELOG.md
 git commit -m "chore: bump version to 1.x.x"
 git tag -a v1.x.x -m "Release v1.x.x"
 git push origin main --tags
@@ -664,9 +661,24 @@ These are historical records and should remain unchanged.
 **CHANGELOG.md Guidelines:**
 - ✅ Add new release entries at the top (after the header)
 - ✅ Follow [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format
+- ✅ Focus on **user-facing changes**: features, bug fixes, breaking changes
+- ❌ NEVER document technical metrics (LOC, test counts, dependencies)
+- ❌ NEVER document internal implementation details (refactorings, module structure)
 - ❌ NEVER modify entries for previous releases (1.0.0, 1.1.0, etc.)
 - ❌ NEVER update historical descriptions even if they're outdated
 - Historical accuracy is more important than current correctness for past releases
+
+**What to include in CHANGELOG.md**:
+- ✅ New user-facing features ("Added OAuth2 authentication support")
+- ✅ Bug fixes affecting users ("Fixed token refresh failing after expiry")
+- ✅ Breaking changes ("Removed support for legacy config format")
+- ✅ Deprecation notices ("Deprecated `--old-flag`, use `--new-flag` instead")
+
+**What NOT to include** (goes in STATUS.md instead):
+- ❌ Technical metrics ("LOC increased to 4,765", "Added 12 tests")
+- ❌ Internal refactorings ("Split server.rs into server/ module")
+- ❌ Dependency updates ("Updated tokio to 1.40")
+- ❌ Build process changes ("Added maturin for Python builds")
 
 ## 🔍 Verification Checklist
 

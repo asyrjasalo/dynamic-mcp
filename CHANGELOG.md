@@ -15,8 +15,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Config Parser Module** - Support for JSON, JSONC (with comments), and TOML formats
 - **Environment Variable Normalization** - Automatic conversion of tool-specific env var patterns
 - **Enhanced CLI** - `--global` flag for user-level configs, `--force` flag to skip prompts
-- **Comprehensive Test Coverage** - 10 new end-to-end import integration tests
-- **26 Test Fixtures** - Real-world config examples for all 10 supported tools
 
 ### Changed
 - Import command now uses tool names instead of file paths: `dmcp import cursor`
@@ -24,17 +22,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - JSONC parsing improved with line comment stripping for better compatibility
 
 ### Documentation
-- New IMPORT_INTEGRATION_TESTS.md with detailed test documentation
-- Updated README.md with tool-specific import examples
-- Updated IMPORT.md with comprehensive tool guides
-- IMPORT_MULTI_TOOL.md technical specification document
-- Updated STATUS.md, TESTING.md, and DEVELOPMENT.md with Phase 8 completion
-
-### Metrics
-- LOC increased: ~2,900 → ~4,765 Rust
-- Tests increased: 46 → 82 (50 unit + 14 integration + 18 import integration)
-- Test coverage: ~90% → ~95%
-- Source files: 17 → 24 Rust files
+- Updated README.md with tool-specific import examples and usage guides
+- Updated IMPORT.md with comprehensive tool-specific import documentation
 
 ## [1.1.0] - 2026-01-07
 
