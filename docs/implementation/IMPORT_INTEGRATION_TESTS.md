@@ -1,8 +1,8 @@
 # Import Integration Tests
 
-**Date**: January 8, 2026  
-**Status**: ✅ Complete  
-**Tests**: 10 end-to-end import workflow tests  
+**Date**: January 8, 2026
+**Status**: ✅ Complete
+**Tests**: 10 end-to-end import workflow tests
 
 ## Overview
 
@@ -70,7 +70,7 @@ fn run_import_with_input(
 - Server details preservation (command, args)
 - Description assignment to correct servers
 
-**Input**: 
+**Input**:
 ```json
 {
   "mcpServers": {
@@ -258,9 +258,9 @@ cargo test --test import_integration_test -- --nocapture
 
 ## Test Results
 
-**Status**: ✅ All 10 tests passing  
-**Execution Time**: ~10 seconds (includes binary compilation)  
-**Test Isolation**: Each test runs in isolated temp directory  
+**Status**: ✅ All 10 tests passing
+**Execution Time**: ~10 seconds (includes binary compilation)
+**Test Isolation**: Each test runs in isolated temp directory
 
 ## Coverage
 

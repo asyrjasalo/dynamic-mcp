@@ -419,7 +419,7 @@ If import causes issues, you can:
 
 1. **Keep both configs**: Use original tool config with the original MCP client
 2. **Revert**: Delete `dynamic-mcp.json`, use original config
-3. **Fix forward**: Adjust descriptions or types in importd config
+3. **Fix forward**: Adjust descriptions or types in imported config
 
 ## Next Steps
 
@@ -553,7 +553,7 @@ dmcp import --global claude
 
 **Config Locations**:
 - Project: `.vscode/mcp.json` (workspace-level)
-- Global: 
+- Global:
   - macOS: `~/Library/Application Support/Code/User/mcp.json`
   - Windows: `%APPDATA%\Code\User\mcp.json`
   - Linux: `~/.config/Code/User/mcp.json`
@@ -570,7 +570,7 @@ dmcp import --global vscode
 **Special Notes**:
 - Uses `servers` instead of `mcpServers`
 - Supports `${input:ID}` for secure credential prompts (cannot auto-convert)
-- VS Code specific `inputs` array not importd
+- VS Code specific `inputs` array not imported
 - Can also use Command Palette: `MCP: Open User Configuration`
 - Supports both dedicated `mcp.json` or settings in `settings.json`
 
@@ -592,8 +592,8 @@ dmcp import cline
 ```
 
 **Special Notes**:
-- `alwaysAllow` field is not importd (Cline-specific)
-- `disabled` field is not importd
+- `alwaysAllow` field is not imported (Cline-specific)
+- `disabled` field is not imported
 - Environment variables use `${env:VAR}` format (auto-converted)
 
 ---
@@ -608,7 +608,7 @@ dmcp import cline
 dmcp import kilocode
 ```
 
-**Similar to Cline**: Extension-specific fields (`alwaysAllow`, `disabled`) are not importd.
+**Similar to Cline**: Extension-specific fields (`alwaysAllow`, `disabled`) are not imported.
 
 ---
 

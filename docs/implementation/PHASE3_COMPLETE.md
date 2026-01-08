@@ -148,7 +148,7 @@ cargo build --release
 ## 📊 Project Progress
 
 - ✅ Phase 1: Core proxy with stdio transport
-- ✅ Phase 2: HTTP/SSE transport support  
+- ✅ Phase 2: HTTP/SSE transport support
 - ✅ Phase 3: OAuth authentication **← COMPLETE**
 - ⏳ Phase 4: Import command
 - ⏳ Phase 5: Tests & documentation
@@ -156,6 +156,6 @@ cargo build --release
 
 ---
 
-**Status**: Phase 3 complete and tested  
-**Next Phase**: Phase 4 - Import Command  
+**Status**: Phase 3 complete and tested
+**Next Phase**: Phase 4 - Import Command
 **Date**: 2026-01-06

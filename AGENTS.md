@@ -162,10 +162,10 @@ mod tests {
     fn test_feature_success_case() {
         // Arrange
         let input = setup_test_input();
-        
+
         // Act
         let result = your_function(input);
-        
+
         // Assert
         assert_eq!(result, expected_value);
     }

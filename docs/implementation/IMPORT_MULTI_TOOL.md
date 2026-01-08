@@ -195,11 +195,11 @@ pub struct ConfigParser {
 
 impl ConfigParser {
     pub fn parse(&self, content: &str) -> Result<HashMap<String, IntermediateServerConfig>> { ... }
-    
+
     fn parse_json(&self, content: &str) -> Result<...> { ... }
     fn parse_jsonc(&self, content: &str) -> Result<...> { ... }
     fn parse_toml(&self, content: &str) -> Result<...> { ... }
-    
+
     fn normalize_env_vars(&self, value: String) -> String { ... }
 }
 ```
@@ -245,8 +245,8 @@ Supported tools:
   - codex
   - cline
   - kilocode
-  
-Note: GitHub Copilot uses registry-based config and cannot be importd this way.
+
+Note: GitHub Copilot uses registry-based config and cannot be imported this way.
 
 Usage: dmcp import <tool-name>
 ```
