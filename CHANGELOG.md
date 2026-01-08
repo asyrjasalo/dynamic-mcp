@@ -32,8 +32,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Metrics
 - LOC increased: ~2,900 → ~4,765 Rust
-- Tests increased: 46 → 74 (50 unit + 14 integration + 10 migration integration)
-- Test coverage: ~90% → ~92%
+- Tests increased: 46 → 82 (50 unit + 14 integration + 18 migration integration)
+- Test coverage: ~90% → ~95%
 - Source files: 17 → 24 Rust files
 
 ## [1.1.0] - 2026-01-07

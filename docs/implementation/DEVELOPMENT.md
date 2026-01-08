@@ -102,8 +102,8 @@
 - **Version**: 1.2.0 (Multi-Tool Migration Support)
 - **Lines of Code**: ~4,765 (Rust)
 - **Dependencies**: 53 direct crates (including rmcp and HTTP/SSE stack)
-- **Tests**: 74 passing (50 unit + 14 general integration + 10 migration integration)
-- **Test Coverage**: ~92% (Config: 100%, Auth: 100%, Server: 100%, Transport: 100%, CLI: 100%)
+- **Tests**: 82 passing (50 unit + 14 general integration + 18 migration integration)
+- **Test Coverage**: ~95% (Config: 100%, Auth: 100%, Server: 100%, Transport: 100%, CLI: 100%)
 - **Test Fixtures**: 26 fixture files for 10 AI coding tools
 - **Binary Releases**: 5 platforms (Linux x86_64, Linux ARM64, macOS ARM64, Windows x86_64, Windows ARM64)
 - **Python Wheels**: 5 platforms (via maturin + GitHub Actions)
