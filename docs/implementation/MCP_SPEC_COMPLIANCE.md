@@ -265,12 +265,12 @@ pub struct Resource {
    - Resource annotations in response
    - Proper error handling
 
-3. ✅ **`resources/templates/list`** (v1.3.1)
+3. ✅ **`resources/templates/list`** (v1.3.0)
    - RFC 6570 URI template support
    - Template metadata (name, description, mimeType, annotations, icons)
    - Proper error handling
 
-4. ✅ **Resource `size` field** (v1.3.1)
+4. ✅ **Resource `size` field** (v1.3.0)
    - Optional u64 field for resource size in bytes
    - Used for context window estimation
    - Non-breaking addition
@@ -468,18 +468,18 @@ pub struct Resource {
 | Requirement | Status | Location | Notes |
 |-------------|--------|----------|-------|
 | **resources/list request** | ✅ | server.rs:31 | Handled (v1.3.0) |
-| **resources/list response** | ✅ | server.rs:286-335 | Correct (v1.3.1) |
+| **resources/list response** | ✅ | server.rs:286-335 | Correct (v1.3.0) |
 | **resources/read request** | ✅ | server.rs:32 | Handled (v1.3.0) |
-| **resources/read response** | ✅ | server.rs:337-395 | Correct (v1.3.1) |
-| **resources/templates/list** | ✅ | server.rs:33, 398-437 | Implemented (v1.3.1) |
+| **resources/read response** | ✅ | server.rs:337-395 | Correct (v1.3.0) |
+| **resources/templates/list** | ✅ | server.rs:33, 398-437 | Implemented (v1.3.0) |
 | **Resource uri field** | ✅ | types.rs:87 | Correct |
 | **Resource name field** | ✅ | types.rs:88 | Correct |
-| **Resource size field** | ✅ | types.rs:97 | Implemented (v1.3.1) |
+| **Resource size field** | ✅ | types.rs:97 | Implemented (v1.3.0) |
 | **Resource mimeType** | ✅ | types.rs:95-96 | Optional, correct |
 | **Resource icons** | ✅ | types.rs:100 | Correct (v1.3.0) |
 | **Resource annotations** | ✅ | types.rs:101 | Correct (v1.3.0) |
-| **ResourceTemplate uriTemplate** | ✅ | types.rs:123 | Implemented (v1.3.1) |
-| **ResourceTemplate annotations** | ✅ | types.rs:130 | Implemented (v1.3.1) |
+| **ResourceTemplate uriTemplate** | ✅ | types.rs:123 | Implemented (v1.3.0) |
+| **ResourceTemplate annotations** | ✅ | types.rs:130 | Implemented (v1.3.0) |
 | **TextResourceContents** | ✅ | types.rs:104-115 | text field |
 | **BlobResourceContents** | ✅ | types.rs:104-115 | blob field |
 | **Error codes** | ✅ | server.rs | -32002, -32602, -32603 |
@@ -555,7 +555,7 @@ None — all MUST-have spec requirements are now implemented!
    - Estimated effort: 4-6 hours
    - Priority: LOWEST
 
-### Completed (v1.3.1)
+### Completed (v1.3.0)
 - ✅ Resource templates API (`resources/templates/list`)
 - ✅ Resource size field for context estimation
 - ✅ ResourceTemplate annotations support
@@ -648,7 +648,7 @@ None — all MUST-have spec requirements are now implemented!
 
 ## 📋 Implementation Checklist
 
-### For Deploying Current Version (v1.3.1)
+### For Deploying Current Version (v1.3.0)
 - [x] All transports working (stdio, HTTP, SSE)
 - [x] Tools API 100% spec-compliant
 - [x] Prompts API 100% spec-compliant

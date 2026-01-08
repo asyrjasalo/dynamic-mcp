@@ -1,16 +1,19 @@
 # Testing Guide
 
 > **Last Updated**: January 8, 2026
-> **Test Status**: 82 tests, 100% pass rate ✅
+> **Test Status**: 164 tests, 100% pass rate ✅
 
 ## Test Summary
 
 | Category | Count | Pass Rate | Coverage |
 |----------|-------|-----------|----------|
-| **Unit Tests** | 50 | 100% ✅ | All modules |
-| **Integration Tests (General)** | 14 | 100% ✅ | CLI & workflows |
+| **Unit Tests** | 92 | 100% ✅ | All modules |
+| **Everything Server Tests** | 3 | 100% ✅ | Server detection & availability |
 | **Integration Tests (Import)** | 18 | 100% ✅ | Multi-tool import + env var conversion |
-| **Total** | **82** | **100%** | **~95%** |
+| **Integration Tests (CLI)** | 14 | 100% ✅ | CLI commands & workflows |
+| **Integration Tests (Prompts)** | 14 | 100% ✅ | Prompts protocol support |
+| **Integration Tests (Resources)** | 9 | 100% ✅ | Resources protocol support |
+| **Total** | **164** | **100%** | **~98%** |
 
 ## Running Tests
 

@@ -182,10 +182,12 @@ See [MCP_SPEC_COMPLIANCE.md](MCP_SPEC_COMPLIANCE.md) for detailed compliance aud
 - [x] **Test Coverage**
   - 14 new unit tests (config parser, tool detector)
   - 5 new integration tests (fixture validation)
-  - **18 end-to-end import workflow tests**
-    - 10 core import tests (success paths, error handling, interactive prompts)
-    - 8 environment variable conversion tests (all tool patterns covered)
-  - All 82 tests passing (50 unit + 14 integration + 18 import integration)
+   - **18 end-to-end import workflow tests**
+     - 10 core import tests (success paths, error handling, interactive prompts)
+     - 8 environment variable conversion tests (all tool patterns covered)
+   - Prompts API integration tests (14 tests)
+   - Resources API integration tests (9 tests)
+   - All 164 tests passing (92 unit + 3 everything server + 18 import + 14 CLI + 14 prompts + 9 resources)
 
 ## 📊 Project Metrics
 
@@ -195,7 +197,8 @@ See [MCP_SPEC_COMPLIANCE.md](MCP_SPEC_COMPLIANCE.md) for detailed compliance aud
 | **Phase** | 8 Complete ✅ |
 | **LOC** | ~5,100 Rust |
 | **Source Files** | 24 Rust files |
-| **Test Coverage** | **~95%** across all core modules |
+| **Tests** | **164 total** (92 unit + 3 everything server + 18 import + 14 CLI + 14 prompts + 9 resources) |
+| **Test Coverage** | **~98%** across all core modules |
 | **Test Pass Rate** | 100% ✅ |
 | **Test Fixtures** | 26 fixture files (10 tools, all with env vars) |
 | **Dependencies** | 53 direct crates |
