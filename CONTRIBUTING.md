@@ -218,6 +218,7 @@ Use conventional commits format:
 - `refactor`: Code refactoring
 - `perf`: Performance improvements
 - `chore`: Maintenance tasks
+- `build`: Build system changes
 
 **Examples:**
 ```

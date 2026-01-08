@@ -1,13 +1,13 @@
 # MCP Specification Compliance Audit
 
-> **Last Updated**: January 8, 2026  
-> **Spec Version**: 2025-11-25  
-> **dynamic-mcp Version**: 1.2.2  
+> **Last Updated**: January 8, 2026
+> **Spec Version**: 2025-11-25
+> **dynamic-mcp Version**: 1.2.1
 > **Overall Compliance**: 98.6% (71/72 MUST-have requirements) ⚠️ (1 intentional omission)
 >
 > **⚠️ KNOWN LIMITATION**:
 > - **`initialized` notification**: Intentionally NOT implemented (causes stdio transport deadlock)
-> 
+>
 > See section 1 for full details.
 
 ## Executive Summary
@@ -32,8 +32,8 @@ Comprehensive audit of dynamic-mcp against the [official MCP specification](http
 
 ### 1. `initialized` Notification - ⚠️ **INTENTIONALLY NOT IMPLEMENTED**
 
-**Status**: ❌ **NOT IMPLEMENTED** (Intentional)  
-**Priority**: 🟡 **MEDIUM** (Spec violation, but necessary for stdio transport stability)  
+**Status**: ❌ **NOT IMPLEMENTED** (Intentional)
+**Priority**: 🟡 **MEDIUM** (Spec violation, but necessary for stdio transport stability)
 **Spec Requirement**: Client MUST send `initialized` notification after receiving `initialize` response
 
 **Official Spec Quote**:
@@ -100,11 +100,11 @@ Simply calling `send_request()` with `id: null` will cause deadlock.
 
 ### Protocol Version Negotiation ✅
 
-**Status**: ✅ **FULLY COMPLIANT**  
-**Priority**: 🟢 **EXCELLENT**  
+**Status**: ✅ **FULLY COMPLIANT**
+**Priority**: 🟢 **EXCELLENT**
 **Spec Requirement**: Client SHOULD use latest version, MUST adapt to upstream server requirements
 
-**Implementation** (v1.2.2):
+**Implementation** (v1.2.1):
 ```rust
 // src/proxy/client.rs:52-59 - Client tries latest version first
 let init_request = JsonRpcRequest::new(1, "initialize").with_params(json!({
@@ -152,7 +152,7 @@ transport.set_protocol_version(server_version.to_string());
 - **Wide compatibility**: `2024-11-05` works with most MCP clients in the wild
 - **No version lock-in**: Upstream connections negotiate independently
 
-**Impact**: 
+**Impact**:
 - ✅ Works with cutting-edge servers (negotiates up)
 - ✅ Works with legacy servers (negotiates down)
 - ✅ Proxy remains accessible to older clients
@@ -162,8 +162,8 @@ transport.set_protocol_version(server_version.to_string());
 
 ### `MCP-Protocol-Version` Header ✅
 
-**Status**: ✅ **IMPLEMENTED** (v1.2.1)  
-**Priority**: 🔴 **CRITICAL**  
+**Status**: ✅ **IMPLEMENTED** (v1.2.1)
+**Priority**: 🔴 **CRITICAL**
 **Spec Requirement**: MUST send on all HTTP POST requests
 
 **Official Spec Quote**:
@@ -189,7 +189,7 @@ let protocol_ver = if let Ok(pv) = self.protocol_version.try_lock() {
 
 **Key Feature**: Header uses the NEGOTIATED protocol version from initialization handshake, NOT a hardcoded value.
 
-**Impact**: 
+**Impact**:
 - ✅ Full compatibility with MCP servers requiring protocol version header
 - ✅ Adapts to each upstream server's preferred version
 - ✅ Proper version per connection (not global)
@@ -201,8 +201,8 @@ let protocol_ver = if let Ok(pv) = self.protocol_version.try_lock() {
 
 ### `MCP-Session-Id` Header ✅
 
-**Status**: ✅ **IMPLEMENTED** (v1.2.1)  
-**Priority**: 🔴 **CRITICAL**  
+**Status**: ✅ **IMPLEMENTED** (v1.2.1)
+**Priority**: 🔴 **CRITICAL**
 **Spec Requirement**: REQUIRED for stateful HTTP/SSE servers
 
 **Official Spec Quote**:
@@ -240,8 +240,8 @@ transport.set_session_id(session_id);  // ✅ Added
 
 ### Tool Error Format ✅
 
-**Status**: ✅ **COMPLIANT** (v1.2.1)  
-**Priority**: 🟡 **HIGH**  
+**Status**: ✅ **COMPLIANT** (v1.2.1)
+**Priority**: 🟡 **HIGH**
 **Spec Requirement**: Tool errors MUST use `isError: true` flag, NOT JSON-RPC errors
 
 **Official Spec Quote** (from TypeScript schema):
@@ -279,8 +279,8 @@ Err(e) => JsonRpcResponse {
 
 ### OAuth 2.1 `resource` Parameter ✅
 
-**Status**: ✅ **COMPLIANT** (v1.2.1)  
-**Priority**: 🟡 **MEDIUM**  
+**Status**: ✅ **COMPLIANT** (v1.2.1)
+**Priority**: 🟡 **MEDIUM**
 **Spec Requirement**: SHOULD include `resource` parameter (RFC 8707, OAuth 2.1)
 
 **Official Spec Quote**:
@@ -340,8 +340,8 @@ Err(e) => JsonRpcResponse {
 ## 📋 Optional Improvements (SHOULD/MAY)
 
 ### SSE Resumability
-**Status**: ❌ Not implemented  
-**Priority**: 🟢 LOW  
+**Status**: ❌ Not implemented
+**Priority**: 🟢 LOW
 **Spec Requirement**: SHOULD support `Last-Event-ID` for reconnection
 
 **Benefit**: Resume SSE streams after network interruption without losing events.
@@ -354,8 +354,8 @@ Err(e) => JsonRpcResponse {
 ---
 
 ### Resources API
-**Status**: ❌ Not implemented  
-**Priority**: 🟢 LOW  
+**Status**: ❌ Not implemented
+**Priority**: 🟢 LOW
 **Spec Requirement**: MAY implement `resources/list`, `resources/read`
 
 **Benefit**: Allows servers to expose file-like resources.
@@ -365,8 +365,8 @@ Err(e) => JsonRpcResponse {
 ---
 
 ### Prompts API
-**Status**: ❌ Not implemented  
-**Priority**: 🟢 LOW  
+**Status**: ❌ Not implemented
+**Priority**: 🟢 LOW
 **Spec Requirement**: MAY implement `prompts/list`, `prompts/get`
 
 **Benefit**: Allows servers to expose prompt templates.
@@ -376,8 +376,8 @@ Err(e) => JsonRpcResponse {
 ---
 
 ### Progress Tokens
-**Status**: ❌ Not implemented  
-**Priority**: 🟢 LOW  
+**Status**: ❌ Not implemented
+**Priority**: 🟢 LOW
 **Spec Requirement**: MAY implement progress token support
 
 **Benefit**: Report progress for long-running operations.
@@ -387,8 +387,8 @@ Err(e) => JsonRpcResponse {
 ---
 
 ### Pagination
-**Status**: ❌ Not implemented  
-**Priority**: 🟢 LOW  
+**Status**: ❌ Not implemented
+**Priority**: 🟢 LOW
 **Spec Requirement**: SHOULD implement cursor-based pagination for large lists
 
 **Benefit**: Handle servers with 100+ tools efficiently.
@@ -397,11 +397,11 @@ Err(e) => JsonRpcResponse {
 
 ---
 
-## 🎯 Implementation Status (v1.2.2)
+## 🎯 Implementation Status (v1.2.1)
 
 ### ✅ Fully Implemented Features
 
-1. ✅ **Protocol version negotiation** (v1.2.2)
+1. ✅ **Protocol version negotiation** (v1.2.1)
    - Files: `src/proxy/client.rs:52-117`, `src/proxy/transport.rs:239-250`
    - Implementation: Intelligent fallback - tries latest, adapts to upstream server
    - Client starts with `2025-06-18`, negotiates to upstream's preferred version
@@ -665,8 +665,8 @@ Consider implementing only if users request:
 
 ## 📝 Audit Methodology
 
-**Audit Date**: January 8, 2026  
-**Auditor**: AI Agent (Sisyphus/Claude)  
+**Audit Date**: January 8, 2026
+**Auditor**: AI Agent (Sisyphus/Claude)
 **Scope**: Complete implementation review against official MCP specification
 
 **Process**:
@@ -681,5 +681,5 @@ Consider implementing only if users request:
 
 ---
 
-**Document Version**: 1.0  
+**Document Version**: 1.0
 **Status**: ✅ Complete
