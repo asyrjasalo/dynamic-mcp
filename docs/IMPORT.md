@@ -1,6 +1,6 @@
 # Import Guide
 
-This guide explains how to import MCP server configurations from AI coding tools and standard MCP configurations into dynamic-mcp format.
+This guide explains how to import MCP server configurations from AI coding tools into dynamic-mcp format.
 
 ## Why Import?
 
@@ -33,27 +33,39 @@ dmcp import --global codex
 dmcp import cursor --force
 ```
 
-### Import from Generic MCP Config
+### Supported Tools
 
-For backward compatibility with generic configs:
+The import command currently supports the following AI coding tools:
 
-```bash
-dmcp import config.json -o dynamic-mcp.json
-```
+| Tool | Tool Name | Config Locations |
+|------|-----------|------------------|
+| **Cursor** | `cursor` | Project: `.cursor/mcp.json`<br>Global: `~/.cursor/mcp.json` |
+| **OpenCode** | `opencode` | Project: `.opencode/mcp.json(c)`<br>Global: `~/.config/opencode/opencode.json(c)` |
+| **Claude Desktop** | `claude-desktop` | Global only (OS-specific paths) |
+| **Claude Code CLI** | `claude` | Project: `.mcp.json`<br>Global: `~/.claude/mcp.json` |
+| **Visual Studio Code** | `vscode` | Project: `.vscode/mcp.json`<br>Global: OS-specific |
+| **Cline** | `cline` | Project: `.cline/mcp.json`<br>Global: VS Code extension settings |
+| **KiloCode** | `kilocode` | Project: `.kilocode/mcp.json`<br>Global: Extension settings |
+| **Codex CLI** | `codex` | Global: `~/.codex/config.toml` (TOML format) |
+| **Gemini CLI** | `gemini` | Project: `.gemini/settings.json`<br>Global: `~/.gemini/settings.json` |
+| **Google Antigravity** | `antigravity` | Global: `~/.gemini/antigravity/mcp_config.json` |
 
-**What it does**:
-- Reads your existing MCP config
+**What the import command does**:
+- Automatically detects the tool's config location
+- Parses the config format (JSON, JSONC, or TOML)
+- Normalizes environment variables to `${VAR}` format
 - Prompts you for a description for each server
-- Transforms config to dynamic-mcp format
 - Preserves all settings (commands, args, env, headers, OAuth)
-- Writes output to specified file
+- Generates `dynamic-mcp.json` in the current directory
 
-**Example session**:
-```
-🔄 Starting import from standard MCP config to dynamic-mcp format
-📖 Reading config from: /Users/you/.config/mcp/config.json
+**Example import session**:
+```bash
+$ dmcp import cursor
 
-✅ Found 3 MCP server(s) to import
+🔄 Starting import from cursor to dynamic-mcp format
+📖 Reading config from: .cursor/mcp.json
+
+✅ Found 2 MCP server(s) to import
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Server: filesystem
@@ -67,22 +79,23 @@ Config details:
 File operations on /tmp directory
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Server: brave-search
-Type: http
+Server: git
+Type: stdio
 
 Config details:
-  url: "https://api.brave.com/mcp"
+  command: "npx"
+  args: ["-y", "@modelcontextprotocol/server-git"]
 
-💬 Enter description for 'brave-search' (what this server does):
-Web search using Brave Search API
-
-...
+💬 Enter description for 'git' (what this server does):
+Git repository operations
 
 ✅ Import complete!
 📝 Output saved to: dynamic-mcp.json
 ```
 
-### Method 2: Manual Import
+## Manual Import
+
+If the import command doesn't support your tool or you prefer manual control:
 
 If you prefer manual control:
 
@@ -420,19 +433,23 @@ After successful import:
 ## Example: Full Import Workflow
 
 ```bash
-# 1. Backup original config
-cp ~/.config/mcp/config.json ~/.config/mcp/config.json.backup
+# 1. Navigate to your project directory
+cd ~/my-project
 
-# 2. Run import
-dmcp import ~/.config/mcp/config.json -o dynamic-mcp.json
+# 2. Run import command for your tool
+dmcp import cursor
 
-# 3. Review importd config
+# When prompted, provide descriptions for each server:
+# 💬 Enter description for 'filesystem': File operations
+# 💬 Enter description for 'git': Git repository operations
+
+# 3. Review imported config
 cat dynamic-mcp.json
 
 # 4. Test the config
 dmcp dynamic-mcp.json
 
-# 5. If successful, update Claude/LLM config to use dmcp
+# 5. If successful, update your MCP client to use dmcp
 # (Replace direct MCP server config with dmcp proxy)
 
 # 6. Restart your LLM client
@@ -627,8 +644,8 @@ GITHUB_TOKEN = "${GITHUB_TOKEN}"
 **Import**:
 ```bash
 # Locate the config file through Antigravity UI
-# Then import using file path:
-dmcp import /path/to/mcp_config.json -o dynamic-mcp.json
+# Then manually create dynamic-mcp.json following the format guide above
+# or use one of the supported tool import commands
 ```
 
 **Finding Config**:
