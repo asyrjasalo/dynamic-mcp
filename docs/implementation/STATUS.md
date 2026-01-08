@@ -45,8 +45,8 @@
 - [x] JSON output with proper formatting
 
 ### Phase 5: Tests & Documentation
-- [x] Comprehensive test suite (82 tests total)
-  - 50 unit tests covering all modules
+- [x] Comprehensive test suite (83 tests total)
+  - 51 unit tests covering all modules
   - 14 integration tests for CLI and workflows
   - 18 import integration tests (core + env var conversion)
 
@@ -149,7 +149,7 @@
 | **Phase** | 8 Complete ✅ |
 | **LOC** | ~4,765 Rust |
 | **Source Files** | 24 Rust files |
-| **Tests** | **82 total** (50 unit + 14 integration + 18 import integration) |
+| **Tests** | **83 total** (51 unit + 14 integration + 18 import integration) |
 | **Test Fixtures** | 26 fixture files (10 tools, all with env vars) |
 | **Test Pass Rate** | 100% ✅ |
 | **Test Coverage** | ~95% |

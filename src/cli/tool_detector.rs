@@ -105,13 +105,7 @@ impl Tool {
                     PathBuf::from(home).join(".config/Code/User/mcp.json")
                 }
             }
-            Tool::Antigravity => {
-                return Err(anyhow!(
-                    "Antigravity uses UI-managed config.\n\
-                    Please manually locate mcp_config.json and specify the path:\n\
-                      dmcp import mcp_config.json"
-                ))
-            }
+            Tool::Antigravity => PathBuf::from(home).join(".gemini/antigravity/mcp_config.json"),
             Tool::Gemini => PathBuf::from(home).join(".gemini/settings.json"),
             Tool::Codex => PathBuf::from(home).join(".codex/config.toml"),
             Tool::Cline => {
@@ -261,5 +255,13 @@ mod tests {
         assert_eq!(Tool::OpenCode.config_format(), ConfigFormat::JsonOrJsonc);
         assert_eq!(Tool::Codex.config_format(), ConfigFormat::Toml);
         assert_eq!(Tool::ClaudeCodeCli.config_format(), ConfigFormat::Json);
+    }
+
+    #[test]
+    fn test_global_config_path_antigravity() {
+        let path = Tool::Antigravity.global_config_path().unwrap();
+        assert!(path
+            .to_string_lossy()
+            .contains(".gemini/antigravity/mcp_config.json"));
     }
 }

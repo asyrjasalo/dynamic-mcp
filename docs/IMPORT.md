@@ -639,21 +639,19 @@ GITHUB_TOKEN = "${GITHUB_TOKEN}"
 ### Google Antigravity
 
 **Config Location**:
-- UI-managed: `mcp_config.json`
+- Global: `~/.gemini/antigravity/mcp_config.json`
 
 **Import**:
 ```bash
-# Locate the config file through Antigravity UI
-# Then manually create dynamic-mcp.json following the format guide above
-# or use one of the supported tool import commands
+# From global config (standard location)
+dmcp import --global antigravity
+
+# Or manually specify path if non-standard location
+dmcp import /path/to/mcp_config.json
 ```
 
-**Finding Config**:
-1. Open Antigravity
-2. Click "..." dropdown in agent panel
-3. Select "Manage MCP Servers"
-4. Click "View raw config"
-5. Note the file location
+**Environment Variables**:
+- Uses system environment (no special conversion needed)
 
 ---
 
