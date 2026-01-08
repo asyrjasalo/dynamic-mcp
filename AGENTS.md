@@ -57,6 +57,10 @@ git clone https://github.com/asyrjasalo/dynamic-mcp.git
 cd dynamic-mcp
 cargo build
 
+# Install pre-commit hooks (recommended)
+pip install pre-commit
+pre-commit install --hook-type pre-commit --hook-type commit-msg
+
 # Run tests
 cargo test
 
@@ -72,6 +76,7 @@ RUST_LOG=debug cargo run -- examples/config.example.json
 2. **Understand the codebase**: Browse module structure in `src/`
 3. **Check existing patterns**: Look at similar implementations before adding new code
 4. **Review tests**: See `tests/` and module tests for examples
+5. **Install pre-commit hooks**: Enforces code quality automatically on commit
 
 ---
 
@@ -127,6 +132,17 @@ RUST_LOG=debug cargo run -- examples/config.example.json
    # If using rust-analyzer
    # Check for warnings/errors in your editor
    ```
+
+7. **Verify pre-commit hooks** (if installed)
+   ```bash
+   pre-commit run --all-files  # Run all hooks manually
+   ```
+
+   Note: Pre-commit hooks run automatically on `git commit` and check:
+   - File quality (merge conflicts, large files, JSON/TOML/YAML syntax)
+   - Shell scripts (shellcheck, shfmt)
+   - Spelling (codespell)
+   - Commit message format (conventional commits via commitizen)
 
 ### 3. Testing Requirements
 
@@ -575,6 +591,7 @@ Update STATUS.md:
 **Required Updates:**
 1. ✅ **CONTRIBUTING.md** - Update build/test commands
 2. ⚠️ **STATUS.md** - Only if affects dependencies count
+3. ⚠️ **AGENTS.md** - If affects development workflow or setup
 
 **Example:**
 ```markdown
@@ -583,6 +600,10 @@ Change: Add Docker development environment
 Update CONTRIBUTING.md:
 - Add Docker setup instructions
 - Document Docker-based testing
+
+Update AGENTS.md (if applicable):
+- Update setup section if affects initial development setup
+- Add Docker-specific workflow notes
 
 Update STATUS.md (if applicable):
 - Update dependencies count if Dockerfile adds build deps
@@ -599,7 +620,7 @@ Update STATUS.md (if applicable):
 | Config schema change | ✅ | ❌ | ❌ | ⚠️ | ❌ | ❌ |
 | Test additions | ❌ | ⚠️ | ❌ | ✅ | ✅ | ❌ |
 | Phase completion | ❌ | ❌ | ✅ | ✅ | ⚠️ | ❌ |
-| Build process change | ❌ | ✅ | ❌ | ⚠️ | ❌ | ❌ |
+| Build process change | ❌ | ✅ | ❌ | ⚠️ | ❌ | ⚠️ |
 | New module | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
 
 Note: DEVELOPMENT.md, STATUS.md, TESTING.md are in docs/implementation/

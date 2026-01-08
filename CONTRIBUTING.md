@@ -30,12 +30,18 @@ Thank you for your interest in contributing to dynamic-mcp! This document provid
    pip install maturin build
    ```
 
-4. **Build the project**
+4. **Install pre-commit hooks** (recommended)
+   ```bash
+   pip install pre-commit
+   pre-commit install --hook-type pre-commit --hook-type commit-msg
+   ```
+
+5. **Build the project**
    ```bash
    cargo build
    ```
 
-5. **Run tests to verify setup**
+6. **Run tests to verify setup**
    ```bash
    cargo test
    ```
@@ -198,9 +204,66 @@ cargo clippy -- -D warnings
 
 ## Commit Guidelines
 
+### Pre-commit Hooks
+
+This project uses [pre-commit](https://pre-commit.com/) to enforce code quality and consistency.
+
+**Installation:**
+```bash
+pip install pre-commit
+pre-commit install --hook-type pre-commit --hook-type commit-msg
+```
+
+**The hooks automatically run on commit and check:**
+
+1. **File Quality Checks** (pre-commit stage)
+   - Merge conflict markers
+   - Large files (prevent accidental commits)
+   - File name conflicts
+   - Executable permissions and shebangs
+   - JSON, TOML, YAML syntax
+   - Symlink integrity
+   - End-of-file fixers
+   - Line ending consistency
+   - Trailing whitespace
+
+2. **Shell Script Checks** (pre-commit stage)
+   - Script must have file extension
+   - `shellcheck` for shell script linting
+   - `shfmt` for shell script formatting
+
+3. **Spelling Checks** (pre-commit stage)
+   - `codespell` catches common typos in code and docs
+
+4. **Commit Message Format** (commit-msg stage)
+   - `commitizen` enforces conventional commits format
+
+**Manual Testing:**
+```bash
+# Test hooks for staged files
+pre-commit run --verbose
+
+# Test hooks for all files
+pre-commit run --all-files --verbose
+
+# Update hook repositories to latest versions
+pre-commit autoupdate
+```
+
+**If a hook fails:**
+- Many hooks auto-fix issues (trailing whitespace, end-of-file, etc.)
+- Review changes with `git diff`
+- Stage fixed files with `git add`
+- Commit again
+
+**Bypassing hooks** (not recommended):
+```bash
+git commit --no-verify
+```
+
 ### Commit Message Format
 
-Use conventional commits format:
+Use conventional commits format (enforced by commitizen hook):
 
 ```
 <type>(<scope>): <subject>
@@ -254,6 +317,7 @@ instead of silently failing.
    cargo fmt -- --check
    cargo clippy -- -D warnings
    cargo test
+   pre-commit run --all-files  # Optional: run pre-commit hooks manually
    ```
 
 4. **Push your branch**
@@ -272,7 +336,8 @@ instead of silently failing.
 - [ ] All tests pass (`cargo test`)
 - [ ] New tests added for new functionality
 - [ ] Documentation updated (if applicable)
-- [ ] Commit messages follow conventions
+- [ ] Commit messages follow conventional commits format
+- [ ] Pre-commit hooks installed and passing
 - [ ] No compiler warnings
 - [ ] `cargo fmt` and `cargo clippy` pass
 
