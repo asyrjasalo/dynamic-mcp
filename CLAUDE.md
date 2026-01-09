@@ -6,52 +6,22 @@
 
 **dynamic-mcp** is an MCP proxy server written in Rust that reduces LLM context overhead by grouping tools from multiple upstream MCP servers and loading tool schemas on-demand.
 
-### What It Does
-- **Problem**: Exposing all MCP servers upfront consumes thousands of tokens with tool schemas
-- **Solution**: Exposes only 2 proxy tools initially, loads tool schemas on-demand per group
+### Quick Summary
+- **Problem**: Exposing all MCP servers upfront consumes thousands of tokens
+- **Solution**: Exposes only 2 proxy tools initially, loads schemas on-demand
 - **Result**: Minimal initial context, full functionality preserved
 
-### Key Features
-- **Transports**: stdio (child processes), HTTP, SSE (server-sent events)
-- **Authentication**: OAuth2 with PKCE, automatic token refresh, RFC 6749 compliant
-- **Reliability**: Automatic retry with exponential backoff, periodic reconnection for failed servers
-- **Live Reload**: Configuration file watching with automatic reconnection
-- **Import**: Interactive command to import from 10 AI coding tools
-- **MCP APIs**: Full proxying support for Tools, Resources, and Prompts APIs
-- **Per-Server Features**: Optional feature flags to disable tools/resources/prompts per server
-- **MCP Compliance**: 98.8% spec-compliant (84/86 requirements), production-ready
-
-### Architecture
-```
-LLM Client → dynamic-mcp → Multiple Upstream MCP Servers
-             (2 proxy tools + full MCP API)
-             ├─ Tools: get_dynamic_tools, call_dynamic_tool
-             ├─ Resources: list, read, templates/list
-             └─ Prompts: list, get
-                    ↓
-             ├─ stdio: Local processes
-             ├─ HTTP: Remote HTTP servers
-             └─ SSE: Server-sent events
-```
-
-See [docs/implementation/ARCHITECTURE.md](docs/implementation/ARCHITECTURE.md) for detailed system design.
-
-### Tech Stack
+### Key Information
+- **Current Version**: 1.3.0
 - **Language**: Rust 1.75+
-- **MCP Protocol**: rmcp v0.12 (official Rust SDK)
-- **Async Runtime**: Tokio
-- **HTTP**: reqwest with streaming
-- **OAuth**: oauth2 crate with PKCE
-- **File Watching**: notify crate
-- **CLI**: clap v4
-- **Testing**: cargo test + integration tests
+- **MCP SDK**: rmcp v0.12
+- **Transports**: stdio, HTTP, SSE
+- **MCP APIs**: Tools, Resources, Prompts (all fully proxied)
 
-### Current Status
-- **Version**: 1.3.0 (Per-Server Feature Flags)
-- **Platforms**: Linux (x86_64, ARM64), macOS (ARM64), Windows (x86_64, ARM64)
-- **Published**: [crates.io](https://crates.io/crates/dynamic-mcp), [PyPI](https://pypi.org/project/dmcp/), [GitHub Releases](https://github.com/asyrjasalo/dynamic-mcp/releases)
-
-See [docs/implementation/STATUS.md](docs/implementation/STATUS.md) for current metrics (LOC, test counts, dependencies).
+**For detailed information, see:**
+- Architecture & Design: [docs/implementation/ARCHITECTURE.md](docs/implementation/ARCHITECTURE.md)
+- Implementation Status: [docs/implementation/STATUS.md](docs/implementation/STATUS.md)
+- Test Coverage: [docs/implementation/TESTING.md](docs/implementation/TESTING.md)
 
 ---
 
@@ -73,10 +43,10 @@ RUST_LOG=debug cargo run -- examples/config.example.json
 ```
 
 ### Before You Start
-1. **Read relevant docs**: Check [ARCHITECTURE.md](docs/implementation/ARCHITECTURE.md) for system design
-2. **Understand the codebase**: Browse module structure in `src/`
+1. **Read relevant docs**: [ARCHITECTURE.md](docs/implementation/ARCHITECTURE.md), [STATUS.md](docs/implementation/STATUS.md), [TESTING.md](docs/implementation/TESTING.md)
+2. **Understand the codebase**: Browse module structure in `src/` (see ARCHITECTURE.md)
 3. **Check existing patterns**: Look at similar implementations before adding new code
-4. **Review tests**: See `tests/` and module tests for examples
+4. **Review tests**: See [TESTING.md](docs/implementation/TESTING.md) for test organization
 
 ### ⚠️ CRITICAL: No Git Commits Without Asking
 
@@ -108,13 +78,9 @@ The project owner will:
 
 **Before writing code:**
 - [ ] Clearly define the feature requirements
-- [ ] Check if it requires changes to:
-  - Configuration schema (`src/config/schema.rs`)
-  - MCP protocol handling (`src/server.rs`)
-  - Transport layer (`src/proxy/transport.rs`)
-  - Authentication (`src/auth/`)
-- [ ] Identify which tests need updating/adding
-- [ ] Plan documentation updates (see Documentation section)
+- [ ] Identify affected modules (see [ARCHITECTURE.md](docs/implementation/ARCHITECTURE.md) for module structure)
+- [ ] Identify which tests need updating/adding (see [TESTING.md](docs/implementation/TESTING.md))
+- [ ] Plan documentation updates (see Documentation Requirements section)
 
 ### 2. Implementation
 
@@ -223,11 +189,8 @@ mod tests {
 ### Running Tests
 
 ```bash
-# All tests (unit + integration)
+# All tests
 cargo test
-
-# Specific module
-cargo test config::
 
 # Specific test
 cargo test test_substitute_env_vars
@@ -235,22 +198,11 @@ cargo test test_substitute_env_vars
 # With output visible
 cargo test -- --nocapture
 
-# Integration tests only
-cargo test --test integration_test
-
 # Single-threaded (for debugging)
 cargo test -- --test-threads=1
 ```
 
-### Test Coverage by Module
-
-| Module | Unit Tests | Integration Tests | What's Tested |
-|--------|-----------|-------------------|---------------|
-| `config/` | ✅ Yes | ✅ CLI | Config parsing, env vars |
-| `auth/` | ✅ Yes | ✅ OAuth flow | OAuth2, token storage |
-| `proxy/` | ✅ Yes | N/A | Transport, group state |
-| `server.rs` | ✅ Yes | N/A | MCP protocol, tool calls |
-| `cli/` | ✅ Yes | ✅ Full | Import command |
+**For test organization, coverage, and detailed commands, see [docs/implementation/TESTING.md](docs/implementation/TESTING.md).**
 
 ### Adding New Tests
 
@@ -258,12 +210,11 @@ cargo test -- --test-threads=1
 1. Place unit tests in same file as implementation (`#[cfg(test)]` module)
 2. Place integration tests in `tests/` directory
 3. Use descriptive test names: `test_<feature>_<scenario>_<expected_result>()`
-4. Clean up test resources (temp files, env vars) in test teardown
-5. Use `#[should_panic]` for tests that verify panics
+4. See [TESTING.md](docs/implementation/TESTING.md) for test structure and examples
 
 **After adding tests:**
 1. Update [docs/implementation/TESTING.md](docs/implementation/TESTING.md) with new test counts
-2. Update [docs/implementation/STATUS.md](docs/implementation/STATUS.md) metrics
+2. Update [docs/implementation/STATUS.md](docs/implementation/STATUS.md) if significant
 
 ---
 
@@ -405,7 +356,7 @@ git push origin main --tags
 ### What NOT to Update
 
 **Do NOT modify:**
-- **Historical documentation** (PHASE*_COMPLETE.md, PLAN.md, RESEARCH.md)
+- **Historical documentation** (`docs/history` such as RELEASE_v1.0.0.md, PLAN.md, RESEARCH.md)
 - **Previous release entries in CHANGELOG.md** - Only add new releases at the top, never modify historical entries
 
 These are historical records and should remain unchanged.
@@ -461,9 +412,9 @@ When updating one doc, check if related docs need updates. For example:
 - New module → docs/implementation/ARCHITECTURE.md structure + STATUS.md module list
 
 ### 2. Use Consistent Terminology
-- **Transport**: stdio, HTTP, SSE, WebSocket
-- **Module**: config, proxy, server, cli, auth
-- **Tool**: get_dynamic_tools, call_dynamic_tool
+- **Transport**: stdio, HTTP, SSE
+- **Module**: config, proxy, server, cli, auth, watcher
+- **Proxy Tool**: get_dynamic_tools, call_dynamic_tool
 
 ### 3. Update Timestamps
 Add "Last Updated: [Date]" when making significant updates to:
@@ -482,19 +433,15 @@ When updating README.md or IMPORT.md:
 - LOC should match actual source code
 - Feature lists should reflect implemented code, not planned features
 
-## 📊 Current Project State (Reference)
-
-**Modules**: config, proxy, server, cli, auth, watcher
-**Transports**: stdio, HTTP, SSE
-**MCP APIs**: Tools, Resources, Prompts
-**Key Features**: OAuth2, Live Reload, Import (10 tools), Feature Flags, CI/CD
+## 📊 Documentation Reference
 
 **Where to find details:**
-- Implemented features → **docs/implementation/STATUS.md**
-- Test coverage → **docs/implementation/TESTING.md**
-- Architecture → **docs/implementation/ARCHITECTURE.md**
-- User guide → **README.md**
-- Development setup → **CONTRIBUTING.md**
+- **System design & architecture** → [docs/implementation/ARCHITECTURE.md](docs/implementation/ARCHITECTURE.md)
+- **Implementation status & metrics** → [docs/implementation/STATUS.md](docs/implementation/STATUS.md)
+- **Test organization & coverage** → [docs/implementation/TESTING.md](docs/implementation/TESTING.md)
+- **MCP spec compliance** → [docs/implementation/MCP_SPEC_COMPLIANCE.md](docs/implementation/MCP_SPEC_COMPLIANCE.md)
+- **User guide** → [README.md](README.md)
+- **Development setup** → [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ---
 
