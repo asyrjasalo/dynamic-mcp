@@ -13,8 +13,47 @@ pub async fn load_config(path: &str) -> Result<ServerConfig> {
         .await
         .with_context(|| format!("Failed to read config file: {:?}", absolute_path))?;
 
-    let mut config: ServerConfig = serde_json::from_str(&content)
-        .with_context(|| format!("Invalid JSON in config file: {:?}", absolute_path))?;
+    let mut config: ServerConfig = serde_json::from_str(&content).map_err(|e| {
+        let error_msg = e.to_string();
+        if error_msg.contains("missing field") && error_msg.contains("description") {
+            anyhow::anyhow!(
+                "❌ Configuration Error: Server missing 'description' field\n\n\
+                     All MCP servers in your config must have a 'description' field.\n\
+                     The 'description' explains what the server does to the LLM.\n\n\
+                     Example:\n  \
+                     {{\n    \
+                     \"description\": \"File system access for reading and writing files\",\n    \
+                     \"command\": \"npx\",\n    \
+                     \"args\": [\"@modelcontextprotocol/server-filesystem\"]\n  \
+                     }}\n\n\
+                     Error details: {}",
+                error_msg
+            )
+        } else if error_msg.contains("missing field") {
+            let field = if let Some(start) = error_msg.find("`") {
+                if let Some(end) = error_msg[start + 1..].find("`") {
+                    error_msg[start + 1..start + 1 + end].to_string()
+                } else {
+                    "unknown".to_string()
+                }
+            } else {
+                "unknown".to_string()
+            };
+            anyhow::anyhow!(
+                "❌ Configuration Error: Missing required field '{}'.\n\n\
+                     Check your config file for incomplete server definitions.\n\n\
+                     Error details: {}",
+                field,
+                error_msg
+            )
+        } else {
+            anyhow::anyhow!(
+                "❌ Configuration Error: Invalid config format\n\n\
+                     Error details: {}",
+                error_msg
+            )
+        }
+    })?;
 
     config.mcp_servers = config
         .mcp_servers
@@ -108,7 +147,8 @@ mod tests {
 
         let result = load_config(temp_file.path().to_str().unwrap()).await;
         assert!(result.is_err());
-        assert!(result.unwrap_err().to_string().contains("Invalid JSON"));
+        let error_msg = result.unwrap_err().to_string();
+        assert!(error_msg.contains("Configuration Error") || error_msg.contains("Invalid"));
     }
 
     #[tokio::test]
@@ -224,5 +264,73 @@ mod tests {
         assert!(config.mcp_servers.contains_key("stdio_server"));
         assert!(config.mcp_servers.contains_key("http_server"));
         assert!(config.mcp_servers.contains_key("sse_server"));
+    }
+
+    #[tokio::test]
+    async fn test_load_server_missing_description() {
+        let mut temp_file = NamedTempFile::new().unwrap();
+        let config_json = r#"{
+            "mcpServers": {
+                "test": {
+                    "type": "stdio",
+                    "command": "node"
+                }
+            }
+        }"#;
+        temp_file.write_all(config_json.as_bytes()).unwrap();
+        temp_file.flush().unwrap();
+
+        let result = load_config(temp_file.path().to_str().unwrap()).await;
+        assert!(result.is_err());
+    }
+
+    #[tokio::test]
+    async fn test_load_multiple_servers_one_missing_description() {
+        let mut temp_file = NamedTempFile::new().unwrap();
+        let config_json = r#"{
+            "mcpServers": {
+                "server1": {
+                    "type": "stdio",
+                    "description": "Server 1",
+                    "command": "node"
+                },
+                "server2": {
+                    "type": "stdio",
+                    "command": "node"
+                },
+                "server3": {
+                    "type": "http",
+                    "description": "Server 3",
+                    "url": "https://api.example.com"
+                }
+            }
+        }"#;
+        temp_file.write_all(config_json.as_bytes()).unwrap();
+        temp_file.flush().unwrap();
+
+        let result = load_config(temp_file.path().to_str().unwrap()).await;
+        assert!(result.is_err());
+    }
+
+    #[tokio::test]
+    async fn test_load_multiple_servers_multiple_missing_descriptions() {
+        let mut temp_file = NamedTempFile::new().unwrap();
+        let config_json = r#"{
+            "mcpServers": {
+                "server1": {
+                    "type": "stdio",
+                    "command": "node"
+                },
+                "server2": {
+                    "type": "http",
+                    "url": "https://api.example.com"
+                }
+            }
+        }"#;
+        temp_file.write_all(config_json.as_bytes()).unwrap();
+        temp_file.flush().unwrap();
+
+        let result = load_config(temp_file.path().to_str().unwrap()).await;
+        assert!(result.is_err());
     }
 }

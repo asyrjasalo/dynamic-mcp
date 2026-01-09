@@ -112,6 +112,9 @@ async fn run_server(config_path: String, config_source: &str) -> Result<()> {
 
     let client = Arc::new(RwLock::new(ModularMcpClient::new()));
 
+    // Validate initial config
+    config::load_config(&config_path).await?;
+
     // Initial load - spawn in background to avoid blocking stdio
     let client_init = client.clone();
     let config_path_init = config_path.clone();

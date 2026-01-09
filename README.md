@@ -309,6 +309,21 @@ uvx dmcp config.json
 
 ### Configuration Errors
 
+**Problem**: `Server missing 'description' field`
+
+**Solutions**:
+
+- Every MCP server in your config must have a `description` field
+- The description explains what the server does to the LLM
+- Example:
+  ```json
+  {
+    "description": "File system access - read, write, and search files",
+    "command": "npx",
+    "args": ["@modelcontextprotocol/server-filesystem"]
+  }
+  ```
+
 **Problem**: `Invalid JSON in config file`
 
 **Solutions**:
