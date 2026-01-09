@@ -240,7 +240,7 @@ fn test_resource_templates_structure() {
 /// Tests: file://, https://, git://, custom schemes
 #[test]
 fn test_multiple_resource_uri_schemes() {
-    let resources = vec![
+    let resources = [
         json!({"uri": "file:///local/path", "name": "Local File", "size": 1024}),
         json!({"uri": "https://example.com/resource", "name": "Web Resource", "size": 2048}),
         json!({"uri": "git://example.com/repo/blob/main/file", "name": "Git File", "size": 512}),
