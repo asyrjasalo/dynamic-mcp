@@ -1,8 +1,8 @@
 # Current Implementation Status
 
 > **Last Updated**: January 9, 2026
-> **Current Phase**: Phase 10 Complete ✅ (Per-Server Feature Flags)
-> **Version**: 1.3.0 (Per-Server Feature Flags)
+> **Version**: 1.3.0
+> **Status**: Production-Ready ✅
 
 ## 🔍 MCP Specification Compliance
 
@@ -29,209 +29,202 @@
 
 See [MCP_SPEC_COMPLIANCE.md](MCP_SPEC_COMPLIANCE.md) for detailed compliance audit.
 
-## ✅ Completed Features
+## ✅ Implemented Features
 
-### Phase 1: Core Proxy with stdio Transport
-- [x] Project structure and build system
-- [x] Configuration schema with JSON support
-- [x] Environment variable substitution (`${VAR}` syntax)
-- [x] MCP server with JSON-RPC 2.0 protocol
-- [x] Stdio transport for upstream servers
-- [x] Two-tool API (get_dynamic_tools, call_dynamic_tool)
+### Core Functionality
+
+#### MCP Server & Protocol
+- [x] JSON-RPC 2.0 protocol implementation
+- [x] Two-tool proxy API (get_dynamic_tools, call_dynamic_tool)
+- [x] On-demand tool schema loading
 - [x] Parallel upstream server connections
 - [x] Error handling and graceful degradation
-- [x] **Automatic retry with exponential backoff** for failed connections
-- [x] Integration tests
-- [x] **Live reload** - Configuration file watching with automatic reconnection
+- [x] Automatic retry with exponential backoff for failed connections
 
-### Phase 2: HTTP/SSE Transport Support
-- [x] HTTP transport using rmcp StreamableHttpClientTransport
-- [x] SSE transport using rmcp StreamableHttpClientTransport
-- [x] Unified Transport enum (stdio, HTTP, SSE)
-- [x] Native Rust implementation (no npx/mcp-remote dependency)
-- [x] Header support for HTTP/SSE (Authorization, custom headers)
-- [x] Async request/response handling for all transport types
+#### Configuration System
+- [x] JSON configuration schema
+- [x] Environment variable substitution (`${VAR}` syntax)
+- [x] Per-server feature flags (tools, resources, prompts)
+- [x] Live reload - Configuration file watching with automatic reconnection
+- [x] Multi-format config parsing (JSON, JSONC, TOML)
 
-### Phase 3: OAuth Authentication
-- [x] OAuth2 authentication with PKCE flow
+### Transport Layer
+
+#### Supported Transports
+- [x] **stdio transport** - Local child processes
+  - Process group management (Unix)
+  - Clean termination with SIGTERM
+- [x] **HTTP transport** - Remote HTTP servers
+  - rmcp StreamableHttpClientTransport
+  - Custom headers support
+  - Native Rust implementation
+- [x] **SSE transport** - Server-sent events
+  - rmcp StreamableHttpClientTransport
+  - Stream resumption with Last-Event-ID tracking
+  - Automatic reconnection
+
+#### Transport Features
+- [x] Unified Transport enum
+- [x] Async request/response handling
+- [x] Header support (Authorization, custom headers)
+- [x] MCP-Protocol-Version header
+- [x] MCP-Session-Id header with UUID generation
+
+### Authentication
+
+#### OAuth2 Support
+- [x] OAuth2 with PKCE flow
 - [x] Automatic token discovery via `/.well-known/oauth-authorization-server`
 - [x] Secure token storage in `~/.dynamic-mcp/oauth-servers/`
 - [x] Automatic token refresh before expiry
-- [x] **OAuth refresh token rotation** (RFC 6749 compliant)
+- [x] OAuth refresh token rotation (RFC 6749 compliant)
 - [x] Browser-based authorization flow
 - [x] Token injection into HTTP/SSE transport headers
-- [x] Support for custom OAuth scopes
+- [x] Custom OAuth scopes support
+- [x] OAuth 2.1 `resource` parameter
 
-### Phase 4: Import Command
-- [x] `dynamic-mcp import` subcommand
+### MCP APIs
+
+#### Tools API
+- [x] `tools/list` - Return proxy tools
+- [x] `tools/call` - Execute get_dynamic_tools or call_dynamic_tool
+- [x] Tool caching for performance
+- [x] Group-based tool organization
+- [x] Per-server tools feature flag
+
+#### Resources API
+- [x] `resources/list` - Discover available resources
+- [x] `resources/read` - Retrieve resource content (text/binary)
+- [x] `resources/templates/list` - URI templates (RFC 6570)
+- [x] Cursor-based pagination support
+- [x] Resource annotations (audience, priority, lastModified)
+- [x] Resource size field for context window estimation
+- [x] 10s timeout per operation
+- [x] Per-server resources feature flag
+
+#### Prompts API
+- [x] `prompts/list` - Discover available prompts
+- [x] `prompts/get` - Retrieve prompt templates
+- [x] Prompt metadata (name, description, arguments)
+- [x] Multi-modal content (text, image, audio, embedded resources)
+- [x] Argument substitution in templates
+- [x] Cursor-based pagination support
+- [x] 10s timeout per operation
+- [x] Per-server prompts feature flag
+
+### CLI & Import
+
+#### Commands
+- [x] `dmcp <config.json>` - Start server with config
+- [x] `dmcp import <tool-name>` - Import from AI coding tools
+- [x] `--global` flag for user-level configs
+- [x] `--force` flag to skip overwrite prompts
+- [x] `--version` flag
+- [x] `--help` flag
+
+#### Import Support (10 AI Coding Tools)
+- [x] Cursor
+- [x] OpenCode
+- [x] Claude Desktop
+- [x] Claude Code CLI
+- [x] VS Code
+- [x] Cline
+- [x] KiloCode
+- [x] Codex CLI
+- [x] Gemini CLI
+- [x] Google Antigravity
+
+#### Import Features
 - [x] Interactive description prompts for each server
-- [x] Config import from AI coding tools to dynamic-mcp format
+- [x] Interactive feature selection (tools, resources, prompts)
+- [x] Config format detection (JSON/JSONC/TOML)
+- [x] Environment variable normalization across tool formats
+  - `${env:VAR}` → `${VAR}` (Cursor, VS Code, Cline)
+  - `${VAR}` passthrough (Claude Desktop, Claude CLI, Codex)
+  - System env `${VAR}` passthrough (OpenCode, Antigravity, Gemini, KiloCode)
 - [x] Preserves all server settings (command, args, env, headers, OAuth)
 - [x] JSON output with proper formatting
+- [x] Backward compatibility with file-path import
+- [x] Path resolution (project-level and global configs)
+- [x] Comprehensive error messages
 
-### Phase 5: Tests & Documentation
-- [x] Comprehensive test suite with full coverage
-  - Unit tests for all core modules (Config, Auth, Server, Transport, Proxy)
-  - Integration tests for CLI commands and end-to-end workflows
-  - Import integration tests covering all 10 supported tools and env var conversions
-  - Resources API tests covering list/read operations and error cases
+### Testing & Quality
 
-### Phase 6: Production Release
-- [x] Comprehensive test suite for all core modules
-- [x] **Performance benchmarking suite**
+#### Test Infrastructure
+- [x] Unit tests for all core modules
+- [x] Integration tests for CLI and end-to-end workflows
+- [x] Import integration tests (all 10 tools)
+- [x] Resources API tests (list, read, templates/list)
+- [x] Prompts API tests (list, get)
+- [x] Environment variable conversion tests
+- [x] Feature selection tests
+- [x] 26 test fixture files
+- See [TESTING.md](TESTING.md) for detailed test counts and coverage
+
+#### Performance
+- [x] Performance benchmarking suite
   - Environment variable substitution benchmarks
   - JSON parsing performance tests
   - Tool list caching performance
   - Parallel connection simulation
-- [x] Complete documentation
-  - Module-level Rust documentation (cargo doc)
-  - Architecture documentation with diagrams
-  - Import guide with examples
-  - Troubleshooting guide
-  - Enhanced README with practical examples
-- [x] **CI/CD Pipeline** (GitHub Actions)
-  - Automated testing on push/PR
-  - Linting and formatting checks
-  - Cross-platform builds with caching
-- [x] **Cross-platform Builds**
-  - Linux (glibc + musl)
-  - macOS (Intel + Apple Silicon)
-  - Windows (MSVC)
-- [x] **Build Optimization**
-  - Release profile tuned (LTO, strip symbols)
-  - Binary size reduction (~40-50%)
-- [x] **Security Audit**
-  - OAuth2 implementation review
-  - Token storage security analysis
-  - SECURITY.md documentation
-  - Best practices guide
-- [x] **Package Metadata**
-  - Version 1.0.0
-  - crates.io metadata complete
-  - Documentation links configured
-  - Package exclusions set
 
-### Phase 7: Python Package Distribution
-- [x] Python package (`dmcp`) with maturin
-- [x] Maturin bin bindings for direct binary packaging
-- [x] PyPI publication workflow with trusted publishing
-- [x] `uvx` / `pipx` support
-- [x] Cross-platform wheel builds (Linux, macOS, Windows)
-- [x] GitHub Actions integration for automated PyPI releases
-- [x] Binary renamed to `dmcp` for consistency
-- [x] Updated documentation (README.md, STATUS.md)
+#### Code Quality
+- [x] Comprehensive Rust documentation (cargo doc)
+- [x] All public APIs documented with examples
+- [x] Linting with clippy
+- [x] Code formatting with rustfmt
 
-### Phase 8: Multi-Tool Import Support
-- [x] **Tool Detection Module** - Support for 9 AI coding tools
-  - Cursor, OpenCode, Claude Desktop, VS Code
-  - Cline, KiloCode, Codex CLI, Gemini CLI, Antigravity
-- [x] **Config Parser Module** - Multi-format parsing
-  - JSON parser with tool-specific schema handling
-  - JSONC parser with auto-fallback to JSON (OpenCode support)
-  - TOML parser for Codex CLI
-  - Smart file extension detection for OpenCode (.json or .jsonc)
-- [x] **Environment Variable Normalization** (Comprehensive test coverage)
-  - `${env:VAR}` → `${VAR}` (Cursor, VS Code, Cline) - **3 tools tested**
-  - `${VAR}` passthrough (Claude Desktop, Claude CLI, Codex) - **3 tools tested**
-  - System env `${VAR}` passthrough (OpenCode, Antigravity, Gemini, KiloCode) - **4 tools tested**
-  - **Normalization applies to**: `env` and `headers` maps only (not `args` by design)
-  - **All 10 tools have env var test fixtures**
+### Build & Distribution
 
-### Phase 9: Resources API Support
-- [x] **Resource Type Definitions**
-  - Resource, ResourceContent, ResourceAnnotations, ResourceIcon types
-  - Full serialization/deserialization with optional field handling
-  - 6 unit tests for type serialization
-- [x] **Client-Side Resource Proxying**
-  - `proxy_resources_list()` with cursor-based pagination support
-  - `proxy_resources_read()` for text and binary content
-  - Timeout handling (10s per operation)
-  - Group-based routing with error propagation
-- [x] **Server-Side Request Handling**
-  - `handle_resources_list()` request handler
-  - `handle_resources_read()` request handler
-  - Updated `initialize` response with resources capability
-  - Parameter validation with proper error codes (-32602, -32603)
-- [x] **Comprehensive Test Coverage**
-  - 9 new unit tests for Resources API functionality
-  - Test parameter validation, error handling, group routing
-  - Test capability advertisement in initialize response
-- [x] **Enhanced CLI Interface**
-  - `dmcp import <tool-name>` for tool-based import
-  - `--global` flag for user-level configs
-  - `--force` flag to skip overwrite prompts
-  - Backward compatibility with file-path import
-- [x] **Path Resolution**
-  - Project-level config detection per tool
-  - Global config paths (OS-aware for Claude Desktop)
-  - Config format detection (JSON/JSONC/TOML)
-- [x] **Comprehensive Error Messages**
-  - Unknown tool error with supported list
-  - Config not found with expected path
-  - Invalid config format with specific issues
-  - Override confirmation prompts
-- [x] **Test Fixtures** - 26 fixture files for 10 tools
-  - Project and global configs
-  - Invalid configs for error testing
-  - Real-world examples from each tool
-- [x] **Documentation**
-  - README.md updated with tool-specific examples
-  - IMPORT.md with detailed tool guides
-  - Tool-specific environment variable patterns
-  - Manual import steps for edge cases
-- [x] **Test Coverage**
-  - 14 new unit tests (config parser, tool detector)
-  - 5 new integration tests (fixture validation)
-   - **18 end-to-end import workflow tests**
-     - 10 core import tests (success paths, error handling, interactive prompts)
-     - 8 environment variable conversion tests (all tool patterns covered)
-   - Prompts API integration tests (14 tests)
-   - Resources API integration tests (9 tests)
-   - All 164 tests passing (92 unit + 3 everything server + 18 import + 14 CLI + 14 prompts + 9 resources)
+#### CI/CD
+- [x] GitHub Actions pipeline
+- [x] Automated testing on push/PR
+- [x] Linting and formatting checks
+- [x] Cross-platform builds with caching
 
-### Phase 10: Per-Server Feature Flags
-- [x] **Feature Configuration Schema**
-  - `Features` struct with opt-out design (all enabled by default)
-  - Per-server `features` field (optional in config)
-  - Support for `tools`, `resources`, and `prompts` flags
-  - Serde defaults ensure backward compatibility
-- [x] **Runtime Feature Enforcement**
-  - Feature checking in proxy client methods
-  - `proxy_resources_list()`, `proxy_resources_read()`, `proxy_resources_templates_list()` respect `resources` flag
-  - `proxy_prompts_list()`, `proxy_prompts_get()` respect `prompts` flag
-  - Tools loading skipped if `tools: false` during connection
-  - Clear error messages when disabled features are accessed
-- [x] **Config Schema Updates**
-  - Added `features` field to all transport types (Stdio, Http, Sse)
-  - Updated deserializer to handle optional features with defaults
-  - Updated env var substitution to preserve features
-  - `features()` accessor method on McpServerConfig
-- [x] **Interactive Feature Selection in Import**
-  - `prompt_for_features()` - Asks user if they want to keep all features (default Y)
-  - If user chooses to customize, prompts for each feature individually (tools, resources, prompts)
-  - `prompt_yes_no()` helper for individual feature prompts
-  - `apply_features_to_config()` updates imported config with selected features
-  - All import tests updated to provide feature selection input
-- [x] **Test Coverage**
-  - 9 unit tests for Features struct and config parsing
-  - 5 integration tests for config file validation
-  - 2 new import integration tests for feature selection (custom + default)
-  - All 242 tests pass (121 unit + 20 import + 5 CLI + 9 features + 28 prompts + 28 resources + 11 everything + 15 tools)
-- [x] **Documentation**
-  - README.md updated with feature flags section and examples
-  - README.md import section updated with feature selection workflow
-  - Behavior clearly documented (opt-out design, error on access, interactive prompts)
+#### Binary Releases (5 Platforms)
+- [x] Linux x86_64 (`x86_64-unknown-linux-gnu`)
+- [x] Linux ARM64 (`aarch64-unknown-linux-gnu`)
+- [x] macOS ARM64 (`aarch64-apple-darwin`)
+- [x] Windows x86_64 (`x86_64-pc-windows-msvc`)
+- [x] Windows ARM64 (`aarch64-pc-windows-msvc`)
+
+#### Build Optimization
+- [x] Release profile tuned (LTO, strip symbols)
+- [x] Binary size reduction (~40-50%)
+
+#### Package Distribution
+- [x] **crates.io** - Rust package (`dynamic-mcp`)
+- [x] **PyPI** - Python package (`dmcp`)
+  - Maturin bin bindings
+  - Cross-platform wheel builds (5 platforms)
+  - `uvx` / `pipx` support
+  - Trusted publishing workflow
+- [x] **GitHub Releases** - Binary downloads + wheels
+
+### Documentation
+
+#### User Documentation
+- [x] README.md with quick start guide
+- [x] IMPORT.md with tool-specific import guides
+- [x] CONTRIBUTING.md with development setup
+- [x] SECURITY.md with OAuth token storage details
+
+#### Technical Documentation
+- [x] ARCHITECTURE.md with system design and data flows
+- [x] Module-level Rust documentation
+- [x] API documentation (docs.rs)
+- [x] MCP_SPEC_COMPLIANCE.md with compliance audit
+- [x] TESTING.md with test organization
+- [x] STATUS.md (this file)
 
 ## 📊 Project Metrics
 
 | Metric | Value |
 |--------|-------|
 | **Version** | 1.3.0 |
-| **Phase** | 10 Complete ✅ (Per-Server Feature Flags with Import Support) |
 | **LOC** | ~5,200 Rust |
 | **Source Files** | 24 Rust files |
-| **Tests** | **242 total** (121 unit + 20 import + 5 CLI + 9 features + 28 prompts + 28 resources + 11 everything + 15 tools) |
-| **Test Pass Rate** | 100% ✅ |
 | **Test Fixtures** | 26 fixture files (10 tools, all with env vars) |
 | **Dependencies** | 53 direct crates |
 | **Modules** | config, proxy, server, cli, auth, watcher |
@@ -243,6 +236,8 @@ See [MCP_SPEC_COMPLIANCE.md](MCP_SPEC_COMPLIANCE.md) for detailed compliance aud
 | **Python Wheels** | 5 platforms (maturin-built via GitHub Actions) |
 | **CI/CD** | GitHub Actions (test, lint, build, release, PyPI publish) |
 | **Published** | crates.io (dynamic-mcp), PyPI (dmcp), GitHub Releases |
+
+**Test Coverage**: See [TESTING.md](TESTING.md) for detailed test counts and coverage.
 
 ## 🏗️ Implementation Details
 
@@ -292,19 +287,16 @@ src/
 ```bash
 # Run all tests
 cargo test
-
-# Results:
-# - 37 unit tests (auth, config, proxy, server)
-# - 9 integration tests (CLI, OAuth flow, import)
-# - 100% pass rate
 ```
+
+**See [TESTING.md](TESTING.md) for detailed test coverage, counts, and organization.**
 
 ## 🎯 Release Information
 
-### Publication Status (v1.0.0) ✅
+### Publication Status (v1.3.0) ✅
 - [x] Published to crates.io: https://crates.io/crates/dynamic-mcp
 - [x] Published to PyPI: https://pypi.org/project/dmcp/
-- [x] GitHub release created: https://github.com/asyrjasalo/dynamic-mcp/releases/tag/v1.0.0
+- [x] GitHub release created: https://github.com/asyrjasalo/dynamic-mcp/releases
 - [x] Binary releases available for download (5 platforms)
 - [x] Python wheels available (5 platforms)
 
@@ -334,13 +326,6 @@ cargo test
 - ❌ **macOS Intel** (`x86_64-apple-darwin`) - Not supported
   - Intel Mac users must build from source with `cargo install dynamic-mcp`
 
-### Potential Future Enhancements
-- [ ] WebSocket transport support
-- [ ] Configuration validation command
-- [ ] Health check endpoint
-- [ ] Metrics/observability
-- [ ] Plugin system for custom transports
-
 ## 📝 Known Limitations
 
 ### Runtime Limitations
@@ -350,8 +335,7 @@ cargo test
 - **No Sandboxing**: Child processes run with full privileges
 
 ### Platform Binary Availability
-- **macOS Intel**: Not supported
-  - Intel Mac users must build from source with `cargo install dynamic-mcp`
+- **macOS Intel**: Not supported - Intel Mac users must build from source with `cargo install dynamic-mcp`
 
 ## 🔍 Code Quality
 
@@ -370,4 +354,4 @@ All public APIs have doc comments with examples.
 
 ---
 
-**Status**: ✅ Phase 8 Complete | Multi-Tool Import Support v1.2.0
+**Status**: ✅ Production-Ready | v1.3.0

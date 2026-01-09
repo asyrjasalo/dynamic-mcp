@@ -1,6 +1,6 @@
 # Architecture
 
-Dynamic-MCP is a proxy server that reduces LLM context overhead by grouping tools from multiple upstream MCP servers and loading schemas on-demand.
+Dynamic-MCP is a proxy server that reduces LLM context overhead by grouping tools from multiple upstream MCP servers and loading schemas on-demand. It provides full MCP API proxying for Tools, Resources, and Prompts.
 
 ## Project Structure
 
@@ -30,17 +30,30 @@ dynamic-mcp/
 ┌─────────────────────────────────────────────────────────────┐
 │                         LLM Client                          │
 │                  (Claude, ChatGPT, etc.)                    │
-└──────────────────────┬──────────────────────────────────────┘
-                       │ JSON-RPC 2.0
-                       │ (stdio)
+└──────────────────────┬────────────────────────────────────┘
+                       │ JSON-RPC 2.0 (stdio)
+                       │ MCP Protocol
                        ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                    Dynamic-MCP Server                       │
 │  ┌──────────────────────────────────────────────────────┐  │
 │  │              MCP Server (src/server.rs)              │  │
-│  │  Exposes 2 tools:                                    │  │
-│  │  - get_dynamic_tools  (list tools in a group)        │  │
-│  │  - call_dynamic_tool  (execute a tool)               │  │
+│  │  ┌────────────────────────────────────────────────┐  │  │
+│  │  │ Tools API (2 proxy tools):                     │  │  │
+│  │  │ - get_dynamic_tools  (list tools in a group)   │  │  │
+│  │  │ - call_dynamic_tool  (execute a tool)          │  │  │
+│  │  └────────────────────────────────────────────────┘  │  │
+│  │  ┌────────────────────────────────────────────────┐  │  │
+│  │  │ Resources API (proxied):                       │  │  │
+│  │  │ - resources/list     (discover resources)      │  │  │
+│  │  │ - resources/read     (retrieve content)        │  │  │
+│  │  │ - resources/templates/list (URI templates)     │  │  │
+│  │  └────────────────────────────────────────────────┘  │  │
+│  │  ┌────────────────────────────────────────────────┐  │  │
+│  │  │ Prompts API (proxied):                         │  │  │
+│  │  │ - prompts/list       (discover prompts)        │  │  │
+│  │  │ - prompts/get        (retrieve prompt)         │  │  │
+│  │  └────────────────────────────────────────────────┘  │  │
 │  └──────────────────┬───────────────────────────────────┘  │
 │                     │                                       │
 │  ┌──────────────────▼───────────────────────────────────┐  │
@@ -48,6 +61,10 @@ dynamic-mcp/
 │  │  Manages group state:                                │  │
 │  │  - GroupState::Connected (name, tools, transport)    │  │
 │  │  - GroupState::Failed    (name, error)               │  │
+│  │  Proxy methods:                                      │  │
+│  │  - proxy_resources_list/read/templates_list()        │  │
+│  │  - proxy_prompts_list/get()                          │  │
+│  │  Feature flags enforcement per server                │  │
 │  └──────────────────┬───────────────────────────────────┘  │
 │                     │                                       │
 │  ┌──────────────────▼───────────────────────────────────┐  │
@@ -55,7 +72,7 @@ dynamic-mcp/
 │  │  Creates appropriate transport for each group:       │  │
 │  │  - StdioTransport    (child process)                 │  │
 │  │  - HttpTransport     (rmcp HTTP client)              │  │
-│  │  - SseTransport      (rmcp SSE client)               │  │
+│  │  - SseTransport      (rmcp SSE client with resumption)│ │
 │  └──────────────────┬───────────────────────────────────┘  │
 └────────────────────┬┼┬────────────────────────────────────┘
                      │││
@@ -66,8 +83,48 @@ dynamic-mcp/
 │   Upstream   │ │   Upstream   │ │   Upstream   │
 │ MCP Server 1 │ │ MCP Server 2 │ │ MCP Server 3 │
 │   (stdio)    │ │    (HTTP)    │ │    (SSE)     │
+│ Tools/Res/   │ │ Tools/Res/   │ │ Tools/Res/   │
+│ Prompts      │ │ Prompts      │ │ Prompts      │
 └──────────────┘ └──────────────┘ └──────────────┘
 ```
+
+## MCP API Support
+
+Dynamic-MCP provides full proxying support for all three MCP APIs:
+
+### Tools API
+- **Purpose**: Execute actions and commands
+- **Proxy Tools**: `get_dynamic_tools`, `call_dynamic_tool`
+- **On-demand loading**: Tool schemas loaded per group, reducing initial context
+- **Caching**: Tools cached after first fetch for performance
+
+### Resources API
+- **Purpose**: Access files, documents, and data sources
+- **Endpoints**: `resources/list`, `resources/read`, `resources/templates/list`
+- **Features**:
+  - Cursor-based pagination for large resource lists
+  - Text and binary content support
+  - Resource annotations (audience, priority, lastModified)
+  - URI templates (RFC 6570) for dynamic resource URIs
+  - Resource size field for context window estimation
+- **Timeout**: 10s per operation
+
+### Prompts API
+- **Purpose**: Discover and retrieve prompt templates
+- **Endpoints**: `prompts/list`, `prompts/get`
+- **Features**:
+  - Prompt metadata (name, description, arguments)
+  - Multi-modal content (text, image, audio, embedded resources)
+  - Argument substitution in prompt templates
+  - Cursor-based pagination for prompt lists
+- **Timeout**: 10s per operation
+
+### Per-Server Feature Flags
+- **Configuration**: Optional `features` field per server
+- **Flags**: `tools`, `resources`, `prompts` (all default to `true`)
+- **Opt-out design**: All APIs enabled unless explicitly disabled
+- **Runtime enforcement**: Clear error messages when disabled features are accessed
+- **Use case**: Disable unsupported APIs for specific servers
 
 ## Key Components
 
@@ -148,9 +205,9 @@ config.json → load_config() → substitute_env_vars() → ServerConfig
 
 ### 5. MCP Server (`src/server.rs`)
 
-**Purpose**: Expose two-tool API to LLM clients
+**Purpose**: Expose two-tool API and proxy full MCP protocol to LLM clients
 
-**Tools**:
+**Tools API (2 proxy tools)**:
 
 1. **`get_dynamic_tools`**
    - Input: `{ "group": "group_name" }`
@@ -162,10 +219,27 @@ config.json → load_config() → substitute_env_vars() → ServerConfig
    - Output: Tool execution result
    - Purpose: Proxy calls to upstream servers
 
+**Resources API (proxied)**:
+- `resources/list`: Discover available resources from upstream servers
+- `resources/read`: Retrieve resource content (text/binary)
+- `resources/templates/list`: List resource URI templates (RFC 6570)
+
+**Prompts API (proxied)**:
+- `prompts/list`: Discover available prompts with metadata
+- `prompts/get`: Retrieve prompt template with argument substitution
+
 **JSON-RPC Methods**:
-- `initialize`: Handshake with client
+- `initialize`: Handshake with client (advertises tools/resources/prompts capabilities)
+- `initialized`: Notification sent after initialize (MCP spec compliance)
 - `tools/list`: Return the two proxy tools
 - `tools/call`: Execute get_dynamic_tools or call_dynamic_tool
+- `resources/list`, `resources/read`, `resources/templates/list`: Proxy to upstream
+- `prompts/list`, `prompts/get`: Proxy to upstream
+
+**Feature Flags**:
+- Per-server `features` config field (tools, resources, prompts)
+- Opt-out design: All features enabled by default
+- Runtime enforcement with clear error messages
 
 ### 6. CLI & Import (`src/cli/`)
 
@@ -254,6 +328,68 @@ LLM Client                  Dynamic-MCP                 Upstream Server
     │<──────────────────────────┤                             │
 ```
 
+### Resources API Flow
+
+```
+LLM Client                  Dynamic-MCP                 Upstream Server
+    │                           │                             │
+    │  resources/list           │                             │
+    │  {group: "docs"}          │                             │
+    ├──────────────────────────>│                             │
+    │                           │  resources/list             │
+    │                           ├────────────────────────────>│
+    │                           │                             │
+    │                           │  {resources: [...]}         │
+    │                           │<────────────────────────────┤
+    │  {resources: [...]}       │                             │
+    │<──────────────────────────┤                             │
+    │                           │                             │
+    │  resources/read           │                             │
+    │  {group: "docs",          │                             │
+    │   uri: "file://..."}      │                             │
+    ├──────────────────────────>│                             │
+    │                           │  resources/read             │
+    │                           │  {uri: "file://..."}        │
+    │                           ├────────────────────────────>│
+    │                           │                             │
+    │                           │  {contents: [...]}          │
+    │                           │<────────────────────────────┤
+    │  {contents: [...]}        │                             │
+    │<──────────────────────────┤                             │
+```
+
+### Prompts API Flow
+
+```
+LLM Client                  Dynamic-MCP                 Upstream Server
+    │                           │                             │
+    │  prompts/list             │                             │
+    │  {group: "templates"}     │                             │
+    ├──────────────────────────>│                             │
+    │                           │  prompts/list               │
+    │                           ├────────────────────────────>│
+    │                           │                             │
+    │                           │  {prompts: [...]}           │
+    │                           │<────────────────────────────┤
+    │  {prompts: [...]}         │                             │
+    │<──────────────────────────┤                             │
+    │                           │                             │
+    │  prompts/get              │                             │
+    │  {group: "templates",     │                             │
+    │   name: "code-review",    │                             │
+    │   arguments: {...}}       │                             │
+    ├──────────────────────────>│                             │
+    │                           │  prompts/get                │
+    │                           │  {name: "code-review",      │
+    │                           │   arguments: {...}}         │
+    │                           ├────────────────────────────>│
+    │                           │                             │
+    │                           │  {messages: [...]}          │
+    │                           │<────────────────────────────┤
+    │  {messages: [...]}        │                             │
+    │<──────────────────────────┤                             │
+```
+
 ## Error Handling
 
 ### Connection Failures
@@ -297,22 +433,31 @@ enum McpServerConfig {
         description: String,
         command: String,
         args: Option<Vec<String>>,
-        env: Option<HashMap<String, String>>
+        env: Option<HashMap<String, String>>,
+        features: Option<Features>  // Optional per-server feature flags
     },
     Http {
         description: String,
         url: String,
         headers: Option<HashMap<String, String>>,
         oauth_client_id: Option<String>,
-        oauth_scopes: Option<Vec<String>>
+        oauth_scopes: Option<Vec<String>>,
+        features: Option<Features>  // Optional per-server feature flags
     },
     Sse {
         description: String,
         url: String,
         headers: Option<HashMap<String, String>>,
         oauth_client_id: Option<String>,
-        oauth_scopes: Option<Vec<String>>
+        oauth_scopes: Option<Vec<String>>,
+        features: Option<Features>  // Optional per-server feature flags
     }
+}
+
+struct Features {
+    tools: bool,      // Default: true
+    resources: bool,  // Default: true
+    prompts: bool,    // Default: true
 }
 ```
 
@@ -328,6 +473,7 @@ enum McpServerConfig {
 **With dynamic-mcp**:
 - LLM receives only 2 proxy tools initially
 - Tool schemas loaded on-demand per group
+- Resources/Prompts proxied without schema overhead
 - Example: 2 tools initially, +20 tools only when needed
 
 ### Memory Usage
@@ -335,12 +481,20 @@ enum McpServerConfig {
 - Tools cached in memory after initial fetch
 - No re-fetching on repeated use
 - Failed groups tracked with minimal memory
+- Resources/Prompts: Streamed, not cached (fresh data)
 
 ### Latency
 
 - Initial connection: Parallel connection to all upstreams
 - Tool discovery: Cached, no upstream call
 - Tool execution: Single upstream call (no additional hop overhead)
+- Resources/Prompts: Single upstream call with 10s timeout
+
+### Feature Flags
+
+- Disable unused APIs per server (tools, resources, prompts)
+- Reduces connection overhead for servers that don't support all APIs
+- Runtime enforcement prevents unnecessary API calls
 
 ## Security
 
@@ -369,16 +523,26 @@ enum McpServerConfig {
 - Environment variable substitution
 - OAuth token management
 - Server request handling
+- Resources API type definitions and serialization
+- Prompts API type definitions and serialization
+- Feature flags configuration
 
 ### Integration Tests
 - End-to-end CLI workflows
-- Import command
+- Import command with 10 AI coding tools
 - Config schema validation
+- Resources API proxying (list, read, templates/list)
+- Prompts API proxying (list, get)
+- Environment variable normalization across tool formats
+- Feature selection during import
 
 ### Manual Testing
 - Real MCP server connections
 - OAuth flow with actual providers
-- Multi-transport scenarios
+- Multi-transport scenarios (stdio, HTTP, SSE)
+- SSE stream resumption with Last-Event-ID
+
+**See [docs/implementation/TESTING.md](docs/implementation/TESTING.md) for detailed test counts and coverage.**
 
 ## Extension Points
 

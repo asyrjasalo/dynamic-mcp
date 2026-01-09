@@ -16,14 +16,22 @@
 - **Authentication**: OAuth2 with PKCE, automatic token refresh, RFC 6749 compliant
 - **Reliability**: Automatic retry with exponential backoff, periodic reconnection for failed servers
 - **Live Reload**: Configuration file watching with automatic reconnection
-- **Import**: Interactive command to import from AI coding tools
+- **Import**: Interactive command to import from 10 AI coding tools
+- **MCP APIs**: Full proxying support for Tools, Resources, and Prompts APIs
+- **Per-Server Features**: Optional feature flags to disable tools/resources/prompts per server
+- **MCP Compliance**: 98.8% spec-compliant (84/86 requirements), production-ready
 
 ### Architecture
 ```
-LLM Client → dynamic-mcp (2 tools) → Multiple Upstream MCP Servers
-                                      ├─ stdio: Local processes
-                                      ├─ HTTP: Remote HTTP servers
-                                      └─ SSE: Server-sent events
+LLM Client → dynamic-mcp → Multiple Upstream MCP Servers
+             (2 proxy tools + full MCP API)
+             ├─ Tools: get_dynamic_tools, call_dynamic_tool
+             ├─ Resources: list, read, templates/list
+             └─ Prompts: list, get
+                    ↓
+             ├─ stdio: Local processes
+             ├─ HTTP: Remote HTTP servers
+             └─ SSE: Server-sent events
 ```
 
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for detailed system design.
@@ -39,9 +47,11 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for detailed system design.
 - **Testing**: cargo test + integration tests
 
 ### Current Status
-- **Version**: 1.2.0 (Multi-Tool Import Support)
+- **Version**: 1.3.0 (Per-Server Feature Flags)
 - **Platforms**: Linux (x86_64, ARM64), macOS (ARM64), Windows (x86_64, ARM64)
 - **Published**: [crates.io](https://crates.io/crates/dynamic-mcp), [PyPI](https://pypi.org/project/dmcp/), [GitHub Releases](https://github.com/asyrjasalo/dynamic-mcp/releases)
+- **Tests**: 242 total (100% pass rate)
+- **LOC**: ~5,200 Rust
 
 See [docs/implementation/STATUS.md](docs/implementation/STATUS.md) for current metrics (LOC, test counts, dependencies).
 
@@ -507,19 +517,19 @@ When updating README.md or IMPORT.md:
 - Add new examples for new features
 
 ### 5. Maintain Accuracy
-- Test counts must match `cargo test` output
+- Test counts are only tracked in TESTING.md
 - LOC should match actual source code
 - Feature lists should reflect implemented code, not planned features
 
 ## 📊 Current Project State (Reference)
 
-**Modules**: config, proxy, server, cli, auth
+**Modules**: config, proxy, server, cli, auth, watcher
 **Transports**: stdio, HTTP, SSE
-**Key Features**: OAuth2, Live Reload, Import Command, CI/CD
+**MCP APIs**: Tools, Resources, Prompts
+**Key Features**: OAuth2, Live Reload, Import (10 tools), Feature Flags, CI/CD
 
 **Where to find details:**
-- Project status → **docs/implementation/DEVELOPMENT.md**
-- Current metrics (LOC, tests, dependencies) → **docs/implementation/STATUS.md**
+- Implemented features → **docs/implementation/STATUS.md**
 - Test coverage → **docs/implementation/TESTING.md**
 - Architecture → **docs/ARCHITECTURE.md**
 - User guide → **README.md**
