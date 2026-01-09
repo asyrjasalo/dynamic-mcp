@@ -5,42 +5,38 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.3.0] - 2026-01-08
+## [1.3.0] - 2026-01-09
 
 ### Added
-- **Prompts API Proxying** - Support for `prompts/list` and `prompts/get` endpoints
-  - Proxy prompt discovery from upstream MCP servers
-  - Retrieve prompt templates with argument substitution
-  - Cursor-based pagination support for prompt lists
+- **Per-Server Feature Flags** - Control which MCP APIs are exposed per server
+  - Optional `features` field in server config (tools, resources, prompts)
+  - Opt-out design: all features enabled by default for backward compatibility
+  - Clear error messages when accessing disabled features
+- **Interactive Feature Selection** - Import command now prompts for feature customization
+  - Customize which features to enable during `dmcp import` workflow
+  - Press Enter to keep all features (default) or type 'n' to customize
+- **Resources API** - Full support for `resources/list`, `resources/read`, and `resources/templates/list`
+  - Discover and retrieve file-like resources from upstream MCP servers
+  - URI templates with RFC 6570 support for dynamic resource discovery
+  - Resource size field for context window estimation
+  - Cursor-based pagination and resource annotations
+- **Prompts API** - Full support for `prompts/list` and `prompts/get`
+  - Discover and retrieve prompt templates from upstream servers
   - Multi-modal prompt content (text, image, audio, embedded resources)
-  - Prompt metadata (name, title, description, arguments, icons)
-- **Prompt Type Definitions** - Full support for MCP prompt schema
-  - Prompt, PromptArgument, PromptMessage, PromptContent, PromptContentType types
-  - Support for all content types: text, image, audio, resource
-  - Proper serialization with optional field handling
-- **Resources API Proxying** - Complete support for `resources/list`, `resources/read`, and `resources/templates/list` endpoints
-  - Proxy resource discovery from upstream MCP servers
-  - Retrieve resource contents (text and binary)
-  - Cursor-based pagination support for resource lists
-  - Resource annotations (audience, priority, lastModified)
-  - **NEW**: Resource Templates with RFC 6570 URI template support
-  - **NEW**: Resource size field for context window estimation
-- **Resource Type Definitions** - Full support for MCP resource schema
-  - Resource, ResourceContent, ResourceAnnotations, ResourceIcon, ResourceTemplate types
-  - Proper serialization with optional field handling
-  - Support for resource size and URI templates
-- **SSE Stream Resumption** - Last-Event-ID tracking for interrupted SSE connections
-  - Automatically extracts and stores event IDs from SSE responses
-  - Sends Last-Event-ID header on reconnection to prevent event loss
-  - Handles both `id: value` and compact formats
+  - Argument substitution in prompt templates
+  - Cursor-based pagination
+- **SSE Stream Resumption** - Automatic recovery from interrupted SSE connections
+  - Tracks Last-Event-ID to prevent event loss on reconnection
+  - Handles both `id: value` and compact event ID formats
 
 ### Changed
-- Updated `initialize` response to advertise `prompts` and `resources` capabilities
-- Improved SSE transport reliability with event ID tracking
-- Expanded Resources API from partial to full MCP specification compliance
+- Resource and prompt operations now auto-discover server groups
+- Config serialization omits default features for cleaner output
+- SSE transport improved with event ID tracking
 
 ### Fixed
-- SSE connections now properly resume from last known event after network interruptions
+- Resource and prompt endpoints now work without explicit group parameter
+- SSE connections properly resume from last known event after interruptions
 
 ## [1.2.0] - 2026-01-08
 
@@ -146,6 +142,7 @@ cargo install dynamic-mcp
 - **Documentation**: https://docs.rs/dynamic-mcp
 - **Release Notes**: [docs/implementation/RELEASE_v1.0.0.md](docs/implementation/RELEASE_v1.0.0.md)
 
+[1.3.0]: https://github.com/asyrjasalo/dynamic-mcp/releases/tag/v1.3.0
 [1.2.0]: https://github.com/asyrjasalo/dynamic-mcp/releases/tag/v1.2.0
 [1.1.0]: https://github.com/asyrjasalo/dynamic-mcp/releases/tag/v1.1.0
 [1.0.0]: https://github.com/asyrjasalo/dynamic-mcp/releases/tag/v1.0.0
