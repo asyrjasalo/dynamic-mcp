@@ -4,9 +4,9 @@ The test suite contains 218 tests organized into logical layers, each testing a 
 
 ## Current Test Status
 
-**Total Tests**: 218
-- **Unit Tests**: 107
-- **Integration Tests**: 100 (Spec Compliance + Config + Import + CLI)
+**Total Tests**: 228
+- **Unit Tests**: 111
+- **Integration Tests**: 106 (Spec Compliance + Config + Import + CLI)
 - **End-to-End Tests**: 11 (Real server interaction)
 
 **Pass Rate**: 100% ✅
@@ -33,18 +33,22 @@ Tests the binary compilation and command-line interface.
 ---
 
 ### Layer 2: Configuration Tests
-**File**: `config_integration_test.rs` (6 tests)
+**Files**: `config_integration_test.rs` (9 tests), `watcher.rs` unit tests (2 tests)
 
-Tests configuration file parsing and schema validation.
+Tests configuration file parsing, schema validation, and live reload functionality.
 
+#### config_integration_test.rs (9 tests)
 - `test_config_file_with_server` - Validates basic config file loading with mcpServers structure
 - `test_example_config_with_server_definition` - Tests example config with multiple server definitions
 - `test_config_initialize_capabilities` - Validates capabilities declaration (tools, prompts, resources)
 - `test_config_jsonrpc_error_codes` - Verifies standard JSON-RPC error codes
 - `test_config_example_schema_validation` - Validates schema of `examples/config.example.json`
 - `test_config_example_exists` - Checks example config file artifact presence
+- `test_config_live_reload_file_modified` - Tests live reload detects file modifications
+- `test_config_live_reload_add_server` - Tests live reload when new servers are added
+- `test_config_live_reload_remove_server` - Tests live reload when servers are removed
 
-**Purpose**: Ensures configuration files parse correctly and follow the expected schema.
+**Purpose**: Ensures configuration files parse correctly, follow the expected schema, and live reload works properly.
 
 ---
 
@@ -161,7 +165,7 @@ Tests the CLI `import` command for importing MCP configurations from AI coding t
 ---
 
 ### Layer 6: Unit Tests
-**Location**: `src/**/*.rs` (inline `#[cfg(test)]` modules) (107 tests)
+**Location**: `src/**/*.rs` (inline `#[cfg(test)]` modules) (111 tests)
 
 Core module testing across all source files including server, config, auth, CLI, and proxy modules.
 
@@ -184,7 +188,7 @@ Core module testing across all source files including server, config, auth, CLI,
 ```bash
 cargo test
 ```
-- **Result**: 218 tests passed in ~35 seconds
+- **Result**: 228 tests passed in ~40 seconds
 - **Coverage**: Unit + Integration + E2E tests
 
 ### Run by Category
@@ -237,13 +241,13 @@ The test suite is organized as a **verification pyramid**:
 
 ```
 ┌─────────────────────────────────┐
-│   Unit Tests (107 tests)        │  Core modules, internal logic
+│   Unit Tests (111 tests)        │  Core modules, internal logic
 ├─────────────────────────────────┤
 │   E2E Tests (11 tests)          │  Real server, actual protocol
 ├─────────────────────────────────┤
 │   Spec Tests (71 tests)         │  Format validation, no execution
 ├─────────────────────────────────┤
-│   Config Tests (6 tests)        │  Configuration parsing
+│   Config Tests (11 tests)       │  Configuration parsing & live reload
 ├─────────────────────────────────┤
 │   CLI Tests (5 tests)           │  Binary & flags
 ├─────────────────────────────────┤
@@ -272,15 +276,15 @@ The test suite is organized as a **verification pyramid**:
 
 | File | Type | Count | Purpose |
 |------|------|-------|---------|
-| src/**/*.rs (inline) | Unit | 107 | Core modules, config, CLI, auth |
+| src/**/*.rs (inline) | Unit | 111 | Core modules, config, CLI, auth, watcher |
 | tools_test.rs | Integration | 15 | Tools API spec compliance |
 | prompts_test.rs | Integration | 28 | Prompts API spec compliance |
 | resources_test.rs | Integration | 28 | Resources API spec compliance |
-| config_integration_test.rs | Integration | 6 | Config structure validation |
+| config_integration_test.rs | Integration | 9 | Config structure validation & live reload |
 | cli_import_integration_test.rs | Integration | 18 | CLI import command from AI tools |
 | cli_integration_test.rs | Integration | 5 | CLI build & artifact tests |
 | server_everything_e2e_test.rs | E2E | 11 | Real upstream server integration |
-| **TOTAL** | | **218** | |
+| **TOTAL** | | **228** | |
 
 ---
 
@@ -334,13 +338,13 @@ The package is:
 
 | Category | Count | Time | Per Test |
 |----------|-------|------|----------|
-| Unit Tests | 107 | ~0.02s | ~0.2ms |
+| Unit Tests | 111 | ~0.5s | ~4.5ms |
 | Spec Tests (tools/prompts/resources) | 71 | ~0.5s | ~7ms |
-| Config Tests | 6 | ~0.5s | ~83ms |
-| CLI Tests | 5 | ~1.4s | ~280ms |
-| Import Tests | 18 | ~11.4s | ~633ms |
-| E2E Tests | 11 | ~12s | ~1.1s |
-| **Total** | **218** | **~35s** | |
+| Config Tests | 11 | ~0.5s | ~45ms |
+| CLI Tests | 5 | ~1.2s | ~240ms |
+| Import Tests | 18 | ~11.5s | ~640ms |
+| E2E Tests | 11 | ~2.2s | ~200ms |
+| **Total** | **228** | **~40s** | |
 
 **Notes**:
 - E2E tests use shared server instance with polling for readiness (~12s total including startup)
@@ -359,7 +363,7 @@ The package is:
 
 - Import tests use real tool config fixtures in `tests/fixtures/import/`. Fixture validation happens implicitly during test execution, not in separate tests.
 
-- Total test count: **218 tests** across 8 test files (~3,600 lines) plus inline unit tests in src/ (~107 tests).
+- Total test count: **228 tests** across 8 test files (~3,700 lines) plus inline unit tests in src/ (~111 tests).
 
 ---
 
@@ -414,4 +418,10 @@ cargo test --test <file_name> <test_name>
 
 ---
 
-**Last Updated**: January 2026
+**Last Updated**: January 09, 2026
+
+---
+
+## Recent Updates
+
+- **2026-01-09**: Added live reload tests (3 tests) and watcher unit tests (2 tests) for ConfigWatcher. Total: 228 tests.

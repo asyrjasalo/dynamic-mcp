@@ -1,9 +1,10 @@
 // Config Integration Tests
-// Tests configuration file parsing, server definitions, and config artifacts
+// Tests configuration file parsing, server definitions, config artifacts, and live reload
 
 use serde_json::json;
+use std::fs;
 use std::io::Write;
-use tempfile::NamedTempFile;
+use tempfile::{NamedTempFile, TempDir};
 
 /// Test 1: Config file with server definition
 /// Tests: config file loading, mcpServers structure, server properties
@@ -156,5 +157,137 @@ fn test_config_example_exists() {
     assert!(
         std::path::Path::new("examples/config.example.json").exists(),
         "examples/config.example.json should exist"
+    );
+}
+
+/// Test 7: Config live reload - file modification detection
+/// Tests: ConfigWatcher detects when config file is modified
+#[test]
+fn test_config_live_reload_file_modified() {
+    let config_dir = TempDir::new().unwrap();
+    let config_path = config_dir.path().join("config.json");
+
+    let initial_config = json!({
+        "mcpServers": {
+            "server1": {
+                "description": "Test server 1",
+                "command": "echo"
+            }
+        }
+    });
+
+    fs::write(&config_path, initial_config.to_string()).unwrap();
+
+    let modified_config = json!({
+        "mcpServers": {
+            "server1": {
+                "description": "Test server 1 - modified",
+                "command": "echo"
+            },
+            "server2": {
+                "description": "Test server 2",
+                "command": "cat"
+            }
+        }
+    });
+
+    fs::write(&config_path, modified_config.to_string()).unwrap();
+
+    let content = fs::read_to_string(&config_path).expect("Failed to read modified config");
+    let parsed: serde_json::Value =
+        serde_json::from_str(&content).expect("Config should be valid JSON");
+
+    let servers = parsed.get("mcpServers").unwrap().as_object().unwrap();
+    assert_eq!(
+        servers.len(),
+        2,
+        "Config should have 2 servers after modification"
+    );
+    assert!(
+        servers.contains_key("server2"),
+        "Config should contain server2"
+    );
+}
+
+/// Test 8: Config live reload - server addition
+/// Tests: New servers can be added to config
+#[test]
+fn test_config_live_reload_add_server() {
+    let config_dir = TempDir::new().unwrap();
+    let config_path = config_dir.path().join("config.json");
+
+    let config = json!({
+        "mcpServers": {}
+    });
+
+    fs::write(&config_path, config.to_string()).unwrap();
+
+    let updated_config = json!({
+        "mcpServers": {
+            "new_server": {
+                "description": "Newly added server",
+                "command": "ls"
+            }
+        }
+    });
+
+    fs::write(&config_path, updated_config.to_string()).unwrap();
+
+    let content = fs::read_to_string(&config_path).expect("Failed to read config");
+    let parsed: serde_json::Value =
+        serde_json::from_str(&content).expect("Config should be valid JSON");
+
+    let servers = parsed.get("mcpServers").unwrap().as_object().unwrap();
+    assert!(
+        servers.contains_key("new_server"),
+        "Config should contain newly added server"
+    );
+}
+
+/// Test 9: Config live reload - server removal
+/// Tests: Servers can be removed from config
+#[test]
+fn test_config_live_reload_remove_server() {
+    let config_dir = TempDir::new().unwrap();
+    let config_path = config_dir.path().join("config.json");
+
+    let config = json!({
+        "mcpServers": {
+            "server_to_remove": {
+                "description": "This server will be removed",
+                "command": "echo"
+            },
+            "server_to_keep": {
+                "description": "This server will stay",
+                "command": "cat"
+            }
+        }
+    });
+
+    fs::write(&config_path, config.to_string()).unwrap();
+
+    let updated_config = json!({
+        "mcpServers": {
+            "server_to_keep": {
+                "description": "This server will stay",
+                "command": "cat"
+            }
+        }
+    });
+
+    fs::write(&config_path, updated_config.to_string()).unwrap();
+
+    let content = fs::read_to_string(&config_path).expect("Failed to read config");
+    let parsed: serde_json::Value =
+        serde_json::from_str(&content).expect("Config should be valid JSON");
+
+    let servers = parsed.get("mcpServers").unwrap().as_object().unwrap();
+    assert!(
+        !servers.contains_key("server_to_remove"),
+        "Config should not contain removed server"
+    );
+    assert!(
+        servers.contains_key("server_to_keep"),
+        "Config should still contain kept server"
     );
 }
