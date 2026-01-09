@@ -44,7 +44,7 @@ impl DynamicMcpServer {
         // Spawn thread to read stderr to prevent blocking
         thread::spawn(move || {
             let stderr_reader = BufReader::new(stderr);
-            for line in stderr_reader.lines().flatten() {
+            for line in stderr_reader.lines().map_while(Result::ok) {
                 eprintln!("STDERR: {}", line);
             }
         });
