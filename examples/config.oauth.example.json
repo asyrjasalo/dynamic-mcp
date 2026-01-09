@@ -1,5 +1,5 @@
 {
-  "$schema": "https://raw.githubusercontent.com/d-kimuson/dynamic-mcp/refs/heads/main/config-schema.json",
+  "$schema": "https://raw.githubusercontent.com/asyrjasalo/dynamic-mcp/refs/heads/main/config-schema.json",
   "mcpServers": {
     "filesystem": {
       "type": "stdio",

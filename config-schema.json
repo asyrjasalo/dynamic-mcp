@@ -1,0 +1,192 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Dynamic MCP Configuration",
+  "description": "Configuration schema for dynamic-mcp proxy server",
+  "type": "object",
+  "required": ["mcpServers"],
+  "properties": {
+    "mcpServers": {
+      "type": "object",
+      "description": "Map of server names to their configurations",
+      "additionalProperties": {
+        "oneOf": [
+          {
+            "type": "object",
+            "description": "stdio transport server configuration",
+            "required": ["description", "command"],
+            "properties": {
+              "type": {
+                "type": "string",
+                "const": "stdio",
+                "description": "Transport type (optional, defaults to stdio if command is present)"
+              },
+              "description": {
+                "type": "string",
+                "description": "Description of what this server does (shown to LLM for routing decisions)"
+              },
+              "command": {
+                "type": "string",
+                "description": "Command to execute (e.g., 'npx', 'node', 'python')"
+              },
+              "args": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Command arguments (supports ${VAR} environment variable syntax)"
+              },
+              "env": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "description": "Environment variables (supports ${VAR} syntax for variable substitution)"
+              },
+              "features": {
+                "type": "object",
+                "description": "Feature flags (all enabled by default if omitted)",
+                "properties": {
+                  "tools": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enable tools from this server"
+                  },
+                  "resources": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enable resources from this server"
+                  },
+                  "prompts": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enable prompts from this server"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "type": "object",
+            "description": "HTTP transport server configuration",
+            "required": ["type", "description", "url"],
+            "properties": {
+              "type": {
+                "type": "string",
+                "const": "http",
+                "description": "Transport type"
+              },
+              "description": {
+                "type": "string",
+                "description": "Description of what this server does (shown to LLM for routing decisions)"
+              },
+              "url": {
+                "type": "string",
+                "format": "uri",
+                "description": "HTTP endpoint URL (supports ${VAR} environment variable syntax)"
+              },
+              "headers": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "description": "HTTP headers (supports ${VAR} syntax for variable substitution)"
+              },
+              "oauth_client_id": {
+                "type": "string",
+                "description": "OAuth2 client ID for authentication (triggers OAuth flow)"
+              },
+              "oauth_scopes": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "OAuth2 scopes to request during authentication"
+              },
+              "features": {
+                "type": "object",
+                "description": "Feature flags (all enabled by default if omitted)",
+                "properties": {
+                  "tools": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enable tools from this server"
+                  },
+                  "resources": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enable resources from this server"
+                  },
+                  "prompts": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enable prompts from this server"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "type": "object",
+            "description": "SSE (Server-Sent Events) transport server configuration",
+            "required": ["type", "description", "url"],
+            "properties": {
+              "type": {
+                "type": "string",
+                "const": "sse",
+                "description": "Transport type"
+              },
+              "description": {
+                "type": "string",
+                "description": "Description of what this server does (shown to LLM for routing decisions)"
+              },
+              "url": {
+                "type": "string",
+                "format": "uri",
+                "description": "SSE endpoint URL (supports ${VAR} environment variable syntax)"
+              },
+              "headers": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "description": "HTTP headers (supports ${VAR} syntax for variable substitution)"
+              },
+              "oauth_client_id": {
+                "type": "string",
+                "description": "OAuth2 client ID for authentication (triggers OAuth flow)"
+              },
+              "oauth_scopes": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "OAuth2 scopes to request during authentication"
+              },
+              "features": {
+                "type": "object",
+                "description": "Feature flags (all enabled by default if omitted)",
+                "properties": {
+                  "tools": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enable tools from this server"
+                  },
+                  "resources": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enable resources from this server"
+                  },
+                  "prompts": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enable prompts from this server"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}
