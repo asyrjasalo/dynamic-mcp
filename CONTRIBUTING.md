@@ -75,37 +75,20 @@ RUST_LOG=debug cargo run -- examples/config.example.json
 # Run all tests
 cargo test
 
-# Run specific module tests
-cargo test config::
-
-# Run with output (see println! statements)
+# Run with output visible
 cargo test -- --nocapture
 
-# Run integration tests only
-cargo test --test cli_integration_test
-cargo test --test cli_import_integration_test
-cargo test --test config_integration_test
-
-# Run specific test
-cargo test test_substitute_env_vars
-
-# Run with test coverage
+# Run single-threaded (for debugging)
 cargo test -- --test-threads=1
 ```
 
-For detailed test organization and counts, see [docs/implementation/TESTING.md](docs/implementation/TESTING.md).
+**For detailed test organization, coverage, and commands, see [docs/implementation/TESTING.md](docs/implementation/TESTING.md).**
 
 ### Running Benchmarks
 
 ```bash
 # Run performance benchmarks
 cargo bench --bench performance
-
-# Benchmarks include:
-# - Environment variable substitution
-# - JSON config parsing
-# - Tool list caching performance
-# - Parallel connection simulation
 ```
 
 ### Python Package Development
@@ -137,38 +120,15 @@ uvx --from target/wheels/dmcp-*.whl dmcp config.json
 
 ## Testing Guidelines
 
-### Test Categories
-
-1. **Unit Tests**: Located alongside source code in `src/`
-2. **Integration Tests**: Located in `tests/` directory
+**For comprehensive testing documentation, see [docs/implementation/TESTING.md](docs/implementation/TESTING.md).**
 
 ### Writing Tests
 
-- Place unit tests in the same file as the code they test
-- Use `#[cfg(test)]` module for test code
-- Use descriptive test names that explain what is being tested
+- Place unit tests in the same file as the code (`#[cfg(test)]` module)
+- Place integration tests in `tests/` directory
+- Use descriptive test names: `test_<feature>_<scenario>_<expected_result>()`
 - Test both success and failure cases
-- Mock external dependencies where appropriate
-
-Example:
-```rust
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_env_var_substitution() {
-        // Arrange
-        std::env::set_var("TEST_VAR", "test_value");
-
-        // Act
-        let result = substitute_env_vars("${TEST_VAR}");
-
-        // Assert
-        assert_eq!(result, "test_value");
-    }
-}
-```
+- See [TESTING.md](docs/implementation/TESTING.md) for examples and structure
 
 ## Code Style
 
@@ -370,10 +330,16 @@ Feature suggestions are welcome! Please:
 
 ## Additional Resources
 
-- **[CLAUDE.md](CLAUDE.md)** - Guidelines for AI coding agents (documentation maintenance)
-- **[Implementation Docs](docs/implementation/)** - Architecture, status, testing, and compliance documentation
+### Project Documentation
+- **[CLAUDE.md](CLAUDE.md)** - Guidelines for AI coding agents
+- **[docs/implementation/ARCHITECTURE.md](docs/implementation/ARCHITECTURE.md)** - System design and architecture
+- **[docs/implementation/STATUS.md](docs/implementation/STATUS.md)** - Implementation status and metrics
+- **[docs/implementation/TESTING.md](docs/implementation/TESTING.md)** - Test organization and coverage
+- **[docs/implementation/MCP_SPEC_COMPLIANCE.md](docs/implementation/MCP_SPEC_COMPLIANCE.md)** - MCP specification compliance
+
+### External Resources
 - **[Rust Book](https://doc.rust-lang.org/book/)** - Official Rust learning resource
-- **[MCP Specification](https://modelcontextprotocol.io/)** - Model Context Protocol docs
+- **[MCP Specification](https://modelcontextprotocol.io/)** - Model Context Protocol documentation
 
 ## License
 
