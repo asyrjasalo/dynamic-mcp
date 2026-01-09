@@ -54,36 +54,44 @@ impl DynamicMcpServer {
             reader: BufReader::new(stdout),
         };
 
-        // Wait longer for everything-server to initialize in CI environment
-        // (npx may need to download the package on first run, which can take 20-30 seconds)
-        let wait_time = if std::env::var("CI").is_ok() { 30 } else { 15 };
-        eprintln!("Waiting {} seconds for server initialization...", wait_time);
-        thread::sleep(Duration::from_secs(wait_time));
-        eprintln!("Server initialization wait complete");
+        // Poll for server readiness - no fixed sleeps, just polling
+        eprintln!("Polling for server readiness...");
 
-        // Health check: try to initialize
-        eprintln!("Performing health check...");
-        let health_check = json!({
-            "jsonrpc": "2.0",
-            "id": 0,
-            "method": "initialize",
-            "params": {}
-        });
+        let timeout = Duration::from_secs(60);
+        let start = std::time::Instant::now();
+        let mut initialized = false;
 
-        let response = server.send_request(health_check);
-        if response["result"]["capabilities"].is_null() {
-            panic!(
-                "Health check failed: server not responding correctly. Response: {}",
-                response
-            );
-        }
+        loop {
+            if start.elapsed() > timeout {
+                panic!(
+                    "Server failed to become ready within {}s",
+                    timeout.as_secs()
+                );
+            }
 
-        // Force upstream "everything" server to connect with retries
-        // This establishes the connection before tests run to avoid race conditions
-        eprintln!("Connecting to upstream everything server...");
-        let max_retries = 10;
+            // Step 1: Try to initialize if not done yet
+            if !initialized {
+                let init_request = json!({
+                    "jsonrpc": "2.0",
+                    "id": 0,
+                    "method": "initialize",
+                    "params": {}
+                });
 
-        for attempt in 1..=max_retries {
+                let init_response = server.send_request(init_request);
+                if init_response["result"]["capabilities"].is_object() {
+                    initialized = true;
+                    eprintln!(
+                        "dynamic-mcp initialized after {:.1}s",
+                        start.elapsed().as_secs_f64()
+                    );
+                } else {
+                    thread::sleep(Duration::from_millis(500));
+                    continue;
+                }
+            }
+
+            // Step 2: Try to connect to upstream server
             let connect_request = json!({
                 "jsonrpc": "2.0",
                 "id": 0,
@@ -96,23 +104,14 @@ impl DynamicMcpServer {
 
             if connect_response["result"]["prompts"].is_array() {
                 eprintln!(
-                    "Health check passed - upstream everything server connected (attempt {})",
-                    attempt
+                    "Upstream server ready after {:.1}s",
+                    start.elapsed().as_secs_f64()
                 );
                 break;
             }
 
-            if connect_response["error"].is_object() {
-                if attempt < max_retries {
-                    eprintln!("Connection attempt {} failed, retrying in 3s...", attempt);
-                    thread::sleep(Duration::from_secs(3));
-                } else {
-                    panic!(
-                        "Health check failed: upstream everything server failed to connect after {} attempts. Last response: {}",
-                        max_retries, connect_response
-                    );
-                }
-            }
+            // Wait a bit before retrying
+            thread::sleep(Duration::from_millis(500));
         }
 
         server
