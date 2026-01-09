@@ -483,6 +483,20 @@ pub struct Resource {
 | **BlobResourceContents** | ✅ | types.rs | blob field |
 | **Error codes** | ✅ | server.rs | -32002, -32602, -32603 |
 
+**⚠️ IMPORTANT - MCP Spec Compliance Note**:
+
+All `resources/*` and `prompts/*` endpoints fully comply with the MCP specification and **do NOT require any extra parameters** from the proxy:
+
+- **`resources/list`**: Optional `cursor` parameter per spec. Proxy accepts optional `group` parameter for direct routing, but **when omitted, aggregates resources from all groups automatically**. ✅ **MCP compliant**: Works without any parameters.
+
+- **`resources/read`**: Requires only `uri` parameter per spec. Proxy **auto-discovers the group** by searching through all upstream servers to find which one has the resource. ✅ **MCP compliant**: No group parameter needed.
+
+- **`prompts/list`**: Optional `cursor` parameter per spec. Proxy accepts optional `group` parameter for direct routing, but **when omitted, aggregates prompts from all groups automatically**. ✅ **MCP compliant**: Works without any parameters.
+
+- **`prompts/get`**: Requires only `name` parameter (and optional `arguments`) per spec. Proxy **auto-discovers the group** by searching through all upstream servers to find which one has the prompt. ✅ **MCP compliant**: No group parameter needed.
+
+**Design Philosophy**: The optional `group` parameter is a **performance optimization** for clients that know the group structure, but all endpoints work correctly without it by auto-discovering the appropriate upstream server. This maintains full MCP spec compliance while offering optional direct routing.
+
 ---
 
 ## 🎯 Feature Completeness by Category
