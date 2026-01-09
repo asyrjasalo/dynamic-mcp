@@ -16,6 +16,7 @@ exclude = [
     "benches/",
     "docs/implementation/",
     "AGENTS.md",
+    "CLAUDE.md",
     "pyproject.toml"
 ]
 

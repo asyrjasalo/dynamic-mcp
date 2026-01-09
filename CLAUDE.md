@@ -273,7 +273,7 @@ cargo test -- --test-threads=1
 **User-Facing Documentation (Root)**
 - **README.md**: Quick start, usage, configuration examples
 - **CONTRIBUTING.md**: Development setup, testing, PR workflow
-- **AGENTS.md**: This file - AI agent guidelines
+- **CLAUDE.md**: This file - AI agent guidelines
 
 **Architecture Documentation (docs/)**
 - **ARCHITECTURE.md**: System design, data flows, component details
@@ -415,7 +415,7 @@ git push origin main --tags
 |------|---------|-------------|
 | **README.md** | Quick start, usage, configuration examples | Adding/changing user-facing features, configuration schema changes |
 | **CONTRIBUTING.md** | Development setup, testing, PR workflow | Changing build process, adding new test requirements, updating contribution guidelines |
-| **AGENTS.md** | AI agent guidelines for documentation maintenance | Changing doc structure, adding new doc types |
+| **CLAUDE.md** | AI agent guidelines for documentation maintenance | Changing doc structure, adding new doc types |
 
 ### Architecture Documentation (docs/)
 
@@ -597,7 +597,7 @@ Update STATUS.md:
 **Required Updates:**
 1. ✅ **CONTRIBUTING.md** - Update build/test commands
 2. ⚠️ **STATUS.md** - Only if affects dependencies count
-3. ⚠️ **AGENTS.md** - If affects development workflow or setup
+3. ⚠️ **CLAUDE.md** - If affects development workflow or setup
 
 **Example:**
 ```markdown
@@ -607,7 +607,7 @@ Update CONTRIBUTING.md:
 - Add Docker setup instructions
 - Document Docker-based testing
 
-Update AGENTS.md (if applicable):
+Update CLAUDE.md (if applicable):
 - Update setup section if affects initial development setup
 - Add Docker-specific workflow notes
 

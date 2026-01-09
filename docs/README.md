@@ -8,7 +8,7 @@ This directory contains comprehensive documentation for dynamic-mcp.
 - **[Import Guide](IMPORT.md)** - Import from AI coding tools to dynamic-mcp
 - **[Contributing](../CONTRIBUTING.md)** - Development setup and contribution guidelines
 - **[Development Status](implementation/DEVELOPMENT.md)** - Project status, roadmap, and metrics
-- **[Agent Guidelines](../AGENTS.md)** - For AI coding agents: how to maintain documentation
+- **[Agent Guidelines](../CLAUDE.md)** - For AI coding agents: how to maintain documentation
 - **[TypeScript Reference](https://github.com/d-kimuson/dynamic-mcp)** - Original implementation
 
 ## Implementation Documentation

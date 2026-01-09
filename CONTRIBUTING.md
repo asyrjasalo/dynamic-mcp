@@ -368,7 +368,7 @@ Feature suggestions are welcome! Please:
 ## Additional Resources
 
 - **[docs/implementation/DEVELOPMENT.md](docs/implementation/DEVELOPMENT.md)** - Project status, roadmap, and metrics
-- **[AGENTS.md](AGENTS.md)** - Guidelines for AI coding agents (documentation maintenance)
+- **[CLAUDE.md](CLAUDE.md)** - Guidelines for AI coding agents (documentation maintenance)
 - **[Architecture](docs/ARCHITECTURE.md)** - System design and component details
 - **[Implementation Docs](docs/implementation/)** - Detailed implementation documentation
 - **[Rust Book](https://doc.rust-lang.org/book/)** - Official Rust learning resource
