@@ -619,6 +619,7 @@ impl Transport {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::config::schema::Features;
     use std::collections::HashMap;
 
     #[tokio::test]
@@ -629,6 +630,7 @@ mod tests {
             headers: None,
             oauth_client_id: None,
             oauth_scopes: None,
+            features: Features::default(),
         };
 
         let result = Transport::new(&config, "test_server").await;
@@ -646,6 +648,7 @@ mod tests {
             headers: Some(headers),
             oauth_client_id: None,
             oauth_scopes: None,
+            features: Features::default(),
         };
 
         let result = Transport::new(&config, "test_server").await;
@@ -660,6 +663,7 @@ mod tests {
             headers: None,
             oauth_client_id: None,
             oauth_scopes: None,
+            features: Features::default(),
         };
 
         let result = Transport::new(&config, "test_server").await;
@@ -677,6 +681,7 @@ mod tests {
             headers: Some(headers),
             oauth_client_id: None,
             oauth_scopes: None,
+            features: Features::default(),
         };
 
         let result = Transport::new(&config, "test_server").await;
@@ -690,6 +695,7 @@ mod tests {
             command: "echo".to_string(),
             args: Some(vec!["test".to_string()]),
             env: None,
+            features: Features::default(),
         };
 
         let result = Transport::new(&config, "test_server").await;
@@ -706,6 +712,7 @@ mod tests {
             headers: None,
             oauth_client_id: None,
             oauth_scopes: None,
+            features: Features::default(),
         };
 
         let sse_config = McpServerConfig::Sse {
@@ -714,6 +721,7 @@ mod tests {
             headers: None,
             oauth_client_id: None,
             oauth_scopes: None,
+            features: Features::default(),
         };
 
         let stdio_config = McpServerConfig::Stdio {
@@ -721,6 +729,7 @@ mod tests {
             command: "test".to_string(),
             args: None,
             env: None,
+            features: Features::default(),
         };
 
         assert!(discriminant(&http_config) != discriminant(&sse_config));

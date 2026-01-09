@@ -1,0 +1,19 @@
+{
+  "$schema": "https://raw.githubusercontent.com/d-kimuson/dynamic-mcp/refs/heads/main/config-schema.json",
+  "mcpServers": {
+    "filesystem": {
+      "description": "Use when you need to read, write, or search files on the local filesystem.",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/tmp"]
+    },
+    "everything-tools-only": {
+      "description": "Comprehensive MCP server with only tools enabled (no resources or prompts).",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-everything"],
+      "features": {
+        "resources": false,
+        "prompts": false
+      }
+    }
+  }
+}

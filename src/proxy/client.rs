@@ -12,6 +12,7 @@ pub enum GroupState {
         description: String,
         tools: Vec<ToolInfo>,
         transport: Transport,
+        config: McpServerConfig,
     },
     Failed {
         name: String,
@@ -119,30 +120,35 @@ impl ModularMcpClient {
         let session_id = uuid::Uuid::new_v4().to_string();
         transport.set_session_id(session_id);
 
-        let list_tools_request = JsonRpcRequest::new(3, "tools/list");
-        let tools_response = tokio::time::timeout(
-            Duration::from_secs(5),
-            transport.send_request(&list_tools_request),
-        )
-        .await
-        .with_context(|| format!("List tools request timed out for: {}", group_name))?
-        .with_context(|| format!("Failed to list tools from: {}", group_name))?;
+        // Only list tools if tools feature is enabled
+        let tools = if config.features().tools {
+            let list_tools_request = JsonRpcRequest::new(3, "tools/list");
+            let tools_response = tokio::time::timeout(
+                Duration::from_secs(5),
+                transport.send_request(&list_tools_request),
+            )
+            .await
+            .with_context(|| format!("List tools request timed out for: {}", group_name))?
+            .with_context(|| format!("Failed to list tools from: {}", group_name))?;
 
-        let tools = if let Some(result) = tools_response.result {
-            if let Some(tools_array) = result.get("tools").and_then(|v| v.as_array()) {
-                tools_array
-                    .iter()
-                    .filter_map(|tool| {
-                        Some(ToolInfo {
-                            name: tool.get("name")?.as_str()?.to_string(),
-                            description: tool
-                                .get("description")
-                                .and_then(|v| v.as_str())
-                                .map(String::from),
-                            input_schema: tool.get("inputSchema").cloned().unwrap_or(json!({})),
+            if let Some(result) = tools_response.result {
+                if let Some(tools_array) = result.get("tools").and_then(|v| v.as_array()) {
+                    tools_array
+                        .iter()
+                        .filter_map(|tool| {
+                            Some(ToolInfo {
+                                name: tool.get("name")?.as_str()?.to_string(),
+                                description: tool
+                                    .get("description")
+                                    .and_then(|v| v.as_str())
+                                    .map(String::from),
+                                input_schema: tool.get("inputSchema").cloned().unwrap_or(json!({})),
+                            })
                         })
-                    })
-                    .collect()
+                        .collect()
+                } else {
+                    Vec::new()
+                }
             } else {
                 Vec::new()
             }
@@ -157,6 +163,7 @@ impl ModularMcpClient {
                 description,
                 tools,
                 transport,
+                config,
             },
         );
 
@@ -356,7 +363,17 @@ impl ModularMcpClient {
         let group = self.groups.get(group_name).context("Group not found")?;
 
         match group {
-            GroupState::Connected { transport, .. } => {
+            GroupState::Connected {
+                transport, config, ..
+            } => {
+                // Check if resources feature is enabled
+                if !config.features().resources {
+                    return Err(anyhow::anyhow!(
+                        "Resources feature is disabled for group: {}",
+                        group_name
+                    ));
+                }
+
                 let mut params = json!({});
                 if let Some(cursor) = cursor {
                     params["cursor"] = json!(cursor);
@@ -396,7 +413,17 @@ impl ModularMcpClient {
         let group = self.groups.get(group_name).context("Group not found")?;
 
         match group {
-            GroupState::Connected { transport, .. } => {
+            GroupState::Connected {
+                transport, config, ..
+            } => {
+                // Check if resources feature is enabled
+                if !config.features().resources {
+                    return Err(anyhow::anyhow!(
+                        "Resources feature is disabled for group: {}",
+                        group_name
+                    ));
+                }
+
                 let request =
                     JsonRpcRequest::new(uuid::Uuid::new_v4().to_string(), "resources/read")
                         .with_params(json!({ "uri": uri }));
@@ -430,7 +457,17 @@ impl ModularMcpClient {
         let group = self.groups.get(group_name).context("Group not found")?;
 
         match group {
-            GroupState::Connected { transport, .. } => {
+            GroupState::Connected {
+                transport, config, ..
+            } => {
+                // Check if resources feature is enabled
+                if !config.features().resources {
+                    return Err(anyhow::anyhow!(
+                        "Resources feature is disabled for group: {}",
+                        group_name
+                    ));
+                }
+
                 let request = JsonRpcRequest::new(
                     uuid::Uuid::new_v4().to_string(),
                     "resources/templates/list",
@@ -468,7 +505,17 @@ impl ModularMcpClient {
         let group = self.groups.get(group_name).context("Group not found")?;
 
         match group {
-            GroupState::Connected { transport, .. } => {
+            GroupState::Connected {
+                transport, config, ..
+            } => {
+                // Check if prompts feature is enabled
+                if !config.features().prompts {
+                    return Err(anyhow::anyhow!(
+                        "Prompts feature is disabled for group: {}",
+                        group_name
+                    ));
+                }
+
                 let mut params = json!({});
                 if let Some(cursor) = cursor {
                     params["cursor"] = json!(cursor);
@@ -508,7 +555,17 @@ impl ModularMcpClient {
         let group = self.groups.get(group_name).context("Group not found")?;
 
         match group {
-            GroupState::Connected { transport, .. } => {
+            GroupState::Connected {
+                transport, config, ..
+            } => {
+                // Check if prompts feature is enabled
+                if !config.features().prompts {
+                    return Err(anyhow::anyhow!(
+                        "Prompts feature is disabled for group: {}",
+                        group_name
+                    ));
+                }
+
                 let mut params = json!({ "name": prompt_name });
                 if let Some(args) = arguments {
                     params["arguments"] = args;

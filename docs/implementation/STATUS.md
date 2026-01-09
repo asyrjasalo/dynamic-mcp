@@ -1,8 +1,8 @@
 # Current Implementation Status
 
-> **Last Updated**: January 8, 2026
-> **Current Phase**: Phase 8 Complete ✅ (with comprehensive integration tests)
-> **Version**: 1.3.0 (Resources API Support)
+> **Last Updated**: January 9, 2026
+> **Current Phase**: Phase 10 Complete ✅ (Per-Server Feature Flags)
+> **Version**: 1.3.0 (Per-Server Feature Flags)
 
 ## 🔍 MCP Specification Compliance
 
@@ -189,15 +189,40 @@ See [MCP_SPEC_COMPLIANCE.md](MCP_SPEC_COMPLIANCE.md) for detailed compliance aud
    - Resources API integration tests (9 tests)
    - All 164 tests passing (92 unit + 3 everything server + 18 import + 14 CLI + 14 prompts + 9 resources)
 
+### Phase 10: Per-Server Feature Flags
+- [x] **Feature Configuration Schema**
+  - `Features` struct with opt-out design (all enabled by default)
+  - Per-server `features` field (optional in config)
+  - Support for `tools`, `resources`, and `prompts` flags
+  - Serde defaults ensure backward compatibility
+- [x] **Runtime Feature Enforcement**
+  - Feature checking in proxy client methods
+  - `proxy_resources_list()`, `proxy_resources_read()`, `proxy_resources_templates_list()` respect `resources` flag
+  - `proxy_prompts_list()`, `proxy_prompts_get()` respect `prompts` flag
+  - Tools loading skipped if `tools: false` during connection
+  - Clear error messages when disabled features are accessed
+- [x] **Config Schema Updates**
+  - Added `features` field to all transport types (Stdio, Http, Sse)
+  - Updated deserializer to handle optional features with defaults
+  - Updated env var substitution to preserve features
+  - `features()` accessor method on McpServerConfig
+- [x] **Test Coverage**
+  - 9 unit tests for Features struct and config parsing
+  - 5 integration tests for config file validation
+  - All 240 tests pass (121 unit + 18 import + 5 CLI + 9 features + 28 prompts + 28 resources + 11 everything + 15 tools)
+- [x] **Documentation**
+  - README.md updated with feature flags section and examples
+  - Behavior clearly documented (opt-out design, error on access)
+
 ## 📊 Project Metrics
 
 | Metric | Value |
 |--------|-------|
 | **Version** | 1.3.0 |
-| **Phase** | 8 Complete ✅ |
+| **Phase** | 10 Complete ✅ (Per-Server Feature Flags) |
 | **LOC** | ~5,100 Rust |
 | **Source Files** | 24 Rust files |
-| **Tests** | **164 total** (92 unit + 3 everything server + 18 import + 14 CLI + 14 prompts + 9 resources) |
+| **Tests** | **240 total** (121 unit + 18 import + 5 CLI + 9 features + 28 prompts + 28 resources + 11 everything + 15 tools) |
 | **Test Coverage** | **~98%** across all core modules |
 | **Test Pass Rate** | 100% ✅ |
 | **Test Fixtures** | 26 fixture files (10 tools, all with env vars) |

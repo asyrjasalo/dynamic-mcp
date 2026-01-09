@@ -2,6 +2,31 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Deserializer, Serialize};
 use std::collections::HashMap;
 
+/// Per-server feature flags (opt-out design: all features enabled by default)
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+pub struct Features {
+    #[serde(default = "default_true")]
+    pub tools: bool,
+    #[serde(default = "default_true")]
+    pub resources: bool,
+    #[serde(default = "default_true")]
+    pub prompts: bool,
+}
+
+fn default_true() -> bool {
+    true
+}
+
+impl Default for Features {
+    fn default() -> Self {
+        Self {
+            tools: true,
+            resources: true,
+            prompts: true,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, JsonSchema)]
 #[serde(tag = "type", rename_all = "lowercase")]
 pub enum McpServerConfig {
@@ -13,6 +38,8 @@ pub enum McpServerConfig {
         args: Option<Vec<String>>,
         #[serde(skip_serializing_if = "Option::is_none")]
         env: Option<HashMap<String, String>>,
+        #[serde(default)]
+        features: Features,
     },
     Http {
         description: String,
@@ -23,6 +50,8 @@ pub enum McpServerConfig {
         oauth_client_id: Option<String>,
         #[serde(skip_serializing_if = "Option::is_none")]
         oauth_scopes: Option<Vec<String>>,
+        #[serde(default)]
+        features: Features,
     },
     Sse {
         description: String,
@@ -33,6 +62,8 @@ pub enum McpServerConfig {
         oauth_client_id: Option<String>,
         #[serde(skip_serializing_if = "Option::is_none")]
         oauth_scopes: Option<Vec<String>>,
+        #[serde(default)]
+        features: Features,
     },
 }
 
@@ -68,6 +99,8 @@ impl<'de> Deserialize<'de> for McpServerConfig {
                 command: String,
                 args: Option<Vec<String>>,
                 env: Option<HashMap<String, String>>,
+                #[serde(default)]
+                features: Features,
             },
             Http {
                 description: String,
@@ -75,6 +108,8 @@ impl<'de> Deserialize<'de> for McpServerConfig {
                 headers: Option<HashMap<String, String>>,
                 oauth_client_id: Option<String>,
                 oauth_scopes: Option<Vec<String>>,
+                #[serde(default)]
+                features: Features,
             },
             Sse {
                 description: String,
@@ -82,6 +117,8 @@ impl<'de> Deserialize<'de> for McpServerConfig {
                 headers: Option<HashMap<String, String>>,
                 oauth_client_id: Option<String>,
                 oauth_scopes: Option<Vec<String>>,
+                #[serde(default)]
+                features: Features,
             },
         }
 
@@ -93,11 +130,13 @@ impl<'de> Deserialize<'de> for McpServerConfig {
                 command,
                 args,
                 env,
+                features,
             } => Ok(McpServerConfig::Stdio {
                 description,
                 command,
                 args,
                 env,
+                features,
             }),
             McpServerConfigHelper::Http {
                 description,
@@ -105,12 +144,14 @@ impl<'de> Deserialize<'de> for McpServerConfig {
                 headers,
                 oauth_client_id,
                 oauth_scopes,
+                features,
             } => Ok(McpServerConfig::Http {
                 description,
                 url,
                 headers,
                 oauth_client_id,
                 oauth_scopes,
+                features,
             }),
             McpServerConfigHelper::Sse {
                 description,
@@ -118,12 +159,14 @@ impl<'de> Deserialize<'de> for McpServerConfig {
                 headers,
                 oauth_client_id,
                 oauth_scopes,
+                features,
             } => Ok(McpServerConfig::Sse {
                 description,
                 url,
                 headers,
                 oauth_client_id,
                 oauth_scopes,
+                features,
             }),
         }
     }
@@ -135,6 +178,14 @@ impl McpServerConfig {
             McpServerConfig::Stdio { description, .. } => description,
             McpServerConfig::Http { description, .. } => description,
             McpServerConfig::Sse { description, .. } => description,
+        }
+    }
+
+    pub fn features(&self) -> &Features {
+        match self {
+            McpServerConfig::Stdio { features, .. } => features,
+            McpServerConfig::Http { features, .. } => features,
+            McpServerConfig::Sse { features, .. } => features,
         }
     }
 }
@@ -163,6 +214,136 @@ pub struct IntermediateServerConfig {
     pub server_type: Option<String>,
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    #[test]
+    fn test_features_default_all_enabled() {
+        let features = Features::default();
+        assert!(features.tools);
+        assert!(features.resources);
+        assert!(features.prompts);
+    }
+
+    #[test]
+    fn test_features_deserialize_empty_object() {
+        let json = json!({});
+        let features: Features = serde_json::from_value(json).unwrap();
+        assert!(features.tools);
+        assert!(features.resources);
+        assert!(features.prompts);
+    }
+
+    #[test]
+    fn test_features_deserialize_disable_resources() {
+        let json = json!({
+            "resources": false
+        });
+        let features: Features = serde_json::from_value(json).unwrap();
+        assert!(features.tools);
+        assert!(!features.resources);
+        assert!(features.prompts);
+    }
+
+    #[test]
+    fn test_features_deserialize_disable_prompts() {
+        let json = json!({
+            "prompts": false
+        });
+        let features: Features = serde_json::from_value(json).unwrap();
+        assert!(features.tools);
+        assert!(features.resources);
+        assert!(!features.prompts);
+    }
+
+    #[test]
+    fn test_features_deserialize_disable_all() {
+        let json = json!({
+            "tools": false,
+            "resources": false,
+            "prompts": false
+        });
+        let features: Features = serde_json::from_value(json).unwrap();
+        assert!(!features.tools);
+        assert!(!features.resources);
+        assert!(!features.prompts);
+    }
+
+    #[test]
+    fn test_features_deserialize_explicit_enable() {
+        let json = json!({
+            "tools": true,
+            "resources": false,
+            "prompts": true
+        });
+        let features: Features = serde_json::from_value(json).unwrap();
+        assert!(features.tools);
+        assert!(!features.resources);
+        assert!(features.prompts);
+    }
+
+    #[test]
+    fn test_server_config_with_features() {
+        let json = json!({
+            "description": "Test server",
+            "command": "test-cmd",
+            "features": {
+                "resources": false,
+                "prompts": false
+            }
+        });
+        let config: McpServerConfig = serde_json::from_value(json).unwrap();
+        match config {
+            McpServerConfig::Stdio { features, .. } => {
+                assert!(features.tools);
+                assert!(!features.resources);
+                assert!(!features.prompts);
+            }
+            _ => panic!("Expected Stdio config"),
+        }
+    }
+
+    #[test]
+    fn test_server_config_without_features() {
+        let json = json!({
+            "description": "Test server",
+            "command": "test-cmd"
+        });
+        let config: McpServerConfig = serde_json::from_value(json).unwrap();
+        match config {
+            McpServerConfig::Stdio { features, .. } => {
+                assert!(features.tools);
+                assert!(features.resources);
+                assert!(features.prompts);
+            }
+            _ => panic!("Expected Stdio config"),
+        }
+    }
+
+    #[test]
+    fn test_http_server_config_with_features() {
+        let json = json!({
+            "type": "http",
+            "description": "Test HTTP server",
+            "url": "http://localhost:8080",
+            "features": {
+                "tools": false
+            }
+        });
+        let config: McpServerConfig = serde_json::from_value(json).unwrap();
+        match config {
+            McpServerConfig::Http { features, .. } => {
+                assert!(!features.tools);
+                assert!(features.resources);
+                assert!(features.prompts);
+            }
+            _ => panic!("Expected Http config"),
+        }
+    }
+}
+
 impl IntermediateServerConfig {
     /// Convert to McpServerConfig with a description
     #[allow(clippy::wrong_self_convention)]
@@ -179,6 +360,7 @@ impl IntermediateServerConfig {
                     headers: self.headers,
                     oauth_client_id: None,
                     oauth_scopes: None,
+                    features: Features::default(),
                 })
             } else {
                 Ok(McpServerConfig::Http {
@@ -187,6 +369,7 @@ impl IntermediateServerConfig {
                     headers: self.headers,
                     oauth_client_id: None,
                     oauth_scopes: None,
+                    features: Features::default(),
                 })
             }
         } else if let Some(command) = self.command {
@@ -196,6 +379,7 @@ impl IntermediateServerConfig {
                 command,
                 args: self.args,
                 env: self.env,
+                features: Features::default(),
             })
         } else {
             Err("Server config must have either 'command' or 'url'".to_string())

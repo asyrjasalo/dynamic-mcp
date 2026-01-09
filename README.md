@@ -247,6 +247,41 @@ It supports all [standard MCP transport mechanisms](https://modelcontextprotocol
 - Automatic token refresh before expiry (with RFC 6749 token rotation support)
 - The token is injected as an `Authorization: Bearer <token>` header
 
+### Feature Flags
+
+Control which MCP features are exposed per server using the optional `features` field. By default, all features (`tools`, `resources`, `prompts`) are enabled. You can selectively disable features:
+
+```json
+{
+  "mcpServers": {
+    "server-with-tools-only": {
+      "description": "Server that only exposes tools",
+      "command": "npx",
+      "args": ["-y", "some-mcp-server"],
+      "features": {
+        "resources": false,
+        "prompts": false
+      }
+    },
+    "server-without-prompts": {
+      "type": "http",
+      "description": "HTTP server without prompt templates",
+      "url": "https://api.example.com",
+      "features": {
+        "prompts": false
+      }
+    }
+  }
+}
+```
+
+**Behavior:**
+
+- If `features` is omitted, all features are enabled (opt-out design)
+- If `features` is specified, unmentioned features default to `true` (enabled)
+- Disabled features return an error if accessed via the proxy
+- Example: If `resources: false`, calling `resources/list` returns an error
+
 ## Troubleshooting
 
 ### Server Connection Issues
