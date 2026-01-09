@@ -289,26 +289,12 @@ Example usage:
     async fn handle_resources_list(&self, request: JsonRpcRequest) -> JsonRpcResponse {
         let client = self.client.read().await;
 
-        let group_name = match request
+        let group_name_opt = request
             .params
             .as_ref()
             .and_then(|p| p.get("group"))
             .and_then(|g| g.as_str())
-        {
-            Some(name) => name.to_string(),
-            None => {
-                return JsonRpcResponse {
-                    jsonrpc: "2.0".to_string(),
-                    id: request.id,
-                    result: None,
-                    error: Some(JsonRpcError {
-                        code: -32602,
-                        message: "Missing required parameter: group".to_string(),
-                        data: None,
-                    }),
-                };
-            }
-        };
+            .map(String::from);
 
         let cursor = request
             .params
@@ -317,23 +303,48 @@ Example usage:
             .and_then(|c| c.as_str())
             .map(String::from);
 
-        match client.proxy_resources_list(&group_name, cursor).await {
-            Ok(result) => JsonRpcResponse {
-                jsonrpc: "2.0".to_string(),
-                id: request.id,
-                result: Some(result),
-                error: None,
+        match group_name_opt {
+            Some(group_name) => match client.proxy_resources_list(&group_name, cursor).await {
+                Ok(result) => JsonRpcResponse {
+                    jsonrpc: "2.0".to_string(),
+                    id: request.id,
+                    result: Some(result),
+                    error: None,
+                },
+                Err(e) => JsonRpcResponse {
+                    jsonrpc: "2.0".to_string(),
+                    id: request.id,
+                    result: None,
+                    error: Some(JsonRpcError {
+                        code: -32603,
+                        message: format!("Failed to list resources: {}", e),
+                        data: None,
+                    }),
+                },
             },
-            Err(e) => JsonRpcResponse {
-                jsonrpc: "2.0".to_string(),
-                id: request.id,
-                result: None,
-                error: Some(JsonRpcError {
-                    code: -32603,
-                    message: format!("Failed to list resources: {}", e),
-                    data: None,
-                }),
-            },
+            None => {
+                let groups = client.list_groups();
+                let mut all_resources = Vec::new();
+
+                for group in groups {
+                    if let Ok(result) = client.proxy_resources_list(&group.name, None).await {
+                        if let Some(resources_array) =
+                            result.get("resources").and_then(|v| v.as_array())
+                        {
+                            all_resources.extend(resources_array.iter().cloned());
+                        }
+                    }
+                }
+
+                JsonRpcResponse {
+                    jsonrpc: "2.0".to_string(),
+                    id: request.id,
+                    result: Some(json!({
+                        "resources": all_resources
+                    })),
+                    error: None,
+                }
+            }
         }
     }
 
@@ -515,26 +526,12 @@ Example usage:
     async fn handle_prompts_list(&self, request: JsonRpcRequest) -> JsonRpcResponse {
         let client = self.client.read().await;
 
-        let group_name = match request
+        let group_name_opt = request
             .params
             .as_ref()
             .and_then(|p| p.get("group"))
             .and_then(|g| g.as_str())
-        {
-            Some(name) => name.to_string(),
-            None => {
-                return JsonRpcResponse {
-                    jsonrpc: "2.0".to_string(),
-                    id: request.id,
-                    result: None,
-                    error: Some(JsonRpcError {
-                        code: -32602,
-                        message: "Missing required parameter: group".to_string(),
-                        data: None,
-                    }),
-                };
-            }
-        };
+            .map(String::from);
 
         let cursor = request
             .params
@@ -543,23 +540,48 @@ Example usage:
             .and_then(|c| c.as_str())
             .map(String::from);
 
-        match client.proxy_prompts_list(&group_name, cursor).await {
-            Ok(result) => JsonRpcResponse {
-                jsonrpc: "2.0".to_string(),
-                id: request.id,
-                result: Some(result),
-                error: None,
+        match group_name_opt {
+            Some(group_name) => match client.proxy_prompts_list(&group_name, cursor).await {
+                Ok(result) => JsonRpcResponse {
+                    jsonrpc: "2.0".to_string(),
+                    id: request.id,
+                    result: Some(result),
+                    error: None,
+                },
+                Err(e) => JsonRpcResponse {
+                    jsonrpc: "2.0".to_string(),
+                    id: request.id,
+                    result: None,
+                    error: Some(JsonRpcError {
+                        code: -32603,
+                        message: format!("Failed to list prompts: {}", e),
+                        data: None,
+                    }),
+                },
             },
-            Err(e) => JsonRpcResponse {
-                jsonrpc: "2.0".to_string(),
-                id: request.id,
-                result: None,
-                error: Some(JsonRpcError {
-                    code: -32603,
-                    message: format!("Failed to list prompts: {}", e),
-                    data: None,
-                }),
-            },
+            None => {
+                let groups = client.list_groups();
+                let mut all_prompts = Vec::new();
+
+                for group in groups {
+                    if let Ok(result) = client.proxy_prompts_list(&group.name, None).await {
+                        if let Some(prompts_array) =
+                            result.get("prompts").and_then(|v| v.as_array())
+                        {
+                            all_prompts.extend(prompts_array.iter().cloned());
+                        }
+                    }
+                }
+
+                JsonRpcResponse {
+                    jsonrpc: "2.0".to_string(),
+                    id: request.id,
+                    result: Some(json!({
+                        "prompts": all_prompts
+                    })),
+                    error: None,
+                }
+            }
         }
     }
 
@@ -960,12 +982,12 @@ mod tests {
         }));
         let response = server.handle_request(request).await;
 
-        assert!(response.result.is_none());
-        assert!(response.error.is_some());
-
-        let error = response.error.unwrap();
-        assert_eq!(error.code, -32602);
-        assert!(error.message.contains("Missing required parameter: group"));
+        assert!(response.error.is_none());
+        assert!(response.result.is_some());
+        let result = response.result.unwrap();
+        assert!(result.get("resources").is_some());
+        let resources = result.get("resources").unwrap().as_array().unwrap();
+        assert_eq!(resources.len(), 0);
     }
 
     #[tokio::test]
@@ -1152,10 +1174,12 @@ mod tests {
         let request = JsonRpcRequest::new(1, "prompts/list");
         let response = server.handle_request(request).await;
 
-        assert!(response.error.is_some());
-        let error = response.error.unwrap();
-        assert_eq!(error.code, -32602);
-        assert!(error.message.contains("group"));
+        assert!(response.error.is_none());
+        assert!(response.result.is_some());
+        let result = response.result.unwrap();
+        assert!(result.get("prompts").is_some());
+        let prompts = result.get("prompts").unwrap().as_array().unwrap();
+        assert_eq!(prompts.len(), 0);
     }
 
     #[tokio::test]
