@@ -39,13 +39,43 @@ impl DynamicMcpServer {
             .expect("Failed to start dynamic-mcp");
 
         let stdout = process.stdout.take().expect("Failed to get stdout");
-        let reader = BufReader::new(stdout);
+        let stderr = process.stderr.take().expect("Failed to get stderr");
 
-        // Wait longer for everything-server to initialize
-        // (npx may need to download the package on first run, which can take 15-20 seconds)
-        thread::sleep(Duration::from_secs(15));
+        // Spawn thread to read stderr to prevent blocking
+        thread::spawn(move || {
+            let stderr_reader = BufReader::new(stderr);
+            for line in stderr_reader.lines() {
+                if let Ok(line) = line {
+                    eprintln!("STDERR: {}", line);
+                }
+            }
+        });
 
-        Self { process, reader }
+        let mut server = Self { process, reader: BufReader::new(stdout) };
+
+        // Wait longer for everything-server to initialize in CI environment
+        // (npx may need to download the package on first run, which can take 20-30 seconds)
+        let wait_time = if std::env::var("CI").is_ok() { 30 } else { 15 };
+        eprintln!("Waiting {} seconds for server initialization...", wait_time);
+        thread::sleep(Duration::from_secs(wait_time));
+        eprintln!("Server initialization wait complete");
+
+        // Health check: try to initialize
+        eprintln!("Performing health check...");
+        let health_check = json!({
+            "jsonrpc": "2.0",
+            "id": 0,
+            "method": "initialize",
+            "params": {}
+        });
+
+        let response = server.send_request(health_check);
+        if response["result"]["capabilities"].is_null() {
+            panic!("Health check failed: server not responding correctly. Response: {}", response);
+        }
+        eprintln!("Health check passed");
+
+        server
     }
 
     fn send_request(&mut self, request: Value) -> Value {
@@ -66,7 +96,9 @@ impl DynamicMcpServer {
             panic!("Got EOF from server, no response data");
         }
 
-        serde_json::from_str(&response_str).expect("Failed to parse response")
+        serde_json::from_str(&response_str).unwrap_or_else(|e| {
+            panic!("Failed to parse response: {}. Response was: {}", e, response_str.trim())
+        })
     }
 }
 
