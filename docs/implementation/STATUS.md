@@ -7,8 +7,9 @@
 ## 🔍 MCP Specification Compliance
 
 > **Audit Date**: January 8, 2026
-> **Spec Version**: 2025-03-26
-> **Compliance Score**: 98.8% (84/86 requirements) ✅
+> **Protocol Version (Server → LLM Clients)**: 2024-11-05
+> **Protocol Version (Client → Upstream Servers)**: Tries 2025-06-18, adapts to server version
+> **Compliance Score**: 98.8% (85/86 requirements) ✅
 > **Status**: **PRODUCTION-READY**
 
 **Summary**:
@@ -20,12 +21,13 @@
 - ✅ **Prompts API**: 100% compliant (list, get)
 - ✅ **Tools API**: 100% compliant
 
-**All Critical Issues Resolved** (v1.2.1):
+**Critical Protocol Features Implemented** (v1.2.1):
 1. ✅ Added `MCP-Protocol-Version` header on HTTP/SSE requests
 2. ✅ Implemented `MCP-Session-Id` header with UUID generation
-3. ✅ Now sending `initialized` notification after initialize
-4. ✅ Fixed tool error format to use `isError` flag (enables LLM self-correction)
-5. ✅ Added OAuth 2.1 `resource` parameter
+3. ✅ Fixed tool error format to use `isError` flag (enables LLM self-correction)
+4. ✅ Added OAuth 2.1 `resource` parameter
+
+**Note**: The `initialized` notification is intentionally NOT implemented to avoid stdio transport deadlock. See [MCP_SPEC_COMPLIANCE.md](MCP_SPEC_COMPLIANCE.md#11-initialized-notification--️-intentionally-not-implemented) for details.
 
 See [MCP_SPEC_COMPLIANCE.md](MCP_SPEC_COMPLIANCE.md) for detailed compliance audit.
 

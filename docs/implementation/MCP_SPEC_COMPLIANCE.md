@@ -1,12 +1,12 @@
-# MCP Specification Compliance Audit (2025-03-26)
+# MCP Specification Compliance Audit
 
 > **Last Updated**: January 10, 2026
-> **Spec Version**: 2025-11-25 (Latest - verified against official spec)
-> **Spec Reference**: https://modelcontextprotocol.io/specification/2025-11-25
+> **Protocol Version (Server → LLM Clients)**: `2024-11-05` (src/server.rs)
+> **Protocol Version (Client → Upstream Servers)**: Tries `2025-06-18`, adapts to server version (src/proxy/client.rs)
+> **Spec Reference**: https://modelcontextprotocol.io/specification/2025-11-25 (documentation reference)
 > **dynamic-mcp Version**: 1.3.0
 > **Overall Compliance**: 98.8% (85/86 MUST-have requirements)
 > **Spec Coverage**: All MCP MUST-have requirements implemented (except intentional `initialized` notification omission for stdio stability)
-> **Verification**: All features verified against official MCP specification v2025-11-25
 > **Note**: All MUST-have MCP features fully implemented. Known gaps documented in Section 1.
 
 ## Executive Summary
@@ -38,7 +38,7 @@ Comprehensive audit of dynamic-mcp against the [official MCP specification v2025
 **Status**: ❌ **NOT IMPLEMENTED** (Intentional)
 **Priority**: 🟡 **MEDIUM** (Spec violation, but necessary for stdio transport stability)
 **Spec Requirement**: Client MUST send `initialized` notification after receiving `initialize` response
-**Spec Version**: 2025-11-25 (Unchanged from previous versions)
+**Spec Version**: All versions (requirement unchanged across protocol versions)
 
 **Official Spec Quote**:
 > "After receiving the initialize response, the client MUST send an initialized notification to indicate that initialization is complete."
@@ -147,10 +147,10 @@ pub struct Resource {
 ### 2.3 Protocol Version Negotiation ✅
 
 **Status**: ✅ **FULLY COMPLIANT** (v1.2.1+)
-**Spec Version**: 2025-11-25
+**Protocol Version Strategy**: Tries `2025-06-18`, adapts to server version
 **Implementation** (src/proxy/client.rs):
-- Client tries `2025-06-18` first (known-good version)
-- Intelligently falls back to upstream server's version
+- Client sends `2025-06-18` in initial initialize request
+- If server reports a different version, retries with server's version
 - Per-connection version tracking for HTTP/SSE
 
 **Design Rationale**:
@@ -648,6 +648,62 @@ All `resources/*` and `prompts/*` endpoints fully comply with the MCP specificat
 
 ---
 
+## 🔧 Potential Improvements
+
+### 1. Protocol Version Alignment
+
+**Current State**:
+- Server reports `2024-11-05` to LLM clients ([`McpServer::handle_initialize`](../../src/server.rs))
+- Client sends `2025-06-18` to upstream servers ([`UpstreamClient::new`](../../src/proxy/client.rs))
+
+**Issue**: Version asymmetry with no documented reasoning
+- `2024-11-05` is the oldest MCP spec version (initial release)
+- Chosen in initial commit (Jan 6, 2026) and never updated
+- No code comments or documentation explaining the choice
+
+**Possible Reasons** (speculation):
+- Conservative approach for maximum LLM client compatibility
+- Never updated from initial implementation
+- Intentional backward compatibility strategy
+
+**Improvement Options**:
+1. **Update server version to `2025-06-18`** for consistency with client side
+   - Benefit: Symmetric version handling, simpler to understand
+   - Risk: May break older LLM clients (Cursor, Claude Desktop) if they require `2024-11-05`
+   - Mitigation: Test with major LLM clients first
+
+2. **Implement version negotiation on server side** (like client side does)
+   - Benefit: Dynamic adaptation to LLM client requirements
+   - Effort: Requires protocol version detection from client's initialize request
+   - Complexity: More sophisticated initialization logic
+
+3. **Document the reasoning** for using `2024-11-05`
+   - Benefit: Clarifies intentional design decision
+   - Effort: Minimal (add comment in code + document here)
+   - Recommended: Do this regardless of which option above is chosen
+
+**Recommendation**: Start with option 3 (document reasoning), then consider option 1 (update to `2025-06-18`) if no compatibility issues are known.
+
+### 2. Implement `initialized` Notification
+
+**Current State**: Intentionally NOT implemented ([Section 1.1](#11-initialized-notification--️-intentionally-not-implemented))
+
+**Issue**: Causes stdio transport deadlock due to send_request() blocking on fire-and-forget notification
+
+**Improvement Options**:
+1. **Add separate `send_notification()` method** to transport layer
+   - Sends JSON-RPC notification without waiting for response
+   - Requires: New method in `src/proxy/transport.rs`
+   - Benefit: Full spec compliance, no deadlock
+
+2. **Detect notification vs request** in existing send logic
+   - Check if `id` is null, handle accordingly
+   - Less clean than option 1 but requires fewer changes
+
+**Recommendation**: Implement option 1 when time permits. Low priority (works with all tested servers).
+
+---
+
 ## 📋 Implementation Checklist
 
 ### For Deploying Current Version (v1.3.0+) - FULL SPEC COMPLIANCE ✅
@@ -688,7 +744,6 @@ All `resources/*` and `prompts/*` endpoints fully comply with the MCP specificat
 **Document Version**: 4.1
 **Status**: 98.8% MUST-have compliance (85/86 core features only, no not-applicable features)
 **Last Update**: January 10, 2026 (Updated documentation to reflect current implementation)
-**Test Status**: 120+ unit tests + 121 integration tests = 242+ total (100% pass rate)
 **Architectural Honesty**: Spec strictly documents only proxy-applicable features, no false claims about push notifications
 
 ---
