@@ -1,6 +1,7 @@
 use serde_json::{json, Value};
 use std::io::{BufRead, BufReader, Write};
 use std::process::{Child, Command, Stdio};
+use std::sync::{Arc, Mutex, OnceLock};
 use std::thread;
 use std::time::Duration;
 use tempfile::NamedTempFile;
@@ -74,9 +75,21 @@ impl Drop for DynamicMcpServer {
     }
 }
 
+static SHARED_SERVER: OnceLock<Arc<Mutex<DynamicMcpServer>>> = OnceLock::new();
+
+fn get_shared_server() -> Arc<Mutex<DynamicMcpServer>> {
+    SHARED_SERVER
+        .get_or_init(|| {
+            Arc::new(Mutex::new(
+                DynamicMcpServer::start_with_everything_server(),
+            ))
+        })
+        .clone()
+}
+
 #[test]
 fn test_e2e_initialize() {
-    let mut server = DynamicMcpServer::start_with_everything_server();
+    let server = get_shared_server();
 
     let request = json!({
         "jsonrpc": "2.0",
@@ -85,7 +98,7 @@ fn test_e2e_initialize() {
         "params": {}
     });
 
-    let response = server.send_request(request);
+    let response = server.lock().unwrap().send_request(request);
 
     assert_eq!(response["jsonrpc"], "2.0");
     assert_eq!(response["id"], 1);
@@ -96,7 +109,7 @@ fn test_e2e_initialize() {
 
 #[test]
 fn test_e2e_tools_list() {
-    let mut server = DynamicMcpServer::start_with_everything_server();
+    let server = get_shared_server();
 
     let initialize_request = json!({
         "jsonrpc": "2.0",
@@ -104,7 +117,7 @@ fn test_e2e_tools_list() {
         "method": "initialize",
         "params": {}
     });
-    let _ = server.send_request(initialize_request);
+    let _ = server.lock().unwrap().send_request(initialize_request);
 
     let tools_list_request = json!({
         "jsonrpc": "2.0",
@@ -113,7 +126,7 @@ fn test_e2e_tools_list() {
         "params": {}
     });
 
-    let response = server.send_request(tools_list_request);
+    let response = server.lock().unwrap().send_request(tools_list_request);
 
     assert_eq!(response["jsonrpc"], "2.0");
     assert_eq!(response["id"], 2);
@@ -133,7 +146,7 @@ fn test_e2e_tools_list() {
 
 #[test]
 fn test_e2e_get_dynamic_tools_everything() {
-    let mut server = DynamicMcpServer::start_with_everything_server();
+    let server = get_shared_server();
 
     let initialize_request = json!({
         "jsonrpc": "2.0",
@@ -141,7 +154,7 @@ fn test_e2e_get_dynamic_tools_everything() {
         "method": "initialize",
         "params": {}
     });
-    let _ = server.send_request(initialize_request);
+    let _ = server.lock().unwrap().send_request(initialize_request);
 
     let tools_list_request = json!({
         "jsonrpc": "2.0",
@@ -149,7 +162,7 @@ fn test_e2e_get_dynamic_tools_everything() {
         "method": "tools/list",
         "params": {}
     });
-    let response = server.send_request(tools_list_request);
+    let response = server.lock().unwrap().send_request(tools_list_request);
 
     assert!(response["result"]["tools"].is_array());
 
@@ -169,7 +182,7 @@ fn test_e2e_get_dynamic_tools_everything() {
 
 #[test]
 fn test_e2e_call_dynamic_tool_get_dynamic_tools() {
-    let mut server = DynamicMcpServer::start_with_everything_server();
+    let server = get_shared_server();
 
     let initialize_request = json!({
         "jsonrpc": "2.0",
@@ -177,7 +190,7 @@ fn test_e2e_call_dynamic_tool_get_dynamic_tools() {
         "method": "initialize",
         "params": {}
     });
-    let _ = server.send_request(initialize_request);
+    let _ = server.lock().unwrap().send_request(initialize_request);
 
     let call_tool_request = json!({
         "jsonrpc": "2.0",
@@ -195,7 +208,7 @@ fn test_e2e_call_dynamic_tool_get_dynamic_tools() {
         }
     });
 
-    let response = server.send_request(call_tool_request);
+    let response = server.lock().unwrap().send_request(call_tool_request);
 
     assert_eq!(response["jsonrpc"], "2.0");
     assert_eq!(response["id"], 3);
@@ -211,7 +224,7 @@ fn test_e2e_call_dynamic_tool_get_dynamic_tools() {
 
 #[test]
 fn test_e2e_tools_echo_execution() {
-    let mut server = DynamicMcpServer::start_with_everything_server();
+    let server = get_shared_server();
 
     let initialize_request = json!({
         "jsonrpc": "2.0",
@@ -219,7 +232,7 @@ fn test_e2e_tools_echo_execution() {
         "method": "initialize",
         "params": {}
     });
-    let _ = server.send_request(initialize_request);
+    let _ = server.lock().unwrap().send_request(initialize_request);
 
     let call_tool_request = json!({
         "jsonrpc": "2.0",
@@ -237,7 +250,7 @@ fn test_e2e_tools_echo_execution() {
         }
     });
 
-    let response = server.send_request(call_tool_request);
+    let response = server.lock().unwrap().send_request(call_tool_request);
 
     assert_eq!(response["jsonrpc"], "2.0");
     assert_eq!(response["id"], 4);
@@ -252,7 +265,7 @@ fn test_e2e_tools_echo_execution() {
 
 #[test]
 fn test_e2e_prompts_list() {
-    let mut server = DynamicMcpServer::start_with_everything_server();
+    let server = get_shared_server();
 
     let initialize_request = json!({
         "jsonrpc": "2.0",
@@ -260,7 +273,7 @@ fn test_e2e_prompts_list() {
         "method": "initialize",
         "params": {}
     });
-    let _ = server.send_request(initialize_request);
+    let _ = server.lock().unwrap().send_request(initialize_request);
 
     let prompts_list_request = json!({
         "jsonrpc": "2.0",
@@ -271,7 +284,7 @@ fn test_e2e_prompts_list() {
         }
     });
 
-    let response = server.send_request(prompts_list_request);
+    let response = server.lock().unwrap().send_request(prompts_list_request);
 
     assert_eq!(response["jsonrpc"], "2.0");
     assert_eq!(response["id"], 5);
@@ -290,7 +303,7 @@ fn test_e2e_prompts_list() {
 
 #[test]
 fn test_e2e_prompts_get_simple() {
-    let mut server = DynamicMcpServer::start_with_everything_server();
+    let server = get_shared_server();
 
     let initialize_request = json!({
         "jsonrpc": "2.0",
@@ -298,7 +311,7 @@ fn test_e2e_prompts_get_simple() {
         "method": "initialize",
         "params": {}
     });
-    let _ = server.send_request(initialize_request);
+    let _ = server.lock().unwrap().send_request(initialize_request);
 
     let prompts_get_request = json!({
         "jsonrpc": "2.0",
@@ -310,7 +323,7 @@ fn test_e2e_prompts_get_simple() {
         }
     });
 
-    let response = server.send_request(prompts_get_request);
+    let response = server.lock().unwrap().send_request(prompts_get_request);
 
     assert_eq!(response["jsonrpc"], "2.0");
     assert_eq!(response["id"], 6);
@@ -329,7 +342,7 @@ fn test_e2e_prompts_get_simple() {
 
 #[test]
 fn test_e2e_resources_list() {
-    let mut server = DynamicMcpServer::start_with_everything_server();
+    let server = get_shared_server();
 
     let initialize_request = json!({
         "jsonrpc": "2.0",
@@ -337,7 +350,7 @@ fn test_e2e_resources_list() {
         "method": "initialize",
         "params": {}
     });
-    let _ = server.send_request(initialize_request);
+    let _ = server.lock().unwrap().send_request(initialize_request);
 
     let resources_list_request = json!({
         "jsonrpc": "2.0",
@@ -348,7 +361,7 @@ fn test_e2e_resources_list() {
         }
     });
 
-    let response = server.send_request(resources_list_request);
+    let response = server.lock().unwrap().send_request(resources_list_request);
 
     assert_eq!(response["jsonrpc"], "2.0");
     assert_eq!(response["id"], 7);
@@ -368,7 +381,7 @@ fn test_e2e_resources_list() {
 
 #[test]
 fn test_e2e_resources_read() {
-    let mut server = DynamicMcpServer::start_with_everything_server();
+    let server = get_shared_server();
 
     let initialize_request = json!({
         "jsonrpc": "2.0",
@@ -376,7 +389,7 @@ fn test_e2e_resources_read() {
         "method": "initialize",
         "params": {}
     });
-    let _ = server.send_request(initialize_request);
+    let _ = server.lock().unwrap().send_request(initialize_request);
 
     let resources_list_request = json!({
         "jsonrpc": "2.0",
@@ -387,7 +400,7 @@ fn test_e2e_resources_read() {
         }
     });
 
-    let list_response = server.send_request(resources_list_request);
+    let list_response = server.lock().unwrap().send_request(resources_list_request);
     let resources = list_response["result"]["resources"].as_array().unwrap();
 
     if !resources.is_empty() {
@@ -404,7 +417,7 @@ fn test_e2e_resources_read() {
             }
         });
 
-        let response = server.send_request(resources_read_request);
+        let response = server.lock().unwrap().send_request(resources_read_request);
 
         assert_eq!(response["jsonrpc"], "2.0");
         assert_eq!(response["id"], 8);
@@ -424,7 +437,7 @@ fn test_e2e_resources_read() {
 
 #[test]
 fn test_e2e_resources_templates_list() {
-    let mut server = DynamicMcpServer::start_with_everything_server();
+    let server = get_shared_server();
 
     let initialize_request = json!({
         "jsonrpc": "2.0",
@@ -432,7 +445,7 @@ fn test_e2e_resources_templates_list() {
         "method": "initialize",
         "params": {}
     });
-    let _ = server.send_request(initialize_request);
+    let _ = server.lock().unwrap().send_request(initialize_request);
 
     let templates_list_request = json!({
         "jsonrpc": "2.0",
@@ -443,7 +456,7 @@ fn test_e2e_resources_templates_list() {
         }
     });
 
-    let response = server.send_request(templates_list_request);
+    let response = server.lock().unwrap().send_request(templates_list_request);
 
     assert_eq!(response["jsonrpc"], "2.0");
     assert_eq!(response["id"], 9);
@@ -459,7 +472,7 @@ fn test_e2e_resources_templates_list() {
 
 #[test]
 fn test_e2e_error_handling_invalid_group() {
-    let mut server = DynamicMcpServer::start_with_everything_server();
+    let server = get_shared_server();
 
     let initialize_request = json!({
         "jsonrpc": "2.0",
@@ -467,7 +480,7 @@ fn test_e2e_error_handling_invalid_group() {
         "method": "initialize",
         "params": {}
     });
-    let _ = server.send_request(initialize_request);
+    let _ = server.lock().unwrap().send_request(initialize_request);
 
     let invalid_request = json!({
         "jsonrpc": "2.0",
@@ -478,7 +491,7 @@ fn test_e2e_error_handling_invalid_group() {
         }
     });
 
-    let response = server.send_request(invalid_request);
+    let response = server.lock().unwrap().send_request(invalid_request);
 
     assert_eq!(response["jsonrpc"], "2.0");
     assert_eq!(response["id"], 10);
