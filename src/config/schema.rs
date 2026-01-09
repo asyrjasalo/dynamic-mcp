@@ -221,6 +221,49 @@ pub struct IntermediateServerConfig {
     pub server_type: Option<String>,
 }
 
+impl IntermediateServerConfig {
+    /// Convert to McpServerConfig with a description
+    #[allow(clippy::wrong_self_convention)]
+    pub fn to_mcp_config(self, description: String) -> Result<McpServerConfig, String> {
+        // Determine server type
+        if let Some(url) = self.url {
+            // HTTP or SSE server
+            let server_type = self.server_type.as_deref().unwrap_or("http").to_lowercase();
+
+            if server_type == "sse" {
+                Ok(McpServerConfig::Sse {
+                    description,
+                    url,
+                    headers: self.headers,
+                    oauth_client_id: None,
+                    oauth_scopes: None,
+                    features: Features::default(),
+                })
+            } else {
+                Ok(McpServerConfig::Http {
+                    description,
+                    url,
+                    headers: self.headers,
+                    oauth_client_id: None,
+                    oauth_scopes: None,
+                    features: Features::default(),
+                })
+            }
+        } else if let Some(command) = self.command {
+            // Stdio server
+            Ok(McpServerConfig::Stdio {
+                description,
+                command,
+                args: self.args,
+                env: self.env,
+                features: Features::default(),
+            })
+        } else {
+            Err("Server config must have either 'command' or 'url'".to_string())
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -390,51 +433,8 @@ mod tests {
         assert!(obj.contains_key("features"));
 
         let features = obj.get("features").unwrap().as_object().unwrap();
-        assert_eq!(features.get("tools").unwrap().as_bool().unwrap(), true);
-        assert_eq!(features.get("resources").unwrap().as_bool().unwrap(), false);
-        assert_eq!(features.get("prompts").unwrap().as_bool().unwrap(), true);
-    }
-}
-
-impl IntermediateServerConfig {
-    /// Convert to McpServerConfig with a description
-    #[allow(clippy::wrong_self_convention)]
-    pub fn to_mcp_config(self, description: String) -> Result<McpServerConfig, String> {
-        // Determine server type
-        if let Some(url) = self.url {
-            // HTTP or SSE server
-            let server_type = self.server_type.as_deref().unwrap_or("http").to_lowercase();
-
-            if server_type == "sse" {
-                Ok(McpServerConfig::Sse {
-                    description,
-                    url,
-                    headers: self.headers,
-                    oauth_client_id: None,
-                    oauth_scopes: None,
-                    features: Features::default(),
-                })
-            } else {
-                Ok(McpServerConfig::Http {
-                    description,
-                    url,
-                    headers: self.headers,
-                    oauth_client_id: None,
-                    oauth_scopes: None,
-                    features: Features::default(),
-                })
-            }
-        } else if let Some(command) = self.command {
-            // Stdio server
-            Ok(McpServerConfig::Stdio {
-                description,
-                command,
-                args: self.args,
-                env: self.env,
-                features: Features::default(),
-            })
-        } else {
-            Err("Server config must have either 'command' or 'url'".to_string())
-        }
+        assert!(features.get("tools").unwrap().as_bool().unwrap());
+        assert!(!features.get("resources").unwrap().as_bool().unwrap());
+        assert!(features.get("prompts").unwrap().as_bool().unwrap());
     }
 }

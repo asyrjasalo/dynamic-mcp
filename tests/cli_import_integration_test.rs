@@ -941,9 +941,9 @@ fn test_import_custom_features_selection() {
     let tools_only = &servers["tools-only"];
     assert_eq!(tools_only["description"].as_str().unwrap(), "Tools server");
     let features = &tools_only["features"];
-    assert_eq!(features["tools"].as_bool().unwrap(), true);
-    assert_eq!(features["resources"].as_bool().unwrap(), false);
-    assert_eq!(features["prompts"].as_bool().unwrap(), false);
+    assert!(features["tools"].as_bool().unwrap());
+    assert!(!features["resources"].as_bool().unwrap());
+    assert!(!features["prompts"].as_bool().unwrap());
 
     // Verify resources-only server has only resources enabled
     let resources_only = &servers["resources-only"];
@@ -952,9 +952,9 @@ fn test_import_custom_features_selection() {
         "Resources server"
     );
     let features = &resources_only["features"];
-    assert_eq!(features["tools"].as_bool().unwrap(), false);
-    assert_eq!(features["resources"].as_bool().unwrap(), true);
-    assert_eq!(features["prompts"].as_bool().unwrap(), false);
+    assert!(!features["tools"].as_bool().unwrap());
+    assert!(features["resources"].as_bool().unwrap());
+    assert!(!features["prompts"].as_bool().unwrap());
 }
 
 #[test]
