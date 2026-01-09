@@ -77,7 +77,26 @@ impl DynamicMcpServer {
                 response
             );
         }
-        eprintln!("Health check passed");
+
+        // Force upstream "everything" server to connect by calling prompts/list
+        // This establishes the connection before tests run to avoid race conditions
+        eprintln!("Connecting to upstream everything server...");
+        let connect_request = json!({
+            "jsonrpc": "2.0",
+            "id": 0,
+            "method": "prompts/list",
+            "params": {
+                "group": "everything"
+            }
+        });
+        let connect_response = server.send_request(connect_request);
+        if connect_response["error"].is_object() {
+            panic!(
+                "Health check failed: upstream everything server failed to connect. Response: {}",
+                connect_response
+            );
+        }
+        eprintln!("Health check passed - upstream everything server connected");
 
         server
     }
@@ -339,7 +358,8 @@ fn test_e2e_tools_echo_execution() {
     assert!(
         result_text.contains("test_message_from_e2e"),
         "Expected echo response to contain 'test_message_from_e2e', got: {}. Full response: {}",
-        result_text, response
+        result_text,
+        response
     );
 }
 
