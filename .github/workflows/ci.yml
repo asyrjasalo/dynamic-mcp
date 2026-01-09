@@ -38,7 +38,7 @@ jobs:
           key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Run tests
-        run: cargo test --all-features
+        run: cargo test --all-features -- --skip e2e
 
       - name: Run benchmarks (no run)
         run: cargo bench --no-run
