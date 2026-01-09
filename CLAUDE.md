@@ -40,11 +40,10 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for detailed system design.
 
 ### Current Status
 - **Version**: 1.2.0 (Multi-Tool Import Support)
-- **Phase**: Phase 8 Complete ✅
-- **LOC**: ~4,765 Rust
-- **Tests**: 74 (50 unit + 14 integration + 10 import integration), 100% pass rate
 - **Platforms**: Linux (x86_64, ARM64), macOS (ARM64), Windows (x86_64, ARM64)
 - **Published**: [crates.io](https://crates.io/crates/dynamic-mcp), [PyPI](https://pypi.org/project/dmcp/), [GitHub Releases](https://github.com/asyrjasalo/dynamic-mcp/releases)
+
+See [docs/implementation/STATUS.md](docs/implementation/STATUS.md) for current metrics (LOC, test counts, dependencies).
 
 ---
 
@@ -99,7 +98,7 @@ The project owner will:
 
 ## ✨ Feature Development
 
-### 1. Planning Phase
+### 1. Planning
 
 **Before writing code:**
 - [ ] Clearly define the feature requirements
@@ -111,7 +110,7 @@ The project owner will:
 - [ ] Identify which tests need updating/adding
 - [ ] Plan documentation updates (see Documentation section)
 
-### 2. Implementation Phase
+### 2. Implementation
 
 **Step-by-step process:**
 
@@ -135,7 +134,7 @@ The project owner will:
 
 4. **Run full test suite**
    ```bash
-   cargo test              # All 46+ tests must pass
+   cargo test              # All tests must pass
    ```
 
 5. **Check code quality**
@@ -172,7 +171,7 @@ The project owner will:
 - [ ] Integration tests for user-facing features
 - [ ] Error case coverage
 - [ ] Edge case coverage
-- [ ] All tests passing (`cargo test` 100% pass rate - currently 74 total)
+- [ ] All tests passing (`cargo test` 100% pass rate)
 
 **Example test structure:**
 ```rust
@@ -296,7 +295,6 @@ cargo test -- --test-threads=1
 | New tests | ❌ | ❌ | ✅ | ✅ | ⚠️ | ✅ Required |
 | Build process change | ❌ | ❌ | ⚠️ | ❌ | ✅ | ✅ Required |
 | New module | ❌ | ✅ | ✅ | ✅ | ❌ | ✅ Required |
-| Phase completion | ❌ | ❌ | ✅ | ⚠️ | ❌ | ✅ Required |
 | **Documentation-only** | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ **Skip tests** |
 
 Legend: ✅ Always | ⚠️ If applicable | ❌ Rarely
@@ -316,9 +314,7 @@ Before completing any change, verify:
 
 **For documentation-only changes:**
 - [ ] Skip running tests (`cargo test`, `cargo clippy`, `cargo build`)
-- [ ] Only verify documentation consistency and accuracy
-- [ ] Ensure cross-references are valid
-- [ ] Check for typos and formatting
+- [ ] Only verify documentation consistency, cross-references, and formatting
 
 ---
 
@@ -395,253 +391,17 @@ git push origin main --tags
 
 ### Post-Release
 
-- [ ] Create Phase Completion doc (if completing a phase):
-  ```bash
-  # Create docs/implementation/PHASEX_COMPLETE.md
-  # Document objectives achieved, metrics, deployment details
-  ```
-- [ ] Update DEVELOPMENT.md roadmap if phase completed
 - [ ] Announce release (if applicable)
 
----
-
-## 🔄 Update Workflow by Change Type
-
-## 📚 Documentation Structure
-
-### User-Facing Documentation (Root)
-
-| File | Purpose | Update When |
-|------|---------|-------------|
-| **README.md** | Quick start, usage, configuration examples | Adding/changing user-facing features, configuration schema changes |
-| **CONTRIBUTING.md** | Development setup, testing, PR workflow | Changing build process, adding new test requirements, updating contribution guidelines |
-| **CLAUDE.md** | AI agent guidelines for documentation maintenance | Changing doc structure, adding new doc types |
-
-### Architecture Documentation (docs/)
-
-| File | Purpose | Update When |
-|------|---------|-------------|
-| **ARCHITECTURE.md** | System design, data flows, component details | Adding new modules, changing core architecture, modifying data flows |
-| **IMPORT.md** | Import guide from AI coding tools | Changing config format, adding new import features |
-
-### Implementation Documentation (docs/implementation/)
-
-#### Current Status
-| File | Purpose | Update When |
-|------|---------|-------------|
-| **DEVELOPMENT.md** | Project status, roadmap, metrics | Completing phases, major milestones, significant metric changes |
-| **STATUS.md** | Current metrics, features, limitations | Phase completion, major feature additions, metric updates (LOC, tests) |
-| **TESTING.md** | Test coverage, running tests | Adding test categories, changing test commands, significant coverage changes |
-
-#### Feature Documentation
-| File | Purpose | Update When |
-|------|---------|-------------|
-| **ENV_VAR_CONFIG.md** | Environment variable implementation | Changing env var behavior, adding new env vars |
-| **LIVE_RELOAD.md** | Live reload feature details | Modifying file watching, changing reload behavior |
-
-#### Historical Records (DO NOT MODIFY)
-- **PHASE1_COMPLETE.md** through **PHASE5_COMPLETE.md** - Historical snapshots
-- **PLAN.md** - Original implementation plan
-- **RESEARCH.md** - Initial SDK research
-
-## 🔄 Update Workflow by Change Type
-
-### 1. Adding a New Feature
-
-**Required Updates:**
-1. ✅ **README.md** - Add usage example if user-facing
-2. ✅ **STATUS.md** - Add to "Completed Features" section
-3. ✅ **TESTING.md** - Add test coverage info if tests added
-4. ⚠️ **ARCHITECTURE.md** - Only if adds new module or changes architecture
-
-**Example:**
-```markdown
-Feature: WebSocket transport support
-
-Update README.md:
-- Add WebSocket config example under "Configuration Schema"
-- Add troubleshooting section if needed
-
-Update STATUS.md:
-- Add "WebSocket transport" under Phase X features
-- Update metrics (LOC, if significant)
-
-Update TESTING.md:
-- Add WebSocket transport tests to coverage table
-
-Update ARCHITECTURE.md (if needed):
-- Document WebSocket transport creation in proxy/ module
-```
-
-### 2. Fixing a Bug
-
-**⚠️ CRITICAL: Regression tests are MANDATORY for ALL bug fixes. No exceptions.**
-
-**A bug fix is NOT complete until it has tests that verify:**
-- [ ] The bug is actually fixed (test that previously failed now passes)
-- [ ] The fix doesn't break existing functionality (all existing tests still pass)
-- [ ] The bug cannot easily regress (test covers the specific failure case)
-
-**Required Updates:**
-1. ⚠️ **README.md** - Only if changes user-facing behavior
-2. ⚠️ **STATUS.md** - Only if removes known limitation
-3. ✅ **TESTING.md** - Always when adding regression tests (which is MANDATORY)
-
-**Example:**
-```markdown
-Fix: OAuth token refresh failing
-
-Add regression test:
-- Write test that reproduces the original bug
-- Verify test fails without the fix
-- Verify test passes with the fix
-
-Update STATUS.md:
-- Remove "OAuth refresh token rotation not implemented" from Known Limitations
-- Update if fix adds new capability
-
-Update TESTING.md:
-- Document new OAuth refresh tests
-```
-
-### 3. Refactoring (No Behavior Change)
-
-**Required Updates:**
-1. ⚠️ **ARCHITECTURE.md** - Only if module structure changes
-2. ⚠️ **STATUS.md** - Only if LOC changes significantly (>10%)
-
-**Example:**
-```markdown
-Refactor: Split server.rs into server/ module
-
-Update ARCHITECTURE.md:
-- Update module structure diagram
-- Document new file organization
-
-Update STATUS.md:
-- Update "Module Structure" section
-```
-
-### 4. Completing a Phase
-
-**Required Updates:**
-1. ✅ **docs/implementation/DEVELOPMENT.md** - Update phase status and roadmap
-2. ✅ **docs/implementation/STATUS.md** - Update current phase, add completed features
-3. ✅ **Create docs/implementation/PHASEx_COMPLETE.md** - Document completion details
-
-**Example:**
-```markdown
-Complete: Phase 6 (Production Release)
-
-Create docs/implementation/PHASE6_COMPLETE.md:
-- Document all objectives achieved
-- Include final metrics
-- Note deployment details
-
-Update docs/implementation/DEVELOPMENT.md:
-- Mark Phase 6 as complete in roadmap
-- Update "Current Phase" section
-
-Update docs/implementation/STATUS.md:
-- Update "Current Phase" header
-- Add Phase 6 features to completed list
-- Update project metrics
-```
-
-### 5. Changing Configuration Schema
-
-**Required Updates:**
-1. ✅ **README.md** - Update configuration examples
-2. ✅ **IMPORT.md** - If affects import from AI coding tools
-3. ⚠️ **STATUS.md** - If adds significant new capability
-
-**Example:**
-```markdown
-Change: Add timeout configuration for servers
-
-Update README.md:
-- Add timeout field to config schema examples
-- Document timeout behavior
-
-Update IMPORT.md:
-- Document how timeouts are handled during import
-- Update example output
-
-Update STATUS.md (if major):
-- Add timeout support to features list
-```
-
-### 6. Adding Tests
-
-**Required Updates:**
-1. ✅ **TESTING.md** - Update test counts and coverage
-2. ✅ **STATUS.md** - Update test metrics
-3. ⚠️ **CONTRIBUTING.md** - Only if adds new test category or requirements
-
-**Example:**
-```markdown
-Add: WebSocket transport integration tests
-
-Update TESTING.md:
-- Add "WebSocket Module" to coverage table
-- Update test counts (unit + integration)
-- Document how to run WebSocket tests
-
-Update STATUS.md:
-- Update "Tests" metric (currently 74 total)
-- Update test coverage percentage if measured
-```
-
-### 7. Changing Build/Development Process
-
-**Required Updates:**
-1. ✅ **CONTRIBUTING.md** - Update build/test commands
-2. ⚠️ **STATUS.md** - Only if affects dependencies count
-3. ⚠️ **CLAUDE.md** - If affects development workflow or setup
-
-**Example:**
-```markdown
-Change: Add Docker development environment
-
-Update CONTRIBUTING.md:
-- Add Docker setup instructions
-- Document Docker-based testing
-
-Update CLAUDE.md (if applicable):
-- Update setup section if affects initial development setup
-- Add Docker-specific workflow notes
-
-Update STATUS.md (if applicable):
-- Update dependencies count if Dockerfile adds build deps
-```
-
-## 🎯 Quick Reference: Common Scenarios
-
-| Scenario | README | CONTRIBUTING | DEVELOPMENT.md | STATUS.md | TESTING.md | ARCHITECTURE.md |
-|----------|--------|--------------|----------------|-----------|------------|-----------------|
-| New user-facing feature | ✅ | ❌ | ❌ | ✅ | ✅ | ⚠️ |
-| New internal feature | ❌ | ❌ | ❌ | ✅ | ✅ | ⚠️ |
-| Bug fix | ⚠️ | ❌ | ❌ | ⚠️ | ⚠️ | ❌ |
-| Refactoring | ❌ | ❌ | ❌ | ⚠️ | ❌ | ⚠️ |
-| Config schema change | ✅ | ❌ | ❌ | ⚠️ | ❌ | ❌ |
-| Test additions | ❌ | ⚠️ | ❌ | ✅ | ✅ | ❌ |
-| Phase completion | ❌ | ❌ | ✅ | ✅ | ⚠️ | ❌ |
-| Build process change | ❌ | ✅ | ❌ | ⚠️ | ❌ | ⚠️ |
-| New module | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
-
-Note: DEVELOPMENT.md, STATUS.md, TESTING.md are in docs/implementation/
-
-Legend: ✅ Always update | ⚠️ Update if applicable | ❌ Usually no update
 
 ## 📏 Update Guidelines
 
 ### When to Update Metrics
 
 **STATUS.md** should be updated when:
-- LOC changes by >10% (currently ~4,765)
-- Test count changes (currently 74 total)
+- LOC changes by >10%
 - New module added or removed
-- Dependencies change significantly (currently 53 direct crates)
+- Dependencies change significantly
 - Test coverage changes significantly
 
 ### When to Create New Docs
@@ -678,9 +438,7 @@ Legend: ✅ Always update | ⚠️ Update if applicable | ❌ Usually no update
 ### What NOT to Update
 
 **Do NOT modify:**
-- **Historical phase completion docs** (PHASE1-5_COMPLETE.md)
-- **PLAN.md** - Original planning document
-- **RESEARCH.md** - Initial research document
+- **Historical documentation** (PHASE*_COMPLETE.md, PLAN.md, RESEARCH.md)
 - **Previous release entries in CHANGELOG.md** - Only add new releases at the top, never modify historical entries
 
 These are historical records and should remain unchanged.
@@ -703,8 +461,7 @@ These are historical records and should remain unchanged.
 - ✅ Deprecation notices ("Deprecated `--old-flag`, use `--new-flag` instead")
 
 **⚠️ CRITICAL: DO NOT INCLUDE TEST COUNTS IN CHANGELOG**
-- ❌ NEVER add "Added 8 unit tests" or "Added 14 integration tests"
-- ❌ NEVER mention test metrics (test counts, coverage percentages)
+- ❌ NEVER mention test metrics (counts, coverage percentages)
 - ✅ Tests are implementation details, not user-facing features
 - Put test documentation in STATUS.md and TESTING.md instead
 
@@ -721,22 +478,10 @@ These are historical records and should remain unchanged.
 ```
 
 **What NOT to include** (goes in STATUS.md instead):
-- ❌ Technical metrics ("LOC increased to 4,765", "Added 12 tests")
-- ❌ Internal refactorings ("Split server.rs into server/ module")
-- ❌ Dependency updates ("Updated tokio to 1.40")
-- ❌ Build process changes ("Added maturin for Python builds")
-
-## 🔍 Verification Checklist
-
-Before completing changes, verify:
-
-- [ ] User-facing changes reflected in README.md
-- [ ] New features added to STATUS.md
-- [ ] Test count accurate in TESTING.md and STATUS.md
-- [ ] Architecture changes documented in ARCHITECTURE.md
-- [ ] Build/test process changes in CONTRIBUTING.md
-- [ ] Metrics updated if changed significantly
-- [ ] Cross-references between docs still valid
+- ❌ Technical metrics (LOC, test counts, dependency counts)
+- ❌ Internal refactorings (module restructuring)
+- ❌ Dependency updates
+- ❌ Build process changes
 
 ## 🎓 Best Practices
 
@@ -748,7 +493,6 @@ When updating one doc, check if related docs need updates. For example:
 ### 2. Use Consistent Terminology
 - **Transport**: stdio, HTTP, SSE, WebSocket
 - **Module**: config, proxy, server, cli, auth
-- **Phase**: Phase 1-6 (as per PLAN.md)
 - **Tool**: get_dynamic_tools, call_dynamic_tool
 
 ### 3. Update Timestamps
@@ -770,17 +514,14 @@ When updating README.md or IMPORT.md:
 
 ## 📊 Current Project State (Reference)
 
-**Phase**: Phase 8 Complete ✅
-**LOC**: ~4,765 Rust
-**Tests**: 74 (50 unit + 14 integration + 10 import integration)
 **Modules**: config, proxy, server, cli, auth
 **Transports**: stdio, HTTP, SSE
 **Key Features**: OAuth2, Live Reload, Import Command, CI/CD
 
 **Where to find details:**
 - Project status → **docs/implementation/DEVELOPMENT.md**
-- Implementation status → **docs/implementation/STATUS.md**
-- Testing → **docs/implementation/TESTING.md**
+- Current metrics (LOC, tests, dependencies) → **docs/implementation/STATUS.md**
+- Test coverage → **docs/implementation/TESTING.md**
 - Architecture → **docs/ARCHITECTURE.md**
 - User guide → **README.md**
 - Development setup → **CONTRIBUTING.md**
