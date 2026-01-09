@@ -13,10 +13,12 @@
 **Location**: `~/.dynamic-mcp/oauth-servers/`
 
 **Security Measures**:
-- Tokens stored in user's home directory (POSIX permissions: 0600)
+- Tokens stored in user's home directory
 - File-based storage with JSON serialization
 - No encryption at rest (relies on filesystem permissions)
-- Directory created with restrictive permissions (0700)
+- Directory created with default umask permissions (typically 0755)
+- Token files created with default umask permissions (typically 0644)
+- **WARNING**: No automatic permission hardening - operators must manually set restrictive permissions
 
 **Token Security**:
 - PKCE (Proof Key for Code Exchange) used for authorization
@@ -53,8 +55,8 @@
 ### Network Security
 
 **HTTP/SSE Transports**:
-- HTTPS enforced for OAuth authentication flows
-- No certificate pinning (uses system trust store)
+- HTTPS recommended but not enforced (HTTP URLs accepted)
+- No certificate pinning (uses system trust store via rustls)
 - Custom headers supported (including `Authorization`)
 - No request/response size limits enforced
 
@@ -67,8 +69,11 @@
 ### Process Security
 
 **Child Process Management** (stdio transport):
-- Spawns child processes with inherited environment
-- No process isolation or sandboxing
+- Spawns child processes with configured environment variables
+- Process groups created for proper cleanup (Unix: setpgid, Windows: CREATE_NEW_PROCESS_GROUP)
+- Graceful shutdown with SIGTERM, forced cleanup with SIGKILL on drop
+- Stderr redirected to null to prevent noise
+- No sandboxing or containerization
 - Child processes run with same user privileges
 - No resource limits enforced (CPU, memory, file descriptors)
 
@@ -81,29 +86,34 @@
 
 ### Configuration Security
 
-**Config File**: `dynamic-mcp.json` or `config.json`
+**Config File**: User-specified path (no default discovery)
+- Must be explicitly provided as CLI argument or via `DYNAMIC_MCP_CONFIG` environment variable
+- Common names: `config.json`, `dynamic-mcp.json` (by convention, not enforced)
 
 **Security Considerations**:
 - Plain text JSON (no encryption)
-- May contain sensitive data (URLs, OAuth client IDs)
+- May contain sensitive data (URLs, OAuth client IDs, API tokens)
 - Read by multiple modules during startup
-- Live reload feature watches config file
+- Live reload feature watches config file for changes
+- File path validation not enforced (accepts any valid path)
 
 **Recommendations**:
-1. Set restrictive permissions: `chmod 600 dynamic-mcp.json`
+1. Set restrictive permissions: `chmod 600 config.json`
 2. Store in secure location (not web-accessible directories)
-3. Use environment variables for secrets
+3. Use environment variables for secrets (${VAR} syntax)
 4. Add config files to `.gitignore`
-5. Review changes before config reload
+5. Review changes before config reload (automatic reload triggers on file modification)
 
 ## Known Security Limitations
 
-1. **Token Storage**: Tokens stored as plain text in filesystem (not encrypted)
-2. **No Rate Limiting**: No built-in rate limiting for tool calls
-3. **No Audit Logging**: Security events not logged separately
-4. **No Input Validation**: Tool arguments passed through without validation
-5. **Process Privileges**: Child processes inherit full privileges
-6. **No Sandboxing**: No isolation between upstream MCP servers
+1. **Token Storage**: Tokens stored as plain text in filesystem (not encrypted, default umask permissions)
+2. **File Permissions**: No automatic permission hardening (operators must manually set 0600/0700)
+3. **No HTTPS Enforcement**: HTTP URLs accepted (relies on user to configure HTTPS)
+4. **No Rate Limiting**: No built-in rate limiting for tool calls
+5. **No Audit Logging**: Security events not logged separately
+6. **No Input Validation**: Tool arguments passed through without validation
+7. **Process Privileges**: Child processes inherit full privileges
+8. **No Sandboxing**: No isolation between upstream MCP servers
 
 ## Security Best Practices
 
@@ -116,15 +126,19 @@
    sudo -u dynamic-mcp /usr/local/bin/dmcp config.json
    ```
 
-2. **File Permissions**:
+2. **File Permissions** (CRITICAL - not set automatically):
    ```bash
-   # Config file
-   chmod 600 dynamic-mcp.json
-   chown dynamic-mcp:dynamic-mcp dynamic-mcp.json
+   # Config file (use your actual config filename)
+   chmod 600 config.json
+   chown dynamic-mcp:dynamic-mcp config.json
 
-   # Token storage
+   # Token storage directory and files
    chmod 700 ~/.dynamic-mcp
+   chmod 700 ~/.dynamic-mcp/oauth-servers
    chmod 600 ~/.dynamic-mcp/oauth-servers/*.json
+
+   # Verify permissions
+   ls -la ~/.dynamic-mcp/oauth-servers/
    ```
 
 3. **Network Isolation**:
@@ -185,5 +199,5 @@
 
 ---
 
-**Last Updated**: January 6, 2026
-**Version**: 1.0.0
+**Last Updated**: January 10, 2026
+**Version**: 1.3.0
