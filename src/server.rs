@@ -441,14 +441,37 @@ Example usage:
 
     async fn handle_resources_templates_list(&self, request: JsonRpcRequest) -> JsonRpcResponse {
         let client = self.client.read().await;
+        let groups = client.list_groups();
+        let mut all_templates = Vec::new();
 
-        let group_name = match request
+        for group in groups {
+            if let Ok(result) = client.proxy_resources_templates_list(&group.name).await {
+                if let Some(templates_array) =
+                    result.get("resourceTemplates").and_then(|v| v.as_array())
+                {
+                    all_templates.extend(templates_array.iter().cloned());
+                }
+            }
+        }
+
+        JsonRpcResponse {
+            jsonrpc: "2.0".to_string(),
+            id: request.id,
+            result: Some(json!({
+                "resourceTemplates": all_templates
+            })),
+            error: None,
+        }
+    }
+
+    async fn handle_resources_subscribe(&self, request: JsonRpcRequest) -> JsonRpcResponse {
+        let uri = match request
             .params
             .as_ref()
-            .and_then(|p| p.get("group"))
-            .and_then(|g| g.as_str())
+            .and_then(|p| p.get("uri"))
+            .and_then(|u| u.as_str())
         {
-            Some(name) => name.to_string(),
+            Some(uri) => uri.to_string(),
             None => {
                 return JsonRpcResponse {
                     jsonrpc: "2.0".to_string(),
@@ -456,100 +479,56 @@ Example usage:
                     result: None,
                     error: Some(JsonRpcError {
                         code: -32602,
-                        message: "Missing required parameter: group".to_string(),
+                        message: "Missing required parameter: uri".to_string(),
                         data: None,
                     }),
                 };
             }
         };
 
-        match client.proxy_resources_templates_list(&group_name).await {
-            Ok(result) => JsonRpcResponse {
-                jsonrpc: "2.0".to_string(),
-                id: request.id,
-                result: Some(result),
-                error: None,
-            },
-            Err(e) => JsonRpcResponse {
-                jsonrpc: "2.0".to_string(),
-                id: request.id,
-                result: None,
-                error: Some(JsonRpcError {
-                    code: -32603,
-                    message: format!("Failed to list resource templates: {}", e),
-                    data: None,
-                }),
-            },
-        }
-    }
+        let mut subs = self.subscriptions.write().await;
+        subs.insert(uri.clone());
+        tracing::debug!("Client subscribed to resource changes for uri: {}", uri);
 
-    async fn handle_resources_subscribe(&self, request: JsonRpcRequest) -> JsonRpcResponse {
-        match request
-            .params
-            .as_ref()
-            .and_then(|p| p.get("group"))
-            .and_then(|g| g.as_str())
-        {
-            Some(group_name) => {
-                let mut subs = self.subscriptions.write().await;
-                subs.insert(group_name.to_string());
-                tracing::debug!(
-                    "Client subscribed to resource changes for group: {}",
-                    group_name
-                );
-
-                JsonRpcResponse {
-                    jsonrpc: "2.0".to_string(),
-                    id: request.id,
-                    result: Some(json!({})),
-                    error: None,
-                }
-            }
-            None => JsonRpcResponse {
-                jsonrpc: "2.0".to_string(),
-                id: request.id,
-                result: None,
-                error: Some(JsonRpcError {
-                    code: -32602,
-                    message: "Missing required parameter: group".to_string(),
-                    data: None,
-                }),
-            },
+        JsonRpcResponse {
+            jsonrpc: "2.0".to_string(),
+            id: request.id,
+            result: Some(json!({})),
+            error: None,
         }
     }
 
     async fn handle_resources_unsubscribe(&self, request: JsonRpcRequest) -> JsonRpcResponse {
-        match request
+        let uri = match request
             .params
             .as_ref()
-            .and_then(|p| p.get("group"))
-            .and_then(|g| g.as_str())
+            .and_then(|p| p.get("uri"))
+            .and_then(|u| u.as_str())
         {
-            Some(group_name) => {
-                let mut subs = self.subscriptions.write().await;
-                subs.remove(group_name);
-                tracing::debug!(
-                    "Client unsubscribed from resource changes for group: {}",
-                    group_name
-                );
-
-                JsonRpcResponse {
+            Some(uri) => uri.to_string(),
+            None => {
+                return JsonRpcResponse {
                     jsonrpc: "2.0".to_string(),
                     id: request.id,
-                    result: Some(json!({})),
-                    error: None,
-                }
+                    result: None,
+                    error: Some(JsonRpcError {
+                        code: -32602,
+                        message: "Missing required parameter: uri".to_string(),
+                        data: None,
+                    }),
+                };
             }
-            None => JsonRpcResponse {
-                jsonrpc: "2.0".to_string(),
-                id: request.id,
-                result: None,
-                error: Some(JsonRpcError {
-                    code: -32602,
-                    message: "Missing required parameter: group".to_string(),
-                    data: None,
-                }),
-            },
+        };
+
+        let mut subs = self.subscriptions.write().await;
+        subs.remove(&uri);
+        tracing::debug!("Client unsubscribed from resource changes for uri: {}", uri);
+
+        JsonRpcResponse {
+            jsonrpc: "2.0".to_string(),
+            id: request.id,
+            result: Some(json!({})),
+            error: None,
         }
     }
 
@@ -618,28 +597,24 @@ Example usage:
     async fn handle_prompts_get(&self, request: JsonRpcRequest) -> JsonRpcResponse {
         let client = self.client.read().await;
 
-        let (group_name, prompt_name, arguments) = match request.params.as_ref() {
+        let (prompt_name, arguments) = match request.params.as_ref() {
             Some(params) => {
-                let group = params
-                    .get("group")
-                    .and_then(|g| g.as_str())
-                    .map(String::from);
                 let name = params
                     .get("name")
                     .and_then(|n| n.as_str())
                     .map(String::from);
                 let args = params.get("arguments").cloned();
 
-                match (group, name) {
-                    (Some(g), Some(n)) => (g, n, args),
-                    _ => {
+                match name {
+                    Some(n) => (n, args),
+                    None => {
                         return JsonRpcResponse {
                             jsonrpc: "2.0".to_string(),
                             id: request.id,
                             result: None,
                             error: Some(JsonRpcError {
                                 code: -32602,
-                                message: "Missing required parameters: group, name".to_string(),
+                                message: "Missing required parameter: name".to_string(),
                                 data: None,
                             }),
                         };
@@ -654,6 +629,44 @@ Example usage:
                     error: Some(JsonRpcError {
                         code: -32602,
                         message: "Missing params object".to_string(),
+                        data: None,
+                    }),
+                };
+            }
+        };
+
+        // Find which group has this prompt
+        let groups = client.list_groups();
+        let mut found_group: Option<String> = None;
+
+        for group in groups {
+            if let Ok(result) = client.proxy_prompts_list(&group.name, None).await {
+                if let Some(prompts_array) = result.get("prompts").and_then(|v| v.as_array()) {
+                    for prompt in prompts_array {
+                        if let Some(prompt_name_str) = prompt.get("name").and_then(|n| n.as_str()) {
+                            if prompt_name_str == prompt_name {
+                                found_group = Some(group.name.clone());
+                                break;
+                            }
+                        }
+                    }
+                }
+                if found_group.is_some() {
+                    break;
+                }
+            }
+        }
+
+        let group_name = match found_group {
+            Some(g) => g,
+            None => {
+                return JsonRpcResponse {
+                    jsonrpc: "2.0".to_string(),
+                    id: request.id,
+                    result: None,
+                    error: Some(JsonRpcError {
+                        code: -32602,
+                        message: format!("Prompt not found: {}", prompt_name),
                         data: None,
                     }),
                 };
@@ -1228,16 +1241,20 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_handle_prompts_get_missing_group() {
+    async fn test_handle_prompts_get_auto_routes_to_correct_group() {
         let server = create_test_server();
         let request =
             JsonRpcRequest::new(1, "prompts/get").with_params(json!({ "name": "test_prompt" }));
         let response = server.handle_request(request).await;
 
-        assert!(response.error.is_some());
-        let error = response.error.unwrap();
-        assert_eq!(error.code, -32602);
-        assert!(error.message.contains("group"));
+        // Should either succeed (if prompt found) or return "Prompt not found" (not "Missing required parameters")
+        if let Some(error) = &response.error {
+            assert!(
+                error.message.contains("Prompt not found")
+                    || error.message.contains("Failed to get prompt")
+            );
+            assert!(!error.message.contains("Missing required parameters"));
+        }
     }
 
     #[tokio::test]
@@ -1249,19 +1266,20 @@ mod tests {
         assert!(response.error.is_some());
         let error = response.error.unwrap();
         assert_eq!(error.code, -32602);
-        assert!(error.message.contains("name"));
+        assert!(error.message.contains("Missing required parameter: name"));
     }
 
     #[tokio::test]
-    async fn test_handle_prompts_get_nonexistent_group() {
+    async fn test_handle_prompts_get_nonexistent_prompt() {
         let server = create_test_server();
         let request = JsonRpcRequest::new(1, "prompts/get")
-            .with_params(json!({ "group": "nonexistent", "name": "test_prompt" }));
+            .with_params(json!({ "name": "nonexistent_prompt" }));
         let response = server.handle_request(request).await;
 
         assert!(response.error.is_some());
         let error = response.error.unwrap();
-        assert_eq!(error.code, -32603);
+        assert_eq!(error.code, -32602);
+        assert!(error.message.contains("Prompt not found"));
     }
 
     #[tokio::test]
@@ -1281,8 +1299,8 @@ mod tests {
     #[tokio::test]
     async fn test_prompts_get_protocol_compliance() {
         let server = create_test_server();
-        let request = JsonRpcRequest::new(1, "prompts/get")
-            .with_params(json!({ "group": "test", "name": "test_prompt" }));
+        let request =
+            JsonRpcRequest::new(1, "prompts/get").with_params(json!({ "name": "test_prompt" }));
         let response = server.handle_request(request).await;
 
         assert!(response.jsonrpc == "2.0");
@@ -1412,10 +1430,10 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_resources_subscribe_with_group() {
+    async fn test_resources_subscribe_with_uri() {
         let server = create_test_server();
         let request = JsonRpcRequest::new(1, "resources/subscribe")
-            .with_params(json!({"group": "test-group"}));
+            .with_params(json!({"uri": "file:///test.txt"}));
         let response = server.handle_request(request).await;
 
         assert!(response.error.is_none());
@@ -1423,7 +1441,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_resources_subscribe_missing_group() {
+    async fn test_resources_subscribe_missing_uri() {
         let server = create_test_server();
         let request = JsonRpcRequest::new(1, "resources/subscribe");
         let response = server.handle_request(request).await;
@@ -1433,14 +1451,15 @@ mod tests {
 
         let error = response.error.unwrap();
         assert_eq!(error.code, -32602);
+        assert!(error.message.contains("uri"));
         assert!(error.message.contains("Missing required parameter"));
     }
 
     #[tokio::test]
-    async fn test_resources_unsubscribe_with_group() {
+    async fn test_resources_unsubscribe_with_uri() {
         let server = create_test_server();
         let request = JsonRpcRequest::new(1, "resources/unsubscribe")
-            .with_params(json!({"group": "test-group"}));
+            .with_params(json!({"uri": "file:///test.txt"}));
         let response = server.handle_request(request).await;
 
         assert!(response.error.is_none());
@@ -1448,7 +1467,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_resources_unsubscribe_missing_group() {
+    async fn test_resources_unsubscribe_missing_uri() {
         let server = create_test_server();
         let request = JsonRpcRequest::new(1, "resources/unsubscribe");
         let response = server.handle_request(request).await;
@@ -1458,6 +1477,7 @@ mod tests {
 
         let error = response.error.unwrap();
         assert_eq!(error.code, -32602);
+        assert!(error.message.contains("uri"));
         assert!(error.message.contains("Missing required parameter"));
     }
 
@@ -1480,11 +1500,11 @@ mod tests {
         let server = create_test_server();
 
         let request = JsonRpcRequest::new(1, "resources/subscribe")
-            .with_params(json!({"group": "test-group"}));
+            .with_params(json!({"uri": "file:///test.txt"}));
         let _response = server.handle_request(request).await;
 
         let subs = server.get_active_subscriptions().await;
-        assert!(subs.contains("test-group"));
+        assert!(subs.contains("file:///test.txt"));
     }
 
     #[tokio::test]
@@ -1492,27 +1512,27 @@ mod tests {
         let server = create_test_server();
 
         let sub_req = JsonRpcRequest::new(1, "resources/subscribe")
-            .with_params(json!({"group": "test-group"}));
+            .with_params(json!({"uri": "file:///test.txt"}));
         let _sub_response = server.handle_request(sub_req).await;
 
         let unsub_req = JsonRpcRequest::new(2, "resources/unsubscribe")
-            .with_params(json!({"group": "test-group"}));
+            .with_params(json!({"uri": "file:///test.txt"}));
         let _unsub_response = server.handle_request(unsub_req).await;
 
         let subs = server.get_active_subscriptions().await;
-        assert!(!subs.contains("test-group"));
+        assert!(!subs.contains("file:///test.txt"));
     }
 
     #[tokio::test]
     async fn test_multiple_subscriptions() {
         let server = create_test_server();
 
-        let req1 =
-            JsonRpcRequest::new(1, "resources/subscribe").with_params(json!({"group": "group1"}));
-        let req2 =
-            JsonRpcRequest::new(2, "resources/subscribe").with_params(json!({"group": "group2"}));
-        let req3 =
-            JsonRpcRequest::new(3, "resources/subscribe").with_params(json!({"group": "group3"}));
+        let req1 = JsonRpcRequest::new(1, "resources/subscribe")
+            .with_params(json!({"uri": "file:///file1.txt"}));
+        let req2 = JsonRpcRequest::new(2, "resources/subscribe")
+            .with_params(json!({"uri": "file:///file2.txt"}));
+        let req3 = JsonRpcRequest::new(3, "resources/subscribe")
+            .with_params(json!({"uri": "file:///file3.txt"}));
 
         let _res1 = server.handle_request(req1).await;
         let _res2 = server.handle_request(req2).await;
@@ -1520,9 +1540,9 @@ mod tests {
 
         let subs = server.get_active_subscriptions().await;
         assert_eq!(subs.len(), 3);
-        assert!(subs.contains("group1"));
-        assert!(subs.contains("group2"));
-        assert!(subs.contains("group3"));
+        assert!(subs.contains("file:///file1.txt"));
+        assert!(subs.contains("file:///file2.txt"));
+        assert!(subs.contains("file:///file3.txt"));
     }
 
     #[test]
