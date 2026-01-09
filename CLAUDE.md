@@ -34,7 +34,7 @@ LLM Client → dynamic-mcp → Multiple Upstream MCP Servers
              └─ SSE: Server-sent events
 ```
 
-See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for detailed system design.
+See [docs/implementation/ARCHITECTURE.md](docs/implementation/ARCHITECTURE.md) for detailed system design.
 
 ### Tech Stack
 - **Language**: Rust 1.75+
@@ -50,8 +50,6 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for detailed system design.
 - **Version**: 1.3.0 (Per-Server Feature Flags)
 - **Platforms**: Linux (x86_64, ARM64), macOS (ARM64), Windows (x86_64, ARM64)
 - **Published**: [crates.io](https://crates.io/crates/dynamic-mcp), [PyPI](https://pypi.org/project/dmcp/), [GitHub Releases](https://github.com/asyrjasalo/dynamic-mcp/releases)
-- **Tests**: 242 total (100% pass rate)
-- **LOC**: ~5,200 Rust
 
 See [docs/implementation/STATUS.md](docs/implementation/STATUS.md) for current metrics (LOC, test counts, dependencies).
 
@@ -61,9 +59,7 @@ See [docs/implementation/STATUS.md](docs/implementation/STATUS.md) for current m
 
 ### Setup
 ```bash
-# Clone and build
-git clone https://github.com/asyrjasalo/dynamic-mcp.git
-cd dynamic-mcp
+# Build
 cargo build
 
 # Run tests
@@ -77,7 +73,7 @@ RUST_LOG=debug cargo run -- examples/config.example.json
 ```
 
 ### Before You Start
-1. **Read relevant docs**: Check [ARCHITECTURE.md](docs/ARCHITECTURE.md) for system design
+1. **Read relevant docs**: Check [ARCHITECTURE.md](docs/implementation/ARCHITECTURE.md) for system design
 2. **Understand the codebase**: Browse module structure in `src/`
 3. **Check existing patterns**: Look at similar implementations before adding new code
 4. **Review tests**: See `tests/` and module tests for examples
@@ -273,58 +269,20 @@ cargo test -- --test-threads=1
 
 ## 📚 Documentation Requirements
 
-### When to Update Docs
-
 **CRITICAL**: Documentation is code. Always update docs when making changes.
 
-### Documentation Structure
+### What to Update
 
-**User-Facing Documentation (Root)**
-- **README.md**: Quick start, usage, configuration examples
-- **CONTRIBUTING.md**: Development setup, testing, PR workflow
-- **CLAUDE.md**: This file - AI agent guidelines
-
-**Architecture Documentation (docs/)**
-- **ARCHITECTURE.md**: System design, data flows, component details
-- **IMPORT.md**: Import guide from AI coding tools
-
-**Implementation Documentation (docs/implementation/)**
-- **STATUS.md**: Current metrics, features, limitations
-- **TESTING.md**: Test coverage, running tests
-- **DEVELOPMENT.md**: Project status, roadmap, metrics
-- **Feature docs**: Complex features (ENV_VAR_CONFIG.md, LIVE_RELOAD.md)
-
-### Documentation Update Matrix
-
-| Change Type | README | ARCHITECTURE | STATUS | TESTING | CONTRIBUTING | Run Tests? |
-|-------------|--------|--------------|--------|---------|--------------|------------|
-| New user-facing feature | ✅ | ⚠️ | ✅ | ✅ | ❌ | ✅ Required |
-| New internal feature | ❌ | ⚠️ | ✅ | ✅ | ❌ | ✅ Required |
-| Bug fix | ⚠️ | ❌ | ⚠️ | ⚠️ | ❌ | ✅ Required |
-| Config schema change | ✅ | ❌ | ⚠️ | ❌ | ❌ | ✅ Required |
-| New tests | ❌ | ❌ | ✅ | ✅ | ⚠️ | ✅ Required |
-| Build process change | ❌ | ❌ | ⚠️ | ❌ | ✅ | ✅ Required |
-| New module | ❌ | ✅ | ✅ | ✅ | ❌ | ✅ Required |
-| **Documentation-only** | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ **Skip tests** |
-
-Legend: ✅ Always | ⚠️ If applicable | ❌ Rarely
-
-### Documentation Checklist
-
-Before completing any change, verify:
-
-- [ ] User-facing changes reflected in README.md
-- [ ] New features added to STATUS.md
-- [ ] Test count accurate in TESTING.md and STATUS.md
-- [ ] Architecture changes documented in ARCHITECTURE.md
-- [ ] Build/test process changes in CONTRIBUTING.md
-- [ ] Metrics updated if changed significantly (LOC, tests, dependencies)
-- [ ] Cross-references between docs still valid
-- [ ] Examples still work and are accurate
+**For any code change:**
+1. **[CHANGELOG.md](CHANGELOG.md)** - Add user-facing changes to Unreleased section (features, bug fixes, breaking changes)
+2. **[docs/implementation/STATUS.md](docs/implementation/STATUS.md)** - Add new features, update metrics if significant
+3. **[docs/implementation/TESTING.md](docs/implementation/TESTING.md)** - Update test counts after adding tests
+4. **[docs/implementation/ARCHITECTURE.md](docs/implementation/ARCHITECTURE.md)** - Update if adding new modules or changing architecture
+5. **[README.md](README.md)** - Update if user-facing (new features, config changes)
 
 **For documentation-only changes:**
-- [ ] Skip running tests (`cargo test`, `cargo clippy`, `cargo build`)
-- [ ] Only verify documentation consistency, cross-references, and formatting
+- Skip running tests (`cargo test`, `cargo clippy`, `cargo build`)
+- Only verify cross-references and formatting
 
 ---
 
@@ -457,10 +415,13 @@ These are historical records and should remain unchanged.
 - ✅ Follow [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format
 - ✅ Focus on **user-facing changes**: features, bug fixes, breaking changes
 - ✅ **Order matters**: List user-facing changes FIRST, technical details LAST within each section
+- ✅ **No repetition across sections**: Each change should appear in ONLY ONE section (Added, Changed, or Fixed)
+- ✅ **Choose the primary aspect**: If a change fits multiple categories, pick the most significant one
 - ❌ NEVER document technical metrics (LOC, test counts, dependencies)
 - ❌ NEVER document internal implementation details (refactorings, module structure)
 - ❌ NEVER modify entries for previous releases (1.0.0, 1.1.0, etc.)
 - ❌ NEVER update historical descriptions even if they're outdated
+- ❌ NEVER repeat the same change in multiple sections (e.g., don't list a new feature in both "Added" and "Changed")
 - Historical accuracy is more important than current correctness for past releases
 
 **What to include in CHANGELOG.md**:
@@ -497,7 +458,7 @@ These are historical records and should remain unchanged.
 ### 1. Keep Docs Synchronized
 When updating one doc, check if related docs need updates. For example:
 - README config example → STATUS.md features list
-- New module → ARCHITECTURE.md structure + STATUS.md module list
+- New module → docs/implementation/ARCHITECTURE.md structure + STATUS.md module list
 
 ### 2. Use Consistent Terminology
 - **Transport**: stdio, HTTP, SSE, WebSocket
@@ -531,7 +492,7 @@ When updating README.md or IMPORT.md:
 **Where to find details:**
 - Implemented features → **docs/implementation/STATUS.md**
 - Test coverage → **docs/implementation/TESTING.md**
-- Architecture → **docs/ARCHITECTURE.md**
+- Architecture → **docs/implementation/ARCHITECTURE.md**
 - User guide → **README.md**
 - Development setup → **CONTRIBUTING.md**
 

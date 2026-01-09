@@ -1,6 +1,6 @@
 # MCP Specification Compliance Audit (2025-03-26)
 
-> **Last Updated**: January 9, 2026
+> **Last Updated**: January 10, 2026
 > **Spec Version**: 2025-11-25 (Latest - verified against official spec)
 > **Spec Reference**: https://modelcontextprotocol.io/specification/2025-11-25
 > **dynamic-mcp Version**: 1.3.0
@@ -685,10 +685,10 @@ All `resources/*` and `prompts/*` endpoints fully comply with the MCP specificat
 
 ---
 
-**Document Version**: 4.0
+**Document Version**: 4.1
 **Status**: 98.8% MUST-have compliance (85/86 core features only, no not-applicable features)
-**Last Update**: January 9, 2026 (Added comprehensive integration test suite)
-**Test Status**: 107 unit tests + 121 integration tests = 228 total (100% pass rate)
+**Last Update**: January 10, 2026 (Updated documentation to reflect current implementation)
+**Test Status**: 120+ unit tests + 121 integration tests = 242+ total (100% pass rate)
 **Architectural Honesty**: Spec strictly documents only proxy-applicable features, no false claims about push notifications
 
 ---

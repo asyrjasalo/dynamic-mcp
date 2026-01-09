@@ -1,6 +1,6 @@
 # Current Implementation Status
 
-> **Last Updated**: January 9, 2026
+> **Last Updated**: January 10, 2026
 > **Version**: 1.3.0
 > **Status**: Production-Ready ✅
 
@@ -223,11 +223,11 @@ See [MCP_SPEC_COMPLIANCE.md](MCP_SPEC_COMPLIANCE.md) for detailed compliance aud
 | Metric | Value |
 |--------|-------|
 | **Version** | 1.3.0 |
-| **LOC** | ~5,200 Rust |
-| **Source Files** | 24 Rust files |
-| **Test Fixtures** | 26 fixture files (10 tools, all with env vars) |
+| **LOC** | ~6,400 Rust |
+| **Source Files** | 19 Rust files (3 top-level + 16 in modules) |
+| **Test Files** | 8 integration test files |
 | **Dependencies** | 53 direct crates |
-| **Modules** | config, proxy, server, cli, auth, watcher |
+| **Modules** | config (4 files), proxy (4 files), server, cli (5 files), auth (3 files), watcher |
 | **CLI Commands** | serve (default), import |
 | **Transports** | stdio, HTTP, SSE |
 | **Supported Tools** | 10 AI coding tools |
@@ -245,29 +245,29 @@ See [MCP_SPEC_COMPLIANCE.md](MCP_SPEC_COMPLIANCE.md) for detailed compliance aud
 
 ```
 src/
-├── main.rs              (338 lines) - CLI entry point with live reload
-├── server.rs            (498 lines) - MCP server implementation
-├── watcher.rs           (41 lines)  - Config file watcher
+├── main.rs              - CLI entry point with live reload
+├── server.rs            - MCP server implementation (Tools, Resources, Prompts APIs)
+├── watcher.rs           - Config file watcher for live reload
 ├── auth/                (3 files)   - OAuth2 authentication
-│   ├── mod.rs           (17 lines)  - Module exports
-│   ├── oauth_client.rs  (335 lines) - OAuth flow implementation
-│   └── store.rs         (200 lines) - Token storage
+│   ├── mod.rs           - Module exports
+│   ├── oauth_client.rs  - OAuth2 PKCE flow implementation
+│   └── store.rs         - Secure token storage
 ├── cli/                 (5 files)   - CLI commands & import
-│   ├── mod.rs           (4 lines)   - Module exports
-│   ├── import.rs       (121 lines) - Legacy import (dead code)
-│   ├── import_enhanced.rs (223 lines) - Enhanced import workflow
-│   ├── tool_detector.rs (265 lines) - Tool detection & path resolution
-│   └── config_parser.rs (393 lines) - Multi-format config parsing
+│   ├── mod.rs           - Module exports
+│   ├── import.rs        - Legacy import (deprecated)
+│   ├── import_enhanced.rs - Enhanced import workflow
+│   ├── tool_detector.rs - Tool detection & path resolution
+│   └── config_parser.rs - Multi-format config parsing (JSON/JSONC/TOML)
 ├── config/              (4 files)   - Configuration management
-│   ├── mod.rs           (24 lines)  - Module exports
-│   ├── schema.rs        (263 lines) - Config data structures
-│   ├── loader.rs        (228 lines) - File loading & validation
-│   └── env_sub.rs       (116 lines) - Environment variable substitution
+│   ├── mod.rs           - Module exports
+│   ├── schema.rs        - Config data structures with per-server features
+│   ├── loader.rs        - File loading & validation
+│   └── env_sub.rs       - Environment variable substitution
 └── proxy/               (4 files)   - Upstream server management
-    ├── mod.rs           (17 lines)  - Module exports
-    ├── types.rs         (75 lines)  - Shared types
-    ├── client.rs        (280 lines) - Group state management
-    └── transport.rs     (616 lines) - Transport creation
+    ├── mod.rs           - Module exports
+    ├── types.rs         - Shared types (Resource, Prompt, Tool)
+    ├── client.rs        - Group state management & API proxying
+    └── transport.rs     - Transport creation (stdio, HTTP, SSE)
 ```
 
 ### Key Technologies

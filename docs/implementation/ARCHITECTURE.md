@@ -9,16 +9,27 @@ dynamic-mcp/
 ├── src/
 │   ├── main.rs              # CLI entry point
 │   ├── server.rs            # MCP server (exposes 2 tools)
+│   ├── watcher.rs           # Config file watcher for live reload
 │   ├── config/              # Configuration management
+│   │   ├── mod.rs           # Module exports
 │   │   ├── schema.rs        # Config data structures
 │   │   ├── loader.rs        # File loading & validation
 │   │   └── env_sub.rs       # Environment variable substitution
 │   ├── proxy/               # Upstream server management
-│   │   ├── types.rs         # Shared types
+│   │   ├── mod.rs           # Module exports
+│   │   ├── types.rs         # Shared types (Resource, Prompt, Tool types)
 │   │   ├── client.rs        # Group state management
-│   │   └── transport.rs     # Transport creation
+│   │   └── transport.rs     # Transport creation (stdio, HTTP, SSE)
+│   ├── auth/                # OAuth2 authentication
+│   │   ├── mod.rs           # Module exports
+│   │   ├── oauth_client.rs  # OAuth2 PKCE flow
+│   │   └── store.rs         # Token storage
 │   └── cli/                 # CLI commands
-│       └── import.rs       # Config import
+│       ├── mod.rs           # Module exports
+│       ├── import.rs        # Legacy import (deprecated)
+│       ├── import_enhanced.rs # Enhanced import workflow
+│       ├── tool_detector.rs # Tool detection & path resolution
+│       └── config_parser.rs # Multi-format config parsing
 ├── docs/                    # Documentation
 ├── examples/                # Example configurations
 └── Cargo.toml              # Dependencies
@@ -542,7 +553,7 @@ struct Features {
 - Multi-transport scenarios (stdio, HTTP, SSE)
 - SSE stream resumption with Last-Event-ID
 
-**See [docs/implementation/TESTING.md](docs/implementation/TESTING.md) for detailed test counts and coverage.**
+**See [TESTING.md](TESTING.md) for detailed test counts and coverage.**
 
 ## Extension Points
 

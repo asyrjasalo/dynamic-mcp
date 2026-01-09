@@ -126,7 +126,7 @@ Download from [GitHub Releases](https://github.com/asyrjasalo/dynamic-mcp/releas
 - [CHANGELOG](../../CHANGELOG.md) - Version history and changes
 - [CONTRIBUTING](../../CONTRIBUTING.md) - Development setup
 - [SECURITY](../../SECURITY.md) - Security considerations
-- [ARCHITECTURE](../ARCHITECTURE.md) - System design
+- [ARCHITECTURE](../implementation/ARCHITECTURE.md) - System design
 - [MIGRATION](../IMPORT.md) - Migrating from standard MCP
 
 ## 🙏 Acknowledgments

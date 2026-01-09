@@ -72,7 +72,7 @@ RUST_LOG=debug cargo run -- examples/config.example.json
 ### Running Tests
 
 ```bash
-# Run all tests (74 total: 50 unit + 14 integration + 10 import integration)
+# Run all tests
 cargo test
 
 # Run specific module tests
@@ -82,8 +82,9 @@ cargo test config::
 cargo test -- --nocapture
 
 # Run integration tests only
-cargo test --test integration_test              # General CLI integration tests
-cargo test --test import_integration_test       # Import workflow tests
+cargo test --test cli_integration_test
+cargo test --test cli_import_integration_test
+cargo test --test config_integration_test
 
 # Run specific test
 cargo test test_substitute_env_vars
@@ -91,6 +92,8 @@ cargo test test_substitute_env_vars
 # Run with test coverage
 cargo test -- --test-threads=1
 ```
+
+For detailed test organization and counts, see [docs/implementation/TESTING.md](docs/implementation/TESTING.md).
 
 ### Running Benchmarks
 
@@ -367,10 +370,8 @@ Feature suggestions are welcome! Please:
 
 ## Additional Resources
 
-- **[docs/implementation/DEVELOPMENT.md](docs/implementation/DEVELOPMENT.md)** - Project status, roadmap, and metrics
 - **[CLAUDE.md](CLAUDE.md)** - Guidelines for AI coding agents (documentation maintenance)
-- **[Architecture](docs/ARCHITECTURE.md)** - System design and component details
-- **[Implementation Docs](docs/implementation/)** - Detailed implementation documentation
+- **[Implementation Docs](docs/implementation/)** - Architecture, status, testing, and compliance documentation
 - **[Rust Book](https://doc.rust-lang.org/book/)** - Official Rust learning resource
 - **[MCP Specification](https://modelcontextprotocol.io/)** - Model Context Protocol docs
 

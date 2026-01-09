@@ -1,17 +1,47 @@
 # Testing Documentation
 
-The test suite contains 218 tests organized into logical layers, each testing a specific aspect of dynamic-mcp.
+The test suite contains 242+ tests organized into logical layers, each testing a specific aspect of dynamic-mcp.
 
 ## Current Test Status
 
-**Total Tests**: 228
-- **Unit Tests**: 111
-- **Integration Tests**: 106 (Spec Compliance + Config + Import + CLI)
-- **End-to-End Tests**: 11 (Real server interaction)
+**Total Tests**: 242+ (exact count varies with unit test additions)
+- **Unit Tests**: 120+ (inline in src/ modules)
+- **Integration Tests**: 121
+  - CLI Tests: 5
+  - Config Tests: 9
+  - Features Tests: 5
+  - Import Tests: 20
+  - Spec Compliance: 71 (Tools: 15, Prompts: 28, Resources: 28)
+  - E2E Tests: 11
 
 **Pass Rate**: 100% ✅
 
-**Last Updated**: 2026-01-09
+**Last Updated**: 2026-01-10
+
+---
+
+## Test Organization Overview
+
+### Integration Test Files (8 files, 121 tests)
+| File | Tests | What It Tests |
+|------|-------|---------------|
+| `cli_integration_test.rs` | 5 | Binary build, CLI flags (--version, --help), error handling |
+| `config_integration_test.rs` | 9 | Config parsing, live reload, schema validation |
+| `features_test.rs` | 5 | Per-server feature flags (tools, resources, prompts) |
+| `tools_test.rs` | 15 | Tools API spec compliance (MCP protocol) |
+| `prompts_test.rs` | 28 | Prompts API spec compliance (MCP protocol) |
+| `resources_test.rs` | 28 | Resources API spec compliance (MCP protocol) |
+| `cli_import_integration_test.rs` | 20 | Import command (10 AI tools, env var conversion) |
+| `server_everything_e2e_test.rs` | 11 | End-to-end with real MCP server |
+
+### Unit Test Files (12 files, 120+ tests)
+| Module | Files | What They Test |
+|--------|-------|----------------|
+| **Server & Core** | `server.rs`, `main.rs`, `watcher.rs` | MCP protocol handling, CLI args, config watching |
+| **Config** | `schema.rs`, `loader.rs`, `env_sub.rs` | Config structures, file loading, env var substitution |
+| **Auth** | `oauth_client.rs`, `store.rs` | OAuth2 PKCE flow, token storage |
+| **CLI** | `config_parser.rs`, `tool_detector.rs` | Multi-format parsing, tool detection |
+| **Proxy** | `types.rs`, `transport.rs` | MCP types, transport creation (stdio/HTTP/SSE) |
 
 ---
 
@@ -33,7 +63,7 @@ Tests the binary compilation and command-line interface.
 ---
 
 ### Layer 2: Configuration Tests
-**Files**: `config_integration_test.rs` (9 tests), `watcher.rs` unit tests (2 tests)
+**File**: `config_integration_test.rs` (9 tests)
 
 Tests configuration file parsing, schema validation, and live reload functionality.
 
@@ -49,6 +79,21 @@ Tests configuration file parsing, schema validation, and live reload functionali
 - `test_config_live_reload_remove_server` - Tests live reload when servers are removed
 
 **Purpose**: Ensures configuration files parse correctly, follow the expected schema, and live reload works properly.
+
+---
+
+### Layer 2.5: Per-Server Feature Flags Tests
+**File**: `features_test.rs` (5 tests)
+
+Tests per-server feature flag configuration and parsing.
+
+- `test_config_with_features_disabled_parses_successfully` - Config with disabled features parses correctly
+- `test_config_without_features_parses_successfully` - Default behavior (all enabled) when features omitted
+- `test_config_with_mixed_features` - Mix of enabled/disabled features per server
+- `test_config_with_explicit_enables` - Explicit true values for all features
+- `test_config_with_all_features_disabled` - All features disabled configuration
+
+**Purpose**: Validates per-server feature flag configuration (tools, resources, prompts) added in v1.3.0.
 
 ---
 
@@ -133,52 +178,94 @@ Tests the complete server lifecycle using the official `@modelcontextprotocol/se
 ---
 
 ### Layer 5: CLI Import Command Integration Tests
-**File**: `cli_import_integration_test.rs` (18 tests)
+**File**: `cli_import_integration_test.rs` (20 tests)
 
 Tests the CLI `import` command for importing MCP configurations from AI coding tools.
 
-#### Import Success Scenarios
+#### Import Success Scenarios (5 tests)
 - `test_import_cursor_project_success` - Cursor project config import
 - `test_import_opencode_jsonc_success` - OpenCode JSONC config import
 - `test_import_claude_project_success` - Claude Code CLI config import
 - `test_import_cline_success` - Cline config import
 - `test_import_multiple_servers_interactive` - Multi-server import with interactive prompts
 
-#### Environment Variable Handling
+#### Environment Variable Handling (9 tests)
+- `test_import_vscode_env_var_normalization` - VS Code env var normalization (general)
 - `test_import_cursor_env_var_conversion` - Cursor `${env:VAR}` → `${VAR}` conversion
-- `test_import_vscode_env_var_conversion_in_env` - VS Code env var normalization
-- `test_import_vscode_env_var_conversion_in_headers` - VS Code header env var normalization
+- `test_import_vscode_env_var_conversion_in_env` - VS Code env var normalization in env fields
+- `test_import_vscode_env_var_conversion_in_headers` - VS Code env var normalization in headers
 - `test_import_codex_env_var_passthrough` - Codex env var handling
 - `test_import_claude_env_var_passthrough` - Claude env var handling
 - `test_import_opencode_env_var_passthrough` - OpenCode env var handling
 - `test_import_gemini_env_var_passthrough` - Gemini env var handling
 - `test_import_kilocode_env_var_passthrough` - KiloCode env var handling
 
-#### Error Handling & Flags
+#### Feature Selection (2 tests)
+- `test_import_custom_features_selection` - Custom feature flags during import
+- `test_import_default_all_features_enabled` - Default behavior (all features enabled)
+
+#### Error Handling & Flags (4 tests)
 - `test_import_force_flag_skips_overwrite_prompt` - Force flag behavior
 - `test_import_missing_config_file_error` - Error on missing source config
 - `test_import_empty_description_error` - Error on empty description input
 - `test_import_invalid_json_error` - Error on malformed JSON
 
-**Purpose**: Ensures the import command correctly transforms configurations from all supported AI tools into dynamic-mcp format.
+**Purpose**: Ensures the import command correctly transforms configurations from all supported AI tools into dynamic-mcp format, with proper env var normalization and feature selection.
 
 ---
 
 ### Layer 6: Unit Tests
-**Location**: `src/**/*.rs` (inline `#[cfg(test)]` modules) (111 tests)
+**Location**: `src/**/*.rs` (inline `#[cfg(test)]` modules) (120+ tests)
 
-Core module testing across all source files including server, config, auth, CLI, and proxy modules.
+Core module testing across all source files. Each source file with `#[cfg(test)]` contains unit tests for its functionality.
 
-**Coverage**:
-- Configuration parsing and validation
-- Environment variable substitution (`${VAR}` format)
-- Request/response handling (JSON-RPC)
-- Error handling and edge cases
-- Tool discovery and management
-- Prompt handling
-- Resource management
-- CLI argument parsing
-- Import command functionality
+#### Unit Test Files by Module (12 files)
+
+**Server & Core** (3 files):
+- **`src/server.rs`** - MCP server request handling
+  - Tests: initialize, tools/list, tools/call, resources/list, prompts/list, unknown methods
+  - Coverage: JSON-RPC protocol, capability negotiation, error handling
+- **`src/main.rs`** - CLI argument parsing and config resolution
+  - Tests: CLI args precedence, environment variable fallback, config path resolution
+- **`src/watcher.rs`** - Configuration file watching
+  - Tests: Watcher creation, invalid path handling
+
+**Config Module** (3 files):
+- **`src/config/schema.rs`** - Configuration data structures
+  - Tests: Features default values, deserialization, per-server feature flags
+  - Coverage: JSON schema validation, serde behavior
+- **`src/config/loader.rs`** - Config file loading
+  - Tests: Valid config loading, env var substitution, nonexistent file errors
+  - Coverage: File I/O, error handling
+- **`src/config/env_sub.rs`** - Environment variable substitution
+  - Tests: `${VAR}` with/without braces, undefined vars, nested substitution
+  - Coverage: Regex matching, env var expansion
+
+**Auth Module** (2 files):
+- **`src/auth/oauth_client.rs`** - OAuth2 PKCE flow
+  - Tests: Callback server creation, OAuth client initialization
+  - Coverage: OAuth endpoints, PKCE challenge generation
+- **`src/auth/store.rs`** - Token storage
+  - Tests: Save/load tokens, nonexistent token handling, token deletion
+  - Coverage: File I/O, JSON serialization, token lifecycle
+
+**CLI Module** (2 files):
+- **`src/cli/config_parser.rs`** - Multi-format config parsing
+  - Tests: Cursor JSON, OpenCode JSONC, Claude Desktop JSON parsing
+  - Coverage: JSON/JSONC/TOML parsing, format detection
+- **`src/cli/tool_detector.rs`** - Tool detection and path resolution
+  - Tests: Tool name mapping, unknown tools, project/global config paths
+  - Coverage: Path resolution, tool-specific config locations
+
+**Proxy Module** (2 files):
+- **`src/proxy/types.rs`** - MCP type definitions (Resource, Prompt, Tool)
+  - Tests: Resource serialization with size field, optional fields omission
+  - Coverage: JSON serialization, MCP spec compliance
+- **`src/proxy/transport.rs`** - Transport layer (stdio, HTTP, SSE)
+  - Tests: HTTP transport creation, custom headers, SSE transport
+  - Coverage: Transport initialization, header injection
+
+**Summary**: All core modules have comprehensive unit test coverage for their internal logic.
 
 ---
 
@@ -188,7 +275,7 @@ Core module testing across all source files including server, config, auth, CLI,
 ```bash
 cargo test
 ```
-- **Result**: 228 tests passed in ~40 seconds
+- **Result**: 242+ tests passed in ~40-45 seconds
 - **Coverage**: Unit + Integration + E2E tests
 
 ### Run by Category
@@ -241,17 +328,19 @@ The test suite is organized as a **verification pyramid**:
 
 ```
 ┌─────────────────────────────────┐
-│   Unit Tests (111 tests)        │  Core modules, internal logic
+│   Unit Tests (120+ tests)       │  Core modules, internal logic
 ├─────────────────────────────────┤
 │   E2E Tests (11 tests)          │  Real server, actual protocol
 ├─────────────────────────────────┤
 │   Spec Tests (71 tests)         │  Format validation, no execution
 ├─────────────────────────────────┤
-│   Config Tests (11 tests)       │  Configuration parsing & live reload
+│   Config Tests (9 tests)        │  Configuration parsing & live reload
+├─────────────────────────────────┤
+│   Features Tests (5 tests)      │  Per-server feature flags
 ├─────────────────────────────────┤
 │   CLI Tests (5 tests)           │  Binary & flags
 ├─────────────────────────────────┤
-│   Import Tests (18 tests)       │  CLI import command
+│   Import Tests (20 tests)       │  CLI import command
 └─────────────────────────────────┘
 ```
 
@@ -276,15 +365,16 @@ The test suite is organized as a **verification pyramid**:
 
 | File | Type | Count | Purpose |
 |------|------|-------|---------|
-| src/**/*.rs (inline) | Unit | 111 | Core modules, config, CLI, auth, watcher |
+| src/**/*.rs (inline) | Unit | 120+ | Core modules, config, CLI, auth, watcher |
 | tools_test.rs | Integration | 15 | Tools API spec compliance |
 | prompts_test.rs | Integration | 28 | Prompts API spec compliance |
 | resources_test.rs | Integration | 28 | Resources API spec compliance |
+| features_test.rs | Integration | 5 | Per-server feature flags |
 | config_integration_test.rs | Integration | 9 | Config structure validation & live reload |
-| cli_import_integration_test.rs | Integration | 18 | CLI import command from AI tools |
+| cli_import_integration_test.rs | Integration | 20 | CLI import command from AI tools |
 | cli_integration_test.rs | Integration | 5 | CLI build & artifact tests |
 | server_everything_e2e_test.rs | E2E | 11 | Real upstream server integration |
-| **TOTAL** | | **228** | |
+| **TOTAL** | | **242+** | |
 
 ---
 
@@ -338,13 +428,14 @@ The package is:
 
 | Category | Count | Time | Per Test |
 |----------|-------|------|----------|
-| Unit Tests | 111 | ~0.5s | ~4.5ms |
+| Unit Tests | 120+ | ~0.5s | ~4ms |
 | Spec Tests (tools/prompts/resources) | 71 | ~0.5s | ~7ms |
-| Config Tests | 11 | ~0.5s | ~45ms |
+| Features Tests | 5 | ~0.1s | ~20ms |
+| Config Tests | 9 | ~0.5s | ~55ms |
 | CLI Tests | 5 | ~1.2s | ~240ms |
-| Import Tests | 18 | ~11.5s | ~640ms |
+| Import Tests | 20 | ~12s | ~600ms |
 | E2E Tests | 11 | ~2.2s | ~200ms |
-| **Total** | **228** | **~40s** | |
+| **Total** | **242+** | **~40-45s** | |
 
 **Notes**:
 - E2E tests use shared server instance with polling for readiness (~12s total including startup)
@@ -363,7 +454,7 @@ The package is:
 
 - Import tests use real tool config fixtures in `tests/fixtures/import/`. Fixture validation happens implicitly during test execution, not in separate tests.
 
-- Total test count: **228 tests** across 8 test files (~3,700 lines) plus inline unit tests in src/ (~111 tests).
+- Total test count: **242+ tests** across 8 integration test files plus inline unit tests in src/ (120+ tests).
 
 ---
 
@@ -418,10 +509,11 @@ cargo test --test <file_name> <test_name>
 
 ---
 
-**Last Updated**: January 09, 2026
+**Last Updated**: January 10, 2026
 
 ---
 
 ## Recent Updates
 
-- **2026-01-09**: Added live reload tests (3 tests) and watcher unit tests (2 tests) for ConfigWatcher. Total: 228 tests.
+- **2026-01-10**: Documentation update - Added comprehensive test file listing and unit test breakdown by module. Total: 242+ tests.
+- **2026-01-09**: Added live reload tests (3 tests) and watcher unit tests (2 tests) for ConfigWatcher.

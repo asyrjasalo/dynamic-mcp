@@ -686,7 +686,7 @@ dmcp import --global gemini
 
 If you encounter issues:
 
-1. Check [ARCHITECTURE.md](ARCHITECTURE.md) for system details
+1. Check [ARCHITECTURE.md](implementation/ARCHITECTURE.md) for system details
 2. Review [README.md](../README.md) for configuration examples
 3. Enable debug logging: `RUST_LOG=debug dmcp config.json`
 4. Open an issue with error logs and config (redact secrets!)
