@@ -122,15 +122,6 @@ impl DynamicMcpServer {
         let stdin = self.process.stdin.as_mut().expect("Failed to get stdin");
         let request_str = format!("{}\n", request);
 
-        if std::env::var("CI").is_ok() {
-            eprintln!(
-                "→ Request {}: {} {}",
-                request_id,
-                request["method"],
-                serde_json::to_string(&request["params"]).unwrap_or_default()
-            );
-        }
-
         stdin
             .write_all(request_str.as_bytes())
             .expect("Failed to write request");
@@ -144,10 +135,6 @@ impl DynamicMcpServer {
 
         if bytes_read == 0 {
             panic!("Got EOF from server, no response data");
-        }
-
-        if std::env::var("CI").is_ok() {
-            eprintln!("← Response {}: {}", request_id, response_str.trim());
         }
 
         let response: Value = serde_json::from_str(&response_str).unwrap_or_else(|e| {
