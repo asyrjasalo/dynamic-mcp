@@ -44,14 +44,15 @@ impl DynamicMcpServer {
         // Spawn thread to read stderr to prevent blocking
         thread::spawn(move || {
             let stderr_reader = BufReader::new(stderr);
-            for line in stderr_reader.lines() {
-                if let Ok(line) = line {
-                    eprintln!("STDERR: {}", line);
-                }
+            for line in stderr_reader.lines().flatten() {
+                eprintln!("STDERR: {}", line);
             }
         });
 
-        let mut server = Self { process, reader: BufReader::new(stdout) };
+        let mut server = Self {
+            process,
+            reader: BufReader::new(stdout),
+        };
 
         // Wait longer for everything-server to initialize in CI environment
         // (npx may need to download the package on first run, which can take 20-30 seconds)
@@ -71,7 +72,10 @@ impl DynamicMcpServer {
 
         let response = server.send_request(health_check);
         if response["result"]["capabilities"].is_null() {
-            panic!("Health check failed: server not responding correctly. Response: {}", response);
+            panic!(
+                "Health check failed: server not responding correctly. Response: {}",
+                response
+            );
         }
         eprintln!("Health check passed");
 
@@ -79,8 +83,19 @@ impl DynamicMcpServer {
     }
 
     fn send_request(&mut self, request: Value) -> Value {
+        let request_id = request["id"].clone();
         let stdin = self.process.stdin.as_mut().expect("Failed to get stdin");
         let request_str = format!("{}\n", request);
+
+        if std::env::var("CI").is_ok() {
+            eprintln!(
+                "→ Request {}: {} {}",
+                request_id,
+                request["method"],
+                serde_json::to_string(&request["params"]).unwrap_or_default()
+            );
+        }
+
         stdin
             .write_all(request_str.as_bytes())
             .expect("Failed to write request");
@@ -96,9 +111,27 @@ impl DynamicMcpServer {
             panic!("Got EOF from server, no response data");
         }
 
-        serde_json::from_str(&response_str).unwrap_or_else(|e| {
-            panic!("Failed to parse response: {}. Response was: {}", e, response_str.trim())
-        })
+        if std::env::var("CI").is_ok() {
+            eprintln!("← Response {}: {}", request_id, response_str.trim());
+        }
+
+        let response: Value = serde_json::from_str(&response_str).unwrap_or_else(|e| {
+            panic!(
+                "Failed to parse response: {}. Response was: {}",
+                e,
+                response_str.trim()
+            )
+        });
+
+        // Verify response ID matches request ID
+        if response["id"] != request_id {
+            panic!(
+                "Response ID mismatch! Expected {}, got {}. Response: {}",
+                request_id, response["id"], response
+            );
+        }
+
+        response
     }
 }
 
@@ -303,7 +336,11 @@ fn test_e2e_tools_echo_execution() {
     let content = response["result"]["content"][0].clone();
     assert_eq!(content["type"], "text");
     let result_text = content["text"].as_str().unwrap();
-    assert!(result_text.contains("test_message_from_e2e"));
+    assert!(
+        result_text.contains("test_message_from_e2e"),
+        "Expected echo response to contain 'test_message_from_e2e', got: {}. Full response: {}",
+        result_text, response
+    );
 }
 
 #[test]
@@ -333,7 +370,11 @@ fn test_e2e_prompts_list() {
 
     assert_eq!(response["jsonrpc"], "2.0");
     assert_eq!(response["id"], id2);
-    assert!(response["result"]["prompts"].is_array());
+    assert!(
+        response["result"]["prompts"].is_array(),
+        "Expected prompts to be an array, got: {}",
+        response
+    );
 
     let prompts = response["result"]["prompts"].as_array().unwrap();
     assert!(
@@ -414,7 +455,11 @@ fn test_e2e_resources_list() {
 
     assert_eq!(response["jsonrpc"], "2.0");
     assert_eq!(response["id"], id2);
-    assert!(response["result"]["resources"].is_array());
+    assert!(
+        response["result"]["resources"].is_array(),
+        "Expected resources to be an array, got: {}",
+        response
+    );
 
     let resources = response["result"]["resources"].as_array().unwrap();
     assert!(
@@ -452,7 +497,9 @@ fn test_e2e_resources_read() {
     });
 
     let list_response = server.lock().unwrap().send_request(resources_list_request);
-    let resources = list_response["result"]["resources"].as_array().unwrap();
+    let resources = list_response["result"]["resources"]
+        .as_array()
+        .unwrap_or_else(|| panic!("Expected resources array, got: {}", list_response));
 
     if !resources.is_empty() {
         let first_resource = &resources[0];
