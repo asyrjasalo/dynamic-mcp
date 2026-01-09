@@ -54,12 +54,10 @@ impl DynamicMcpServer {
             reader: BufReader::new(stdout),
         };
 
-        // Poll for server readiness - no fixed sleeps, just polling
-        eprintln!("Polling for server readiness...");
-
+        // Poll for server readiness by checking upstream connection
+        // This implicitly verifies both dynamic-mcp initialization and upstream server connection
         let timeout = Duration::from_secs(60);
         let start = std::time::Instant::now();
-        let mut initialized = false;
 
         loop {
             if start.elapsed() > timeout {
@@ -69,30 +67,7 @@ impl DynamicMcpServer {
                 );
             }
 
-            // Step 1: Try to initialize if not done yet
-            if !initialized {
-                let init_request = json!({
-                    "jsonrpc": "2.0",
-                    "id": 0,
-                    "method": "initialize",
-                    "params": {}
-                });
-
-                let init_response = server.send_request(init_request);
-                if init_response["result"]["capabilities"].is_object() {
-                    initialized = true;
-                    eprintln!(
-                        "dynamic-mcp initialized after {:.1}s",
-                        start.elapsed().as_secs_f64()
-                    );
-                } else {
-                    thread::sleep(Duration::from_millis(500));
-                    continue;
-                }
-            }
-
-            // Step 2: Try to connect to upstream server
-            let connect_request = json!({
+            let health_request = json!({
                 "jsonrpc": "2.0",
                 "id": 0,
                 "method": "prompts/list",
@@ -100,18 +75,13 @@ impl DynamicMcpServer {
                     "group": "everything"
                 }
             });
-            let connect_response = server.send_request(connect_request);
+            let health_response = server.send_request(health_request);
 
-            if connect_response["result"]["prompts"].is_array() {
-                eprintln!(
-                    "Upstream server ready after {:.1}s",
-                    start.elapsed().as_secs_f64()
-                );
+            if health_response["result"]["prompts"].is_array() {
                 break;
             }
 
-            // Wait a bit before retrying
-            thread::sleep(Duration::from_millis(500));
+            thread::sleep(Duration::from_millis(200));
         }
 
         server
