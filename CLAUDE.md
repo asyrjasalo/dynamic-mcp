@@ -238,13 +238,13 @@ cargo test -- --test-threads=1
 
 ### Test Coverage by Module
 
-| Module | Unit Tests | Integration Tests | Coverage |
-|--------|-----------|-------------------|----------|
-| `config/` | ✅ 100% | ✅ CLI | Config parsing, env vars |
-| `auth/` | ✅ 100% | ✅ OAuth flow | OAuth2, token storage |
-| `proxy/` | ✅ 100% | N/A | Transport, group state |
-| `server.rs` | ✅ 100% | N/A | MCP protocol, tool calls |
-| `cli/` | ✅ Basic | ✅ Full | Import command |
+| Module | Unit Tests | Integration Tests | What's Tested |
+|--------|-----------|-------------------|---------------|
+| `config/` | ✅ Yes | ✅ CLI | Config parsing, env vars |
+| `auth/` | ✅ Yes | ✅ OAuth flow | OAuth2, token storage |
+| `proxy/` | ✅ Yes | N/A | Transport, group state |
+| `server.rs` | ✅ Yes | N/A | MCP protocol, tool calls |
+| `cli/` | ✅ Yes | ✅ Full | Import command |
 
 ### Adding New Tests
 
@@ -402,7 +402,6 @@ git push origin main --tags
 - LOC changes by >10%
 - New module added or removed
 - Dependencies change significantly
-- Test coverage changes significantly
 
 ### When to Create New Docs
 
@@ -429,7 +428,7 @@ git push origin main --tags
 [Code examples if applicable]
 
 ## Testing
-[Test coverage]
+[Test approach and key test cases]
 
 ## Future Enhancements
 [Known limitations or future work]
@@ -460,8 +459,8 @@ These are historical records and should remain unchanged.
 - ✅ Breaking changes ("Removed support for legacy config format")
 - ✅ Deprecation notices ("Deprecated `--old-flag`, use `--new-flag` instead")
 
-**⚠️ CRITICAL: DO NOT INCLUDE TEST COUNTS IN CHANGELOG**
-- ❌ NEVER mention test metrics (counts, coverage percentages)
+**⚠️ CRITICAL: DO NOT INCLUDE TEST METRICS IN CHANGELOG**
+- ❌ NEVER mention test metrics
 - ✅ Tests are implementation details, not user-facing features
 - Put test documentation in STATUS.md and TESTING.md instead
 

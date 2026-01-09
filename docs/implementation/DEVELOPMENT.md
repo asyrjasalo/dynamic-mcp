@@ -50,7 +50,7 @@
 - **Comprehensive test suite**
   - 37 unit tests covering all modules
   - 9 integration tests for CLI and workflows
-  - Test coverage: Config (100%), Auth (100%), Server (100%), Transport (100%)
+  - All core modules have test coverage
 - **Complete documentation**
   - Module-level Rust documentation (cargo doc)
   - Architecture documentation with diagrams
@@ -103,7 +103,6 @@
 - **Lines of Code**: ~4,765 (Rust)
 - **Dependencies**: 53 direct crates (including rmcp and HTTP/SSE stack)
 - **Tests**: 82 passing (50 unit + 14 general integration + 18 import integration)
-- **Test Coverage**: ~95% (Config: 100%, Auth: 100%, Server: 100%, Transport: 100%, CLI: 100%)
 - **Test Fixtures**: 26 fixture files for 10 AI coding tools
 - **Binary Releases**: 5 platforms (Linux x86_64, Linux ARM64, macOS ARM64, Windows x86_64, Windows ARM64)
 - **Python Wheels**: 5 platforms (via maturin + GitHub Actions)

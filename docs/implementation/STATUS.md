@@ -77,7 +77,7 @@ See [MCP_SPEC_COMPLIANCE.md](MCP_SPEC_COMPLIANCE.md) for detailed compliance aud
   - Resources API tests covering list/read operations and error cases
 
 ### Phase 6: Production Release
-- [x] Test coverage: Config (100%), Auth (100%), Server (100%), Transport (100%)
+- [x] Comprehensive test suite for all core modules
 - [x] **Performance benchmarking suite**
   - Environment variable substitution benchmarks
   - JSON parsing performance tests
@@ -231,7 +231,6 @@ See [MCP_SPEC_COMPLIANCE.md](MCP_SPEC_COMPLIANCE.md) for detailed compliance aud
 | **LOC** | ~5,200 Rust |
 | **Source Files** | 24 Rust files |
 | **Tests** | **242 total** (121 unit + 20 import + 5 CLI + 9 features + 28 prompts + 28 resources + 11 everything + 15 tools) |
-| **Test Coverage** | **~98%** across all core modules |
 | **Test Pass Rate** | 100% ✅ |
 | **Test Fixtures** | 26 fixture files (10 tools, all with env vars) |
 | **Dependencies** | 53 direct crates |
