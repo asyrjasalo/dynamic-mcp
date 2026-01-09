@@ -995,10 +995,10 @@ fn test_import_default_all_features_enabled() {
 
     let test_server = &parsed["mcpServers"]["test"];
 
-    // When features are not customized, they should all be true (but serialized with defaults)
-    // The Features struct uses #[serde(default)] so enabled features are serialized as true
-    let features = &test_server["features"];
-    assert_eq!(features["tools"].as_bool().unwrap(), true);
-    assert_eq!(features["resources"].as_bool().unwrap(), true);
-    assert_eq!(features["prompts"].as_bool().unwrap(), true);
+    // When all features are enabled (default), the features field should be omitted
+    // This reduces config verbosity - features only appear when some are disabled
+    assert!(
+        test_server.get("features").is_none(),
+        "features field should be omitted when all features are enabled (default)"
+    );
 }

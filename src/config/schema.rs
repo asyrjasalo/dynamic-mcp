@@ -27,6 +27,13 @@ impl Default for Features {
     }
 }
 
+impl Features {
+    /// Returns true if all features are enabled (default state)
+    pub fn is_default(&self) -> bool {
+        self.tools && self.resources && self.prompts
+    }
+}
+
 #[derive(Debug, Clone, Serialize, JsonSchema)]
 #[serde(tag = "type", rename_all = "lowercase")]
 pub enum McpServerConfig {
@@ -38,7 +45,7 @@ pub enum McpServerConfig {
         args: Option<Vec<String>>,
         #[serde(skip_serializing_if = "Option::is_none")]
         env: Option<HashMap<String, String>>,
-        #[serde(default)]
+        #[serde(default, skip_serializing_if = "Features::is_default")]
         features: Features,
     },
     Http {
@@ -50,7 +57,7 @@ pub enum McpServerConfig {
         oauth_client_id: Option<String>,
         #[serde(skip_serializing_if = "Option::is_none")]
         oauth_scopes: Option<Vec<String>>,
-        #[serde(default)]
+        #[serde(default, skip_serializing_if = "Features::is_default")]
         features: Features,
     },
     Sse {
@@ -62,7 +69,7 @@ pub enum McpServerConfig {
         oauth_client_id: Option<String>,
         #[serde(skip_serializing_if = "Option::is_none")]
         oauth_scopes: Option<Vec<String>>,
-        #[serde(default)]
+        #[serde(default, skip_serializing_if = "Features::is_default")]
         features: Features,
     },
 }
@@ -341,6 +348,51 @@ mod tests {
             }
             _ => panic!("Expected Http config"),
         }
+    }
+
+    #[test]
+    fn test_serialize_omits_default_features() {
+        // Test that features field is omitted when all features are enabled (default)
+        let config = McpServerConfig::Stdio {
+            description: "Test server".to_string(),
+            command: "test-cmd".to_string(),
+            args: None,
+            env: None,
+            features: Features::default(),
+        };
+
+        let serialized = serde_json::to_value(&config).unwrap();
+        let obj = serialized.as_object().unwrap();
+
+        // features should NOT be present when all are enabled (default)
+        assert!(!obj.contains_key("features"));
+    }
+
+    #[test]
+    fn test_serialize_includes_disabled_features() {
+        // Test that features field IS included when some features are disabled
+        let config = McpServerConfig::Stdio {
+            description: "Test server".to_string(),
+            command: "test-cmd".to_string(),
+            args: None,
+            env: None,
+            features: Features {
+                tools: true,
+                resources: false,
+                prompts: true,
+            },
+        };
+
+        let serialized = serde_json::to_value(&config).unwrap();
+        let obj = serialized.as_object().unwrap();
+
+        // features SHOULD be present when some are disabled
+        assert!(obj.contains_key("features"));
+
+        let features = obj.get("features").unwrap().as_object().unwrap();
+        assert_eq!(features.get("tools").unwrap().as_bool().unwrap(), true);
+        assert_eq!(features.get("resources").unwrap().as_bool().unwrap(), false);
+        assert_eq!(features.get("prompts").unwrap().as_bool().unwrap(), true);
     }
 }
 
