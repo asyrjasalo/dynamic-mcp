@@ -1,5 +1,6 @@
 use crate::cli::config_parser::ConfigParser;
 use crate::cli::tool_detector::Tool;
+use crate::config::schema::Features;
 use crate::config::{IntermediateServerConfig, McpServerConfig, ServerConfig};
 use anyhow::{anyhow, Context, Result};
 use std::collections::HashMap;
@@ -69,9 +70,14 @@ pub async fn run_import_from_tool(
 
         let description = prompt_for_description(&name)?;
 
-        let imported = intermediate
+        let features = prompt_for_features(&name)?;
+
+        let mut imported = intermediate
             .to_mcp_config(description)
             .map_err(|e| anyhow!("Failed to convert server '{}': {}", name, e))?;
+
+        // Update the features based on user selection
+        imported = apply_features_to_config(imported, features);
 
         imported_servers.insert(name, imported);
     }
@@ -220,4 +226,108 @@ fn prompt_for_description(server_name: &str) -> Result<String> {
     }
 
     Ok(description)
+}
+
+fn prompt_for_features(server_name: &str) -> Result<Features> {
+    print!(
+        "\n🔧 Keep all features (tools, resources, prompts) for '{}'? [Y/n]: ",
+        server_name
+    );
+    io::stdout().flush()?;
+
+    let mut response = String::new();
+    io::stdin()
+        .read_line(&mut response)
+        .context("Failed to read feature selection from stdin")?;
+
+    let response = response.trim().to_lowercase();
+
+    // Default to yes if empty or y/yes
+    if response.is_empty() || response == "y" || response == "yes" {
+        return Ok(Features::default()); // All features enabled
+    }
+
+    // User wants to customize features
+    println!("\n  Select features to enable (press Enter to accept default):");
+
+    let tools = prompt_yes_no("  Enable tools?", true)?;
+    let resources = prompt_yes_no("  Enable resources?", true)?;
+    let prompts = prompt_yes_no("  Enable prompts?", true)?;
+
+    Ok(Features {
+        tools,
+        resources,
+        prompts,
+    })
+}
+
+fn prompt_yes_no(prompt: &str, default: bool) -> Result<bool> {
+    let default_str = if default { "Y/n" } else { "y/N" };
+    print!("{} [{}]: ", prompt, default_str);
+    io::stdout().flush()?;
+
+    let mut response = String::new();
+    io::stdin()
+        .read_line(&mut response)
+        .context("Failed to read yes/no response from stdin")?;
+
+    let response = response.trim().to_lowercase();
+
+    if response.is_empty() {
+        return Ok(default);
+    }
+
+    match response.as_str() {
+        "y" | "yes" => Ok(true),
+        "n" | "no" => Ok(false),
+        _ => Ok(default), // Invalid input, use default
+    }
+}
+
+fn apply_features_to_config(config: McpServerConfig, features: Features) -> McpServerConfig {
+    match config {
+        McpServerConfig::Stdio {
+            description,
+            command,
+            args,
+            env,
+            ..
+        } => McpServerConfig::Stdio {
+            description,
+            command,
+            args,
+            env,
+            features,
+        },
+        McpServerConfig::Http {
+            description,
+            url,
+            headers,
+            oauth_client_id,
+            oauth_scopes,
+            ..
+        } => McpServerConfig::Http {
+            description,
+            url,
+            headers,
+            oauth_client_id,
+            oauth_scopes,
+            features,
+        },
+        McpServerConfig::Sse {
+            description,
+            url,
+            headers,
+            oauth_client_id,
+            oauth_scopes,
+            ..
+        } => McpServerConfig::Sse {
+            description,
+            url,
+            headers,
+            oauth_client_id,
+            oauth_scopes,
+            features,
+        },
+    }
 }

@@ -89,8 +89,9 @@ The command will:
 1. Detect your tool's config location
 2. Parse the existing MCP servers
 3. Interactively prompt for descriptions
-4. Normalize environment variable formats
-5. Generate `dynamic-mcp.json`
+4. Interactively prompt for feature selection (tools, resources, prompts)
+5. Normalize environment variable formats
+6. Generate `dynamic-mcp.json`
 
 #### Example Import
 
@@ -112,10 +113,28 @@ Config details:
 
 💬 Enter description for 'filesystem' (what this server does): File operations on /tmp directory
 
+🔧 Keep all features (tools, resources, prompts) for 'filesystem'? [Y/n]:
+(press Enter to keep all features, or 'n' to customize)
+
 [... prompts for other servers ...]
 
 ✅ Import complete!
 📝 Output saved to: dynamic-mcp.json
+```
+
+**Feature Selection**: During import, you can customize which MCP features are enabled per server:
+- Press Enter (or Y) to keep all features (tools, resources, prompts)
+- Type 'n' to selectively enable/disable individual features
+- This allows fine-grained control without manually editing the config file
+
+Example of custom feature selection:
+```bash
+🔧 Keep all features (tools, resources, prompts) for 'server'? [Y/n]: n
+
+  Select features to enable (press Enter to accept default):
+  Enable tools? [Y/n]: y
+  Enable resources? [Y/n]: n
+  Enable prompts? [Y/n]: n
 ```
 
 #### Tool-Specific Notes

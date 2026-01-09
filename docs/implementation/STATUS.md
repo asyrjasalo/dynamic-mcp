@@ -206,23 +206,31 @@ See [MCP_SPEC_COMPLIANCE.md](MCP_SPEC_COMPLIANCE.md) for detailed compliance aud
   - Updated deserializer to handle optional features with defaults
   - Updated env var substitution to preserve features
   - `features()` accessor method on McpServerConfig
+- [x] **Interactive Feature Selection in Import**
+  - `prompt_for_features()` - Asks user if they want to keep all features (default Y)
+  - If user chooses to customize, prompts for each feature individually (tools, resources, prompts)
+  - `prompt_yes_no()` helper for individual feature prompts
+  - `apply_features_to_config()` updates imported config with selected features
+  - All import tests updated to provide feature selection input
 - [x] **Test Coverage**
   - 9 unit tests for Features struct and config parsing
   - 5 integration tests for config file validation
-  - All 240 tests pass (121 unit + 18 import + 5 CLI + 9 features + 28 prompts + 28 resources + 11 everything + 15 tools)
+  - 2 new import integration tests for feature selection (custom + default)
+  - All 242 tests pass (121 unit + 20 import + 5 CLI + 9 features + 28 prompts + 28 resources + 11 everything + 15 tools)
 - [x] **Documentation**
   - README.md updated with feature flags section and examples
-  - Behavior clearly documented (opt-out design, error on access)
+  - README.md import section updated with feature selection workflow
+  - Behavior clearly documented (opt-out design, error on access, interactive prompts)
 
 ## 📊 Project Metrics
 
 | Metric | Value |
 |--------|-------|
 | **Version** | 1.3.0 |
-| **Phase** | 10 Complete ✅ (Per-Server Feature Flags) |
-| **LOC** | ~5,100 Rust |
+| **Phase** | 10 Complete ✅ (Per-Server Feature Flags with Import Support) |
+| **LOC** | ~5,200 Rust |
 | **Source Files** | 24 Rust files |
-| **Tests** | **240 total** (121 unit + 18 import + 5 CLI + 9 features + 28 prompts + 28 resources + 11 everything + 15 tools) |
+| **Tests** | **242 total** (121 unit + 20 import + 5 CLI + 9 features + 28 prompts + 28 resources + 11 everything + 15 tools) |
 | **Test Coverage** | **~98%** across all core modules |
 | **Test Pass Rate** | 100% ✅ |
 | **Test Fixtures** | 26 fixture files (10 tools, all with env vars) |

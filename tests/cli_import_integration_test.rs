@@ -121,7 +121,12 @@ fn test_import_cursor_project_success() {
         output_path.to_str().unwrap(),
         true,
         false,
-        vec!["File operations on /tmp", "Git operations"],
+        vec![
+            "File operations on /tmp", // Description for filesystem
+            "",                        // Keep all features (default Y)
+            "Git operations",          // Description for git
+            "",                        // Keep all features (default Y)
+        ],
     );
 
     assert!(
@@ -178,7 +183,7 @@ fn test_import_opencode_jsonc_success() {
         output_path.to_str().unwrap(),
         true,
         false,
-        vec!["Web search functionality"],
+        vec!["Web search functionality", ""],
     );
 
     assert!(
@@ -226,7 +231,7 @@ fn test_import_vscode_env_var_normalization() {
         output_path.to_str().unwrap(),
         true,
         false,
-        vec!["GitHub API access"],
+        vec!["GitHub API access", ""],
     );
 
     assert!(
@@ -265,7 +270,7 @@ fn test_import_claude_project_success() {
         output_path.to_str().unwrap(),
         true,
         false,
-        vec!["PostgreSQL database access"],
+        vec!["PostgreSQL database access", ""],
     );
 
     assert!(
@@ -308,7 +313,7 @@ fn test_import_cline_success() {
         output_path.to_str().unwrap(),
         true,
         false,
-        vec!["Brave search integration"],
+        vec!["Brave search integration", ""],
     );
 
     assert!(
@@ -349,7 +354,7 @@ fn test_import_force_flag_skips_overwrite_prompt() {
         output_path.to_str().unwrap(),
         true,
         false,
-        vec!["Test server"],
+        vec!["Test server", ""],
     );
 
     assert!(
@@ -405,7 +410,7 @@ fn test_import_empty_description_error() {
         output_path.to_str().unwrap(),
         true,
         false,
-        vec![""],
+        vec!["", ""],
     );
 
     assert!(
@@ -473,7 +478,14 @@ fn test_import_multiple_servers_interactive() {
         output_path.to_str().unwrap(),
         true,
         false,
-        vec!["Description 1", "Description 2", "Description 3"],
+        vec![
+            "Description 1",
+            "", // server1: description + keep all features
+            "Description 2",
+            "", // server2: description + keep all features
+            "Description 3",
+            "", // server3: description + keep all features
+        ],
     );
 
     assert!(
@@ -528,7 +540,7 @@ fn test_import_cursor_env_var_conversion() {
         output_path.to_str().unwrap(),
         true,
         false,
-        vec!["Test server"],
+        vec!["Test server", ""],
     );
 
     assert!(
@@ -573,7 +585,7 @@ fn test_import_vscode_env_var_conversion_in_env() {
         output_path.to_str().unwrap(),
         true,
         false,
-        vec!["Test server"],
+        vec!["Test server", ""],
     );
 
     assert!(
@@ -617,7 +629,7 @@ fn test_import_vscode_env_var_conversion_in_headers() {
         output_path.to_str().unwrap(),
         true,
         false,
-        vec!["API server"],
+        vec!["API server", ""],
     );
 
     assert!(
@@ -670,7 +682,7 @@ WORKSPACE = "${WORKSPACE_ROOT}"
         output_path.to_str().unwrap(),
         true,
         true,
-        vec!["Test server"],
+        vec!["Test server", ""],
     );
 
     std::env::set_var("HOME", home);
@@ -717,7 +729,7 @@ fn test_import_claude_env_var_passthrough() {
         output_path.to_str().unwrap(),
         true,
         false,
-        vec!["Test server"],
+        vec!["Test server", ""],
     );
 
     assert!(
@@ -762,7 +774,7 @@ fn test_import_opencode_env_var_passthrough() {
         output_path.to_str().unwrap(),
         true,
         false,
-        vec!["Test server"],
+        vec!["Test server", ""],
     );
 
     assert!(
@@ -807,7 +819,7 @@ fn test_import_gemini_env_var_passthrough() {
         output_path.to_str().unwrap(),
         true,
         false,
-        vec!["Test server"],
+        vec!["Test server", ""],
     );
 
     assert!(
@@ -852,7 +864,7 @@ fn test_import_kilocode_env_var_passthrough() {
         output_path.to_str().unwrap(),
         true,
         false,
-        vec!["Test server"],
+        vec!["Test server", ""],
     );
 
     assert!(
@@ -870,4 +882,123 @@ fn test_import_kilocode_env_var_passthrough() {
     assert_eq!(env["API_KEY"].as_str().unwrap(), "${API_KEY}");
     assert_eq!(env["CONFIG"].as_str().unwrap(), "${CONFIG}");
     assert_eq!(env["WORKSPACE"].as_str().unwrap(), "${WORKSPACE_ROOT}");
+}
+
+#[test]
+fn test_import_custom_features_selection() {
+    let config_content = r#"{
+  "mcpServers": {
+    "tools-only": {
+      "command": "npx",
+      "args": ["@mcp/server-tools"]
+    },
+    "resources-only": {
+      "command": "npx",
+      "args": ["@mcp/server-resources"]
+    }
+  }
+}"#;
+
+    let project = TestProject::new("cursor", ".cursor", "mcp.json", config_content);
+    let output_path = project.output_path();
+
+    let output = run_import_with_input(
+        "cursor",
+        project.path(),
+        output_path.to_str().unwrap(),
+        true,
+        false,
+        vec![
+            "Resources server", // Description for resources-only (sorted first)
+            "n",                // Customize features
+            "n",                // Disable tools
+            "y",                // Enable resources
+            "n",                // Disable prompts
+            "Tools server",     // Description for tools-only (sorted second)
+            "n",                // Customize features
+            "y",                // Enable tools
+            "n",                // Disable resources
+            "n",                // Disable prompts
+        ],
+    );
+
+    assert!(
+        output.status.success(),
+        "Import should succeed. stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    assert!(output_path.exists(), "Output file should be created");
+
+    let output_content = fs::read_to_string(&output_path).expect("Failed to read output file");
+    let parsed: serde_json::Value =
+        serde_json::from_str(&output_content).expect("Output should be valid JSON");
+
+    let servers = parsed["mcpServers"].as_object().unwrap();
+    assert_eq!(servers.len(), 2);
+
+    // Verify tools-only server has only tools enabled
+    let tools_only = &servers["tools-only"];
+    assert_eq!(tools_only["description"].as_str().unwrap(), "Tools server");
+    let features = &tools_only["features"];
+    assert_eq!(features["tools"].as_bool().unwrap(), true);
+    assert_eq!(features["resources"].as_bool().unwrap(), false);
+    assert_eq!(features["prompts"].as_bool().unwrap(), false);
+
+    // Verify resources-only server has only resources enabled
+    let resources_only = &servers["resources-only"];
+    assert_eq!(
+        resources_only["description"].as_str().unwrap(),
+        "Resources server"
+    );
+    let features = &resources_only["features"];
+    assert_eq!(features["tools"].as_bool().unwrap(), false);
+    assert_eq!(features["resources"].as_bool().unwrap(), true);
+    assert_eq!(features["prompts"].as_bool().unwrap(), false);
+}
+
+#[test]
+fn test_import_default_all_features_enabled() {
+    let config_content = r#"{
+  "mcpServers": {
+    "test": {
+      "command": "npx",
+      "args": ["server"]
+    }
+  }
+}"#;
+
+    let project = TestProject::new("cursor", ".cursor", "mcp.json", config_content);
+    let output_path = project.output_path();
+
+    let output = run_import_with_input(
+        "cursor",
+        project.path(),
+        output_path.to_str().unwrap(),
+        true,
+        false,
+        vec![
+            "Test server", // Description
+            "",            // Keep all features (default Y)
+        ],
+    );
+
+    assert!(
+        output.status.success(),
+        "Import should succeed. stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    let output_content = fs::read_to_string(&output_path).expect("Failed to read output file");
+    let parsed: serde_json::Value =
+        serde_json::from_str(&output_content).expect("Output should be valid JSON");
+
+    let test_server = &parsed["mcpServers"]["test"];
+
+    // When features are not customized, they should all be true (but serialized with defaults)
+    // The Features struct uses #[serde(default)] so enabled features are serialized as true
+    let features = &test_server["features"];
+    assert_eq!(features["tools"].as_bool().unwrap(), true);
+    assert_eq!(features["resources"].as_bool().unwrap(), true);
+    assert_eq!(features["prompts"].as_bool().unwrap(), true);
 }
