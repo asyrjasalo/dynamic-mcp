@@ -1,3 +1,6 @@
+# releases
 /target
-.claude/settings.local.json
+
+# dev
+.claude/
 TODO.md
