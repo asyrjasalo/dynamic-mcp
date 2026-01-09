@@ -1048,10 +1048,10 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_server_everything_configuration() {
+    async fn test_config_parsing() {
         let config_json = r#"{
             "mcpServers": {
-                "everything": {
+                "test-server": {
                     "description": "Comprehensive MCP server with tools and resources",
                     "command": "npx",
                     "args": ["-y", "@modelcontextprotocol/server-everything"]
@@ -1064,11 +1064,11 @@ mod tests {
 
         assert!(parsed.get("mcpServers").is_some());
         let servers = parsed.get("mcpServers").unwrap().as_object().unwrap();
-        assert!(servers.contains_key("everything"));
+        assert!(servers.contains_key("test-server"));
 
-        let everything = &servers["everything"];
+        let server = &servers["test-server"];
         assert_eq!(
-            everything.get("description").unwrap().as_str().unwrap(),
+            server.get("description").unwrap().as_str().unwrap(),
             "Comprehensive MCP server with tools and resources"
         );
     }

@@ -1,4 +1,4 @@
-// Tools API Integration Tests with everything-server
+// Tools API Spec Compliance Tests
 // Tests compliance with MCP specification v2025-11-25
 // https://modelcontextprotocol.io/specification/2025-11-25/server/tools
 
@@ -14,7 +14,7 @@ fn test_tools_list_request_structure() {
         "id": 1,
         "method": "tools/list",
         "params": {
-            "group": "everything"
+            "group": "test-group"
         }
     });
 
@@ -23,7 +23,7 @@ fn test_tools_list_request_structure() {
     assert!(request["id"].is_number(), "id must be present");
     assert_eq!(request["method"], "tools/list", "method must be tools/list");
     assert_eq!(
-        request["params"]["group"], "everything",
+        request["params"]["group"], "test-group",
         "group parameter required"
     );
 }
@@ -160,7 +160,7 @@ fn test_tools_call_request_format() {
         "id": 2,
         "method": "tools/call",
         "params": {
-            "group": "everything",
+            "group": "test-group",
             "name": "example_tool",
             "arguments": {
                 "arg1": "value1",
@@ -368,21 +368,21 @@ fn test_tools_with_no_parameters() {
     assert_eq!(tool["inputSchema"]["required"].as_array().unwrap().len(), 0);
 }
 
-/// Test 12: Tools list from everything-server configuration
-/// Tests: config format for everything-server integration
+/// Test 12: Tools list from test server configuration
+/// Tests: config format for test server integration
 #[test]
-fn test_everything_server_tools_config() {
+fn test_config_tools_config() {
     let config = json!({
         "mcpServers": {
-            "everything": {
+            "test-group": {
                 "description": "Server with comprehensive tools, resources, and prompts",
                 "command": "npx",
-                "args": ["-y", "@modelcontextprotocol/server-everything"]
+                "args": ["-y", "test-server"]
             }
         }
     });
 
-    let server_config = &config["mcpServers"]["everything"];
+    let server_config = &config["mcpServers"]["test-group"];
     assert!(server_config["description"].is_string());
     assert_eq!(server_config["command"], "npx");
     assert!(server_config["args"].is_array());
@@ -395,7 +395,7 @@ fn test_tools_call_complex_arguments() {
     let request = json!({
         "method": "tools/call",
         "params": {
-            "group": "everything",
+            "group": "test-group",
             "name": "complex_tool",
             "arguments": {
                 "simple": "string",

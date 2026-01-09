@@ -1,8 +1,14 @@
-// Prompts API Integration Tests with everything-server
+// Prompts API Tests - Spec Compliance & Integration
 // Tests compliance with MCP specification v2025-11-25
 // https://modelcontextprotocol.io/specification/2025-11-25/server/prompts
 
 use serde_json::json;
+use std::io::Write;
+use tempfile::NamedTempFile;
+
+// ============================================================================
+// SPEC COMPLIANCE TESTS
+// ============================================================================
 
 /// Test 1: Prompts/list request format
 /// Tests: method name, group parameter, pagination cursor support
@@ -13,7 +19,7 @@ fn test_prompts_list_request_format() {
         "id": 1,
         "method": "prompts/list",
         "params": {
-            "group": "everything",
+            "group": "test-group",
             "cursor": null
         }
     });
@@ -94,7 +100,7 @@ fn test_prompts_get_request_format() {
         "id": 2,
         "method": "prompts/get",
         "params": {
-            "group": "everything",
+            "group": "test-group",
             "name": "code_review",
             "arguments": {
                 "language": "rust"
@@ -341,48 +347,7 @@ fn test_prompt_complex_arguments() {
     assert_eq!(required_count, 2);
 }
 
-/// Test 15: Prompts from everything-server configuration
-/// Tests: config format for everything-server prompts support
-#[test]
-fn test_everything_server_prompts_config() {
-    let config = json!({
-        "mcpServers": {
-            "everything": {
-                "description": "Server with comprehensive tools, resources, and prompts",
-                "command": "npx",
-                "args": ["-y", "@modelcontextprotocol/server-everything"]
-            }
-        }
-    });
-
-    let server = &config["mcpServers"]["everything"];
-    assert!(server["description"].is_string());
-    assert_eq!(server["command"], "npx");
-    assert!(server["args"].is_array());
-}
-
-/// Test 16: Prompts/get with optional arguments
-/// Tests: calling prompts/get with missing optional arguments
-#[test]
-fn test_prompts_get_with_missing_optional_args() {
-    let request = json!({
-        "jsonrpc": "2.0",
-        "id": 3,
-        "method": "prompts/get",
-        "params": {
-            "group": "everything",
-            "name": "code_review",
-            "arguments": {
-                "language": "rust"
-            }
-        }
-    });
-
-    let args = &request["params"]["arguments"];
-    assert!(args["language"].is_string());
-}
-
-/// Test 17: Empty prompts/list response
+/// Test 15: Empty prompts/list response
 /// Tests: handling empty prompts list
 #[test]
 fn test_empty_prompts_list_response() {
@@ -398,7 +363,7 @@ fn test_empty_prompts_list_response() {
     assert_eq!(response["result"]["prompts"].as_array().unwrap().len(), 0);
 }
 
-/// Test 18: Prompt with multiline text content
+/// Test 16: Prompt with multiline text content
 /// Tests: text content with newlines and special formatting
 #[test]
 fn test_prompt_multiline_text_content() {
@@ -428,7 +393,7 @@ fn test_prompt_multiline_text_content() {
     assert!(text_str.contains("\n"));
 }
 
-/// Test 19: JSON-RPC errors for prompts API
+/// Test 17: JSON-RPC errors for prompts API
 /// Tests: error codes for prompts methods
 #[test]
 fn test_prompts_api_error_responses() {
@@ -454,7 +419,7 @@ fn test_prompts_api_error_responses() {
     assert_eq!(error_internal["error"]["code"], -32603);
 }
 
-/// Test 20: Prompts with special characters in names and descriptions
+/// Test 18: Prompts with special characters in names and descriptions
 /// Tests: UTF-8 characters, special symbols handling
 #[test]
 fn test_prompts_special_characters() {
@@ -474,4 +439,291 @@ fn test_prompts_special_characters() {
     let desc = prompt["description"].as_str().unwrap();
     assert!(desc.contains("🔒"));
     assert!(desc.contains("版本"));
+}
+
+// ============================================================================
+// INTEGRATION TESTS
+// ============================================================================
+
+/// Test 19: Config file loading with prompts support
+#[test]
+fn test_prompts_list_with_config() {
+    let mut config_file = NamedTempFile::new().unwrap();
+    let config = r#"{
+  "mcpServers": {
+    "test-group": {
+      "description": "Comprehensive MCP server with tools, resources, and prompts",
+      "command": "npx",
+      "args": ["-y", "test-server"]
+    }
+  }
+}"#;
+    config_file.write_all(config.as_bytes()).unwrap();
+    config_file.flush().unwrap();
+
+    let content = std::fs::read_to_string(config_file.path()).expect("Failed to read config file");
+
+    let parsed: serde_json::Value =
+        serde_json::from_str(&content).expect("Config should be valid JSON");
+
+    assert!(
+        parsed.get("mcpServers").is_some(),
+        "Config should have mcpServers"
+    );
+
+    let servers = parsed.get("mcpServers").unwrap().as_object().unwrap();
+    assert!(
+        servers.contains_key("test-group"),
+        "Config should have test server"
+    );
+
+    let server = &servers["test-group"];
+    assert_eq!(
+        server.get("description").unwrap().as_str().unwrap(),
+        "Comprehensive MCP server with tools, resources, and prompts"
+    );
+}
+
+/// Test 20: Dynamic MCP config with prompts support
+#[test]
+fn test_dynamic_mcp_config_with_prompts_support() {
+    let config = r#"{
+  "mcpServers": {
+    "test-group": {
+      "description": "Server with prompts, resources, and tools",
+      "command": "npx",
+      "args": ["-y", "test-server"]
+    }
+  }
+}"#;
+
+    let parsed: serde_json::Value =
+        serde_json::from_str(config).expect("Config should be valid JSON");
+
+    let servers = parsed["mcpServers"].as_object().unwrap();
+    let server = &servers["test-group"];
+
+    assert!(server.get("command").is_some());
+    assert!(server.get("description").is_some());
+    assert!(server.get("args").is_some());
+
+    let args = server.get("args").unwrap().as_array().unwrap();
+    assert!(args.len() >= 2);
+    assert_eq!(args[0].as_str().unwrap(), "-y");
+    assert_eq!(args[1].as_str().unwrap(), "test-server");
+}
+
+/// Test 21: Dynamic MCP prompts response format
+#[test]
+fn test_dynamic_mcp_prompts_response_format() {
+    let response = json!({
+        "jsonrpc": "2.0",
+        "id": 2,
+        "result": {
+            "description": "A complex prompt",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": {
+                        "type": "text",
+                        "text": "Please help with this"
+                    }
+                }
+            ]
+        }
+    });
+
+    assert_eq!(response["jsonrpc"], "2.0");
+    let result = response["result"].as_object().unwrap();
+    assert!(result.contains_key("messages"));
+    assert!(result.contains_key("description"));
+
+    let messages = result["messages"].as_array().unwrap();
+    assert!(!messages.is_empty());
+    assert_eq!(messages[0]["role"], "user");
+    assert!(messages[0]["content"]["type"].is_string());
+}
+
+/// Test 22: Prompts with image content in integration test
+#[test]
+fn test_prompts_with_image_content() {
+    let message = json!({
+        "role": "user",
+        "content": {
+            "type": "image",
+            "data": "base64encodedimagedata",
+            "mimeType": "image/png"
+        }
+    });
+
+    assert_eq!(message["role"], "user");
+    assert_eq!(message["content"]["type"], "image");
+    assert!(message["content"]["data"].is_string());
+    assert_eq!(message["content"]["mimeType"], "image/png");
+}
+
+/// Test 23: Prompts with resource content in integration test
+#[test]
+fn test_prompts_with_resource_content() {
+    let message = json!({
+        "role": "assistant",
+        "content": {
+            "type": "resource",
+            "resource": {
+                "uri": "file:///example.txt",
+                "mimeType": "text/plain",
+                "text": "Resource content"
+            }
+        }
+    });
+
+    assert_eq!(message["role"], "assistant");
+    assert_eq!(message["content"]["type"], "resource");
+    assert!(message["content"]["resource"].is_object());
+
+    let resource = message["content"]["resource"].as_object().unwrap();
+    assert!(resource.contains_key("uri"));
+    assert!(resource.contains_key("mimeType"));
+    assert!(resource.contains_key("text"));
+}
+
+/// Test 24: Prompt argument structure
+#[test]
+fn test_prompt_argument_structure() {
+    let argument = json!({
+        "name": "code",
+        "description": "The code to review",
+        "required": true
+    });
+
+    assert_eq!(argument["name"], "code");
+    assert_eq!(argument["description"], "The code to review");
+    assert_eq!(argument["required"], true);
+}
+
+/// Test 25: Prompt with arguments
+#[test]
+fn test_prompt_with_arguments() {
+    let prompt = json!({
+        "name": "code_review",
+        "title": "Request Code Review",
+        "description": "Asks the LLM to analyze code quality",
+        "arguments": [
+            {
+                "name": "code",
+                "description": "The code to review",
+                "required": true
+            },
+            {
+                "name": "language",
+                "description": "Programming language",
+                "required": false
+            }
+        ]
+    });
+
+    assert_eq!(prompt["name"], "code_review");
+    assert!(prompt["arguments"].is_array());
+
+    let args = prompt["arguments"].as_array().unwrap();
+    assert_eq!(args.len(), 2);
+    assert_eq!(args[0]["name"], "code");
+    assert_eq!(args[1]["name"], "language");
+    assert_eq!(args[0]["required"], true);
+    assert_eq!(args[1]["required"], false);
+}
+
+/// Test 26: Prompts pagination with cursor
+#[test]
+fn test_prompts_pagination_with_cursor() {
+    let request1 = json!({
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "prompts/list",
+        "params": {
+            "group": "test-group"
+        }
+    });
+
+    let request2 = json!({
+        "jsonrpc": "2.0",
+        "id": 2,
+        "method": "prompts/list",
+        "params": {
+            "group": "test-group",
+            "cursor": "page2"
+        }
+    });
+
+    assert_eq!(request1["method"], "prompts/list");
+    assert_eq!(request2["method"], "prompts/list");
+    assert!(!request1["params"]
+        .as_object()
+        .unwrap()
+        .contains_key("cursor"));
+    assert!(request2["params"]["cursor"].is_string());
+}
+
+/// Test 27: Dynamic MCP exposes prompts capability
+#[test]
+fn test_dynamic_mcp_exposes_prompts_capability() {
+    let initialize_response = json!({
+        "protocolVersion": "2024-11-05",
+        "capabilities": {
+            "tools": {},
+            "resources": {
+                "subscribe": false,
+                "listChanged": false
+            },
+            "prompts": {
+                "listChanged": false
+            }
+        },
+        "serverInfo": {
+            "name": "dynamic-mcp",
+            "version": "1.3.0"
+        }
+    });
+
+    assert!(initialize_response["capabilities"]["prompts"].is_object());
+    let prompts_cap = initialize_response["capabilities"]["prompts"]
+        .as_object()
+        .unwrap();
+    assert!(prompts_cap.contains_key("listChanged"));
+}
+
+/// Test 28: Prompts/get with optional arguments
+#[test]
+fn test_prompts_get_with_optional_arguments() {
+    let request_no_args = json!({
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "prompts/get",
+        "params": {
+            "group": "test-group",
+            "name": "simple_prompt"
+        }
+    });
+
+    let request_with_args = json!({
+        "jsonrpc": "2.0",
+        "id": 2,
+        "method": "prompts/get",
+        "params": {
+            "group": "test-group",
+            "name": "complex_prompt",
+            "arguments": {
+                "param1": "value1",
+                "param2": "value2"
+            }
+        }
+    });
+
+    assert_eq!(request_no_args["method"], "prompts/get");
+    assert_eq!(request_with_args["method"], "prompts/get");
+    assert!(!request_no_args["params"]
+        .as_object()
+        .unwrap()
+        .contains_key("arguments"));
+    assert!(request_with_args["params"]["arguments"].is_object());
 }

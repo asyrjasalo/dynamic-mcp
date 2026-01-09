@@ -1,8 +1,12 @@
-// Resources API Integration Tests with everything-server
+// Resources API Tests - Spec Compliance & Integration
 // Tests compliance with MCP specification v2025-11-25
 // https://modelcontextprotocol.io/specification/2025-11-25/server/resources
 
 use serde_json::json;
+
+// ============================================================================
+// SPEC COMPLIANCE TESTS
+// ============================================================================
 
 /// Test 1: Resources/list request format
 /// Tests: group parameter, cursor pagination support
@@ -13,7 +17,7 @@ fn test_resources_list_request_format() {
         "id": 1,
         "method": "resources/list",
         "params": {
-            "group": "everything",
+            "group": "test-group",
             "cursor": null
         }
     });
@@ -130,7 +134,7 @@ fn test_resources_read_request_format() {
         "id": 2,
         "method": "resources/read",
         "params": {
-            "group": "everything",
+            "group": "test-group",
             "uri": "file:///example.txt"
         }
     });
@@ -198,7 +202,7 @@ fn test_resources_templates_list_request_format() {
         "id": 4,
         "method": "resources/templates/list",
         "params": {
-            "group": "everything"
+            "group": "test-group"
         }
     });
 
@@ -364,27 +368,7 @@ fn test_empty_resources_list_response() {
     assert_eq!(response["result"]["resources"].as_array().unwrap().len(), 0);
 }
 
-/// Test 17: Everything-server resources configuration
-/// Tests: config format for everything-server resources support
-#[test]
-fn test_everything_server_resources_config() {
-    let config = json!({
-        "mcpServers": {
-            "everything": {
-                "description": "Server with tools, resources, and prompts",
-                "command": "npx",
-                "args": ["-y", "@modelcontextprotocol/server-everything"]
-            }
-        }
-    });
-
-    let server = &config["mcpServers"]["everything"];
-    assert!(server["description"].is_string());
-    assert_eq!(server["command"], "npx");
-    assert!(server["args"].is_array());
-}
-
-/// Test 18: Resource with multiple content types
+/// Test 17: Resource with multiple content types
 /// Tests: handling various MIME types
 #[test]
 fn test_resources_multiple_mime_types() {
@@ -403,7 +387,7 @@ fn test_resources_multiple_mime_types() {
     }
 }
 
-/// Test 19: Resource templates with variable substitution
+/// Test 18: Resource templates with variable substitution
 /// Tests: RFC 6570 URI template syntax
 #[test]
 fn test_resource_templates_rfc6570_syntax() {
@@ -429,7 +413,7 @@ fn test_resource_templates_rfc6570_syntax() {
     }
 }
 
-/// Test 20: Resource annotations with all fields
+/// Test 19: Resource annotations with all fields
 /// Tests: complete annotation support
 #[test]
 fn test_resource_full_annotations() {
@@ -474,4 +458,211 @@ fn test_resource_full_annotations() {
     // Verify icons
     assert!(resource["icons"].is_array());
     assert_eq!(resource["icons"].as_array().unwrap().len(), 2);
+}
+
+// ============================================================================
+// INTEGRATION TESTS
+// ============================================================================
+
+/// Test 20: Resource size field present
+#[test]
+fn test_resource_size_field_present() {
+    let resource_json = json!({
+        "uri": "file:///large.bin",
+        "name": "large.bin",
+        "description": "A large binary file",
+        "mimeType": "application/octet-stream",
+        "size": 5242880
+    });
+
+    assert_eq!(resource_json["size"], 5242880);
+    assert_eq!(resource_json["name"], "large.bin");
+}
+
+/// Test 21: Resource without size field
+#[test]
+fn test_resource_without_size_field() {
+    let resource_json = json!({
+        "uri": "file:///test.txt",
+        "name": "test.txt",
+        "mimeType": "text/plain"
+    });
+
+    assert!(resource_json["size"].is_null());
+    assert_eq!(resource_json["name"], "test.txt");
+}
+
+/// Test 22: Resource template structure
+#[test]
+fn test_resource_template_structure() {
+    let template_json = json!({
+        "uriTemplate": "file:///{path}",
+        "name": "Project Files",
+        "description": "Access files in the project directory",
+        "mimeType": "application/octet-stream"
+    });
+
+    assert_eq!(template_json["uriTemplate"], "file:///{path}");
+    assert_eq!(template_json["name"], "Project Files");
+    assert_eq!(
+        template_json["description"],
+        "Access files in the project directory"
+    );
+    assert_eq!(template_json["mimeType"], "application/octet-stream");
+}
+
+/// Test 23: Resource template minimal
+#[test]
+fn test_resource_template_minimal() {
+    let template_json = json!({
+        "uriTemplate": "git:///{repo}/blob/{ref}/{path}",
+        "name": "Git Files"
+    });
+
+    assert_eq!(
+        template_json["uriTemplate"],
+        "git:///{repo}/blob/{ref}/{path}"
+    );
+    assert_eq!(template_json["name"], "Git Files");
+    assert!(template_json["description"].is_null());
+}
+
+/// Test 24: Resources list response format with size
+#[test]
+fn test_resources_list_response_format_with_size() {
+    let list_response = json!({
+        "resources": [
+            {
+                "uri": "file:///project/src/main.rs",
+                "name": "main.rs",
+                "description": "Entry point",
+                "mimeType": "text/x-rust",
+                "size": 2048,
+                "annotations": {
+                    "audience": ["user", "assistant"],
+                    "priority": 0.8
+                }
+            },
+            {
+                "uri": "file:///project/data.bin",
+                "name": "data.bin",
+                "size": 1048576,
+                "mimeType": "application/octet-stream"
+            }
+        ],
+        "nextCursor": "next-page"
+    });
+
+    assert!(list_response["resources"].is_array());
+    assert_eq!(list_response["resources"][0]["size"], 2048);
+    assert_eq!(list_response["resources"][1]["size"], 1048576);
+    assert_eq!(list_response["nextCursor"], "next-page");
+}
+
+/// Test 25: Resources templates list response format
+#[test]
+fn test_resources_templates_list_response_format() {
+    let templates_response = json!({
+        "resourceTemplates": [
+            {
+                "uriTemplate": "file:///{path}",
+                "name": "Local Files",
+                "description": "Access files in local filesystem",
+                "mimeType": "application/octet-stream"
+            },
+            {
+                "uriTemplate": "git:///{repo}/blob/{ref}/{path}",
+                "name": "Git Repository Files",
+                "description": "Access files in git repositories"
+            }
+        ]
+    });
+
+    assert!(templates_response["resourceTemplates"].is_array());
+    assert_eq!(
+        templates_response["resourceTemplates"]
+            .as_array()
+            .unwrap()
+            .len(),
+        2
+    );
+    assert_eq!(
+        templates_response["resourceTemplates"][0]["uriTemplate"],
+        "file:///{path}"
+    );
+    assert_eq!(
+        templates_response["resourceTemplates"][1]["name"],
+        "Git Repository Files"
+    );
+}
+
+/// Test 26: Resource with icons and size
+#[test]
+fn test_resource_with_icons_and_size() {
+    let resource_json = json!({
+        "uri": "file:///image.png",
+        "name": "image.png",
+        "mimeType": "image/png",
+        "size": 512000,
+        "icons": [
+            {
+                "src": "https://example.com/icon-48.png",
+                "mimeType": "image/png",
+                "sizes": ["48x48"]
+            }
+        ]
+    });
+
+    assert_eq!(resource_json["size"], 512000);
+    assert!(resource_json["icons"].is_array());
+    assert_eq!(
+        resource_json["icons"][0]["src"],
+        "https://example.com/icon-48.png"
+    );
+}
+
+/// Test 27: Resource read response with annotations
+#[test]
+fn test_resource_read_response_with_annotations() {
+    let read_response = json!({
+        "contents": [
+            {
+                "uri": "file:///source.rs",
+                "mimeType": "text/x-rust",
+                "text": "fn main() { println!(\"Hello\"); }",
+                "annotations": {
+                    "lastModified": "2025-01-08T20:00:00Z",
+                    "priority": 0.9
+                }
+            }
+        ]
+    });
+
+    assert!(read_response["contents"].is_array());
+    assert_eq!(read_response["contents"][0]["uri"], "file:///source.rs");
+    assert_eq!(
+        read_response["contents"][0]["annotations"]["lastModified"],
+        "2025-01-08T20:00:00Z"
+    );
+}
+
+/// Test 28: Different resource URI schemes
+#[test]
+fn test_different_resource_uri_schemes() {
+    let resources = [
+        json!({"uri": "file:///local/path", "name": "Local File", "size": 1024}),
+        json!({"uri": "https://example.com/resource", "name": "Web Resource", "size": 2048}),
+        json!({"uri": "git://example.com/repo/blob/main/file.txt", "name": "Git File", "size": 512}),
+    ];
+
+    for (idx, resource) in resources.iter().enumerate() {
+        assert!(resource["uri"].is_string());
+        assert!(resource["size"].is_number());
+        match idx {
+            0 => assert!(resource["uri"].as_str().unwrap().starts_with("file://")),
+            1 => assert!(resource["uri"].as_str().unwrap().starts_with("https://")),
+            2 => assert!(resource["uri"].as_str().unwrap().starts_with("git://")),
+            _ => unreachable!(),
+        }
+    }
 }
