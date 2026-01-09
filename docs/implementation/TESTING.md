@@ -1,4 +1,6 @@
-# Testing
+# Testing Documentation
+
+The test suite contains 218 tests organized into logical layers, each testing a specific aspect of dynamic-mcp.
 
 ## Current Test Status
 
@@ -11,15 +13,157 @@
 
 **Last Updated**: 2026-01-09
 
-**Note**: Integration test count reduced from 105 to 100 by consolidating redundant fixture tests from config_integration_test.rs (removed 5 redundant fixture existence tests).
+---
+
+## Test Layers
+
+### Layer 1: CLI/Binary Tests
+**File**: `cli_integration_test.rs` (5 tests)
+
+Tests the binary compilation and command-line interface.
+
+- `test_project_builds` - Verifies `cargo build` succeeds
+- `test_binary_exists_after_build` - Checks binary artifact exists after build
+- `test_version_flag` - Tests `--version` CLI flag output
+- `test_help_flag` - Tests `--help` CLI flag output
+- `test_invalid_config_path` - Verifies error handling for missing config file
+
+**Purpose**: Ensures the project builds and CLI works correctly.
 
 ---
 
-## 1. Unit Tests (107 tests)
+### Layer 2: Configuration Tests
+**File**: `config_integration_test.rs` (6 tests)
 
-Core module testing for server.rs and internal components.
+Tests configuration file parsing and schema validation.
 
-**Location**: `src/main.rs` (inline `#[cfg(test)]` modules)
+- `test_config_file_with_server` - Validates basic config file loading with mcpServers structure
+- `test_example_config_with_server_definition` - Tests example config with multiple server definitions
+- `test_config_initialize_capabilities` - Validates capabilities declaration (tools, prompts, resources)
+- `test_config_jsonrpc_error_codes` - Verifies standard JSON-RPC error codes
+- `test_config_example_schema_validation` - Validates schema of `examples/config.example.json`
+- `test_config_example_exists` - Checks example config file artifact presence
+
+**Purpose**: Ensures configuration files parse correctly and follow the expected schema.
+
+---
+
+### Layer 3: API Specification Compliance Tests
+**Files**:
+- `tools_test.rs` (15 tests)
+- `prompts_test.rs` (28 tests)
+- `resources_test.rs` (28 tests)
+
+Total: 71 tests
+
+Tests compliance with the MCP specification v2025-11-25 for JSON-RPC message structure.
+
+#### Tools API (15 tests)
+- Request/response structure validation
+- Input schema types (primitives, objects, arrays)
+- Tool call request format
+- Error responses
+- Content types (text, image, audio, resource)
+- Pagination (cursor-based)
+- Capability declaration
+- Complex arguments (nested objects, arrays)
+- Tool input schema patterns (enum, pattern, min/max)
+
+#### Prompts API (28 tests)
+- List/get request and response formats
+- Prompt arguments structure (required/optional)
+- Argument metadata validation
+- Pagination support
+- Prompt messages (role, content types)
+- Message content types (text, image, audio, resource)
+- Special characters (UTF-8, emojis)
+- Multiline text content
+
+#### Resources API (28 tests)
+- List/read request and response formats
+- Resource metadata (uri, name, size, annotations)
+- Annotation structure (audience, priority, lastModified)
+- Template support
+- Resource icons (src, mimeType, sizes)
+- RFC 6570 URI template syntax
+- Multiple URI schemes (file, https, git, custom)
+- Blob content (base64 encoding)
+
+**Purpose**: Validates that the server produces messages that conform to the MCP specification. These tests verify **format compliance**, not actual functionality.
+
+**Important**: These tests validate JSON structure only, without executing actual protocol operations. For functional testing, see the E2E layer below.
+
+---
+
+### Layer 4: End-to-End Integration Tests
+**File**: `server_everything_e2e_test.rs` (11 tests)
+
+Tests the complete server lifecycle using the official `@modelcontextprotocol/server-everything` test server.
+
+- `test_e2e_initialize` - Protocol initialization and capabilities declaration
+- `test_e2e_tools_list` - Tool listing via actual MCP protocol
+- `test_e2e_get_dynamic_tools_everything` - Dynamic tool loading from proxy
+- `test_e2e_call_dynamic_tool_get_dynamic_tools` - Nested tool call execution
+- `test_e2e_tools_echo_execution` - Tool invocation with parameters
+- `test_e2e_prompts_list` - Prompt listing
+- `test_e2e_prompts_get_simple` - Prompt retrieval with arguments
+- `test_e2e_resources_list` - Resource listing
+- `test_e2e_resources_read` - Resource content reading
+- `test_e2e_resources_templates_list` - Template listing
+- `test_e2e_error_handling_invalid_group` - Error handling for invalid groups
+
+**Purpose**: Verifies the entire system works end-to-end with a real MCP server. These are functional tests that exercise actual protocol behavior.
+
+**Server Used**: `@modelcontextprotocol/server-everything` (via npx)
+
+**Characteristics**:
+- Spawns real upstream server instance via subprocess
+- Makes live JSON-RPC requests through dynamic-mcp proxy
+- Tests complete request/response cycles
+- Uses shared server instance (OnceLock) across all tests
+- Polls for readiness with 200ms intervals (60s timeout)
+- Pre-installed in CI to avoid download delays
+- Each test: ~1s (after initial server startup)
+- Total suite: ~12s (includes server startup and health check)
+
+---
+
+### Layer 5: CLI Import Command Integration Tests
+**File**: `cli_import_integration_test.rs` (18 tests)
+
+Tests the CLI `import` command for importing MCP configurations from AI coding tools.
+
+#### Import Success Scenarios
+- `test_import_cursor_project_success` - Cursor project config import
+- `test_import_opencode_jsonc_success` - OpenCode JSONC config import
+- `test_import_claude_project_success` - Claude Code CLI config import
+- `test_import_cline_success` - Cline config import
+- `test_import_multiple_servers_interactive` - Multi-server import with interactive prompts
+
+#### Environment Variable Handling
+- `test_import_cursor_env_var_conversion` - Cursor `${env:VAR}` → `${VAR}` conversion
+- `test_import_vscode_env_var_conversion_in_env` - VS Code env var normalization
+- `test_import_vscode_env_var_conversion_in_headers` - VS Code header env var normalization
+- `test_import_codex_env_var_passthrough` - Codex env var handling
+- `test_import_claude_env_var_passthrough` - Claude env var handling
+- `test_import_opencode_env_var_passthrough` - OpenCode env var handling
+- `test_import_gemini_env_var_passthrough` - Gemini env var handling
+- `test_import_kilocode_env_var_passthrough` - KiloCode env var handling
+
+#### Error Handling & Flags
+- `test_import_force_flag_skips_overwrite_prompt` - Force flag behavior
+- `test_import_missing_config_file_error` - Error on missing source config
+- `test_import_empty_description_error` - Error on empty description input
+- `test_import_invalid_json_error` - Error on malformed JSON
+
+**Purpose**: Ensures the import command correctly transforms configurations from all supported AI tools into dynamic-mcp format.
+
+---
+
+### Layer 6: Unit Tests
+**Location**: `src/**/*.rs` (inline `#[cfg(test)]` modules) (107 tests)
+
+Core module testing across all source files including server, config, auth, CLI, and proxy modules.
 
 **Coverage**:
 - Configuration parsing and validation
@@ -32,190 +176,6 @@ Core module testing for server.rs and internal components.
 - CLI argument parsing
 - Import command functionality
 
-**Run Tests**:
-```bash
-cargo test src/
-```
-
----
-
-## 2. Integration Tests (34 tests)
-
-Validation of API specifications and configuration without spawning upstream servers.
-
-### 2.1 Tools API Spec Compliance (15 tests)
-**File**: `tests/tools_test.rs`
-
-**Purpose**: Validate Tools API compliance with MCP Specification v2025-11-25
-
-- tools/list request/response format
-- tools/call request/response format
-- Tool input schemas (primitive types, objects, required/optional)
-- Content types (text, image, audio, resource)
-- Pagination (cursor-based)
-- Error responses (JSON-RPC error codes)
-- Capability declaration
-- Complex arguments (nested objects, arrays)
-- Tool input schema patterns (enum, pattern, min/max)
-
-**Run Tests**:
-```bash
-cargo test --test tools_test
-```
-
-### 2.2 Prompts API Spec Compliance (28 tests)
-**File**: `tests/prompts_test.rs`
-
-**Purpose**: Combined spec compliance and integration tests for Prompts API v2025-11-25
-
-**Spec Compliance Tests** (18 tests):
-- prompts/list request/response format
-- prompts/get request/response format
-- Prompt messages (role, content types)
-- Message content types (text, image, audio, resource)
-- Pagination support
-- Arguments (required/optional)
-- Empty responses
-- Special characters (UTF-8, emojis)
-- Multiline text content
-- JSON-RPC error responses
-
-**Integration Tests** (10 tests):
-- Dynamic MCP configuration with prompts support
-- Prompts response format validation
-- Prompt messages with content types
-- Prompt arguments structure
-- Pagination with cursor support
-- Capability declaration
-
-**Run Tests**:
-```bash
-cargo test --test prompts_test
-```
-
-### 2.3 Resources API Spec Compliance (28 tests)
-**File**: `tests/resources_test.rs`
-
-**Purpose**: Combined spec compliance and integration tests for Resources API v2025-11-25
-
-**Spec Compliance Tests** (19 tests):
-- resources/list request/response format
-- resources/read request/response format
-- resources/templates/list request/response format
-- Resource size field (optional u64)
-- Resource annotations (audience, priority, lastModified)
-- Resource icons (src, mimeType, sizes)
-- RFC 6570 URI template syntax
-- Multiple URI schemes (file, https, git, custom)
-- Pagination support
-- Blob content (base64 encoding)
-- Empty responses
-
-**Integration Tests** (9 tests):
-- Resource template structure validation
-- Resource size field validation
-- Resource annotations validation
-- Resource icons with MIME types
-
-**Run Tests**:
-```bash
-cargo test --test resources_test
-```
-
-### 2.4 Configuration Integration (6 tests)
-**File**: `tests/config_integration_test.rs`
-
-**Purpose**: Validate MCP server configuration and response format compliance
-
-**Config Structure Tests** (6 tests):
-- Configuration file format validation (mcpServers schema)
-- Config file loading and parsing
-- Multi-server configuration support
-- Initialize capabilities declaration
-- JSON-RPC error codes
-- Example config file validation
-
-**Note**: Import fixture validation is now consolidated in cli_import_integration_test.rs tests rather than tested separately.
-
-**Run Tests**:
-```bash
-cargo test --test config_integration_test
-```
-
-### 2.5 CLI Import Command Integration (18 tests)
-**File**: `tests/cli_import_integration_test.rs`
-
-**Purpose**: Validate configuration import from other tools
-
-- Import from Cursor, Claude Desktop, VS Code, Cline, OpenCode, Gemini, KiloCode
-- Environment variable conversion (${env:VAR} → ${VAR})
-- Configuration validation and error handling
-- Global vs project config support
-- Force flag and interactive prompts
-- JSON/JSONC/TOML format handling
-- Import fixture validation (implicit during test execution)
-
-**Run Tests**:
-```bash
-cargo test --test cli_import_integration_test
-```
-
-### 2.6 CLI Integration (5 tests)
-**File**: `tests/cli_integration_test.rs`
-
-**Purpose**: Validate CLI functionality and build artifacts
-
-- Binary build verification
-- Binary artifact existence
-- Help flag (--help)
-- Version flag (--version)
-- Invalid config path error handling
-
-**Run Tests**:
-```bash
-cargo test --test cli_integration_test
-```
-
----
-
-## 3. End-to-End Tests (11 tests)
-
-Real upstream server integration. Tests spawn actual MCP server instances and validate complete request/response cycles.
-
-**File**: `tests/server_everything_e2e_test.rs`
-
-**Tests**:
-1. `test_e2e_initialize` - MCP protocol initialization
-2. `test_e2e_tools_list` - Tool discovery from upstream server
-3. `test_e2e_get_dynamic_tools_everything` - Tool schema verification
-4. `test_e2e_call_dynamic_tool_get_dynamic_tools` - Dynamic tool listing
-5. `test_e2e_tools_echo_execution` - Real tool execution (echo tool)
-6. `test_e2e_prompts_list` - Prompt discovery
-7. `test_e2e_prompts_get_simple` - Prompt retrieval
-8. `test_e2e_resources_list` - Resource discovery
-9. `test_e2e_resources_read` - Resource content retrieval
-10. `test_e2e_resources_templates_list` - Resource template discovery
-11. `test_e2e_error_handling_invalid_group` - Error handling
-
-**Server Used**: `@modelcontextprotocol/server-everything` (via npx)
-
-**Characteristics**:
-- Spawns real upstream server instances
-- Makes live JSON-RPC requests through proxy
-- Tests complete request/response cycles
-- Each test: ~15 seconds (server startup + request/response)
-- Run in parallel: ~30 seconds total for all 11 tests
-- First run downloads npm packages; subsequent runs cached
-
-**Run Tests**:
-```bash
-# All E2E tests
-cargo test --test server_everything_e2e_test
-
-# Specific E2E test
-cargo test --test server_everything_e2e_test test_e2e_tools_echo_execution
-```
-
 ---
 
 ## Test Execution
@@ -224,7 +184,7 @@ cargo test --test server_everything_e2e_test test_e2e_tools_echo_execution
 ```bash
 cargo test
 ```
-- **Result**: 218 tests passed in ~45 seconds
+- **Result**: 218 tests passed in ~35 seconds
 - **Coverage**: Unit + Integration + E2E tests
 
 ### Run by Category
@@ -242,6 +202,17 @@ cargo test --test tools_test --test prompts_test --test resources_test
 cargo test --test server_everything_e2e_test
 ```
 
+### Run a Specific Layer
+```bash
+cargo test --test cli_integration_test                # CLI layer
+cargo test --test config_integration_test             # Config layer
+cargo test --test tools_test                          # Tools spec layer
+cargo test --test prompts_test                        # Prompts spec layer
+cargo test --test resources_test                      # Resources spec layer
+cargo test --test server_everything_e2e_test          # E2E layer
+cargo test --test cli_import_integration_test         # CLI import layer
+```
+
 ### Run Specific Tests
 ```bash
 # Run test by name
@@ -254,9 +225,46 @@ cargo test -- --nocapture
 # Run with logging
 RUST_LOG=debug cargo test
 
-# Run single-threaded (slower, useful for debugging)
+# Run single-threaded (useful for debugging)
 cargo test -- --test-threads=1
 ```
+
+---
+
+## Test Architecture Philosophy
+
+The test suite is organized as a **verification pyramid**:
+
+```
+┌─────────────────────────────────┐
+│   Unit Tests (107 tests)        │  Core modules, internal logic
+├─────────────────────────────────┤
+│   E2E Tests (11 tests)          │  Real server, actual protocol
+├─────────────────────────────────┤
+│   Spec Tests (71 tests)         │  Format validation, no execution
+├─────────────────────────────────┤
+│   Config Tests (6 tests)        │  Configuration parsing
+├─────────────────────────────────┤
+│   CLI Tests (5 tests)           │  Binary & flags
+├─────────────────────────────────┤
+│   Import Tests (18 tests)       │  CLI import command
+└─────────────────────────────────┘
+```
+
+### Benefits of This Structure
+
+1. **Clear Separation of Concerns**: Each layer tests one aspect
+2. **Independent Execution**: Run layers separately without affecting others
+3. **Fast Feedback**: CLI and config tests run instantly
+4. **Comprehensive Coverage**: Spec tests catch format issues, E2E tests catch behavior issues
+5. **Easy Maintenance**: New tests fit naturally into existing structure
+6. **Scalability**: Can add new test layers without reorganizing existing tests
+
+### Test Complementarity
+
+- **Spec tests** (tools/prompts/resources) validate that messages *should* look like
+- **E2E tests** (server_everything) validate that they *actually do* look right when running
+- Together, they provide high confidence in both specification compliance and implementation correctness
 
 ---
 
@@ -264,7 +272,7 @@ cargo test -- --test-threads=1
 
 | File | Type | Count | Purpose |
 |------|------|-------|---------|
-| src/main.rs | Unit | 107 | Core modules, config, CLI, auth |
+| src/**/*.rs (inline) | Unit | 107 | Core modules, config, CLI, auth |
 | tools_test.rs | Integration | 15 | Tools API spec compliance |
 | prompts_test.rs | Integration | 28 | Prompts API spec compliance |
 | resources_test.rs | Integration | 28 | Resources API spec compliance |
@@ -311,6 +319,47 @@ All tests validate compliance with **MCP Specification v2025-11-25**.
 **Why**: These tests ensure the documentation example is correct and present.
 
 **Location**: `tests/config_integration_test.rs`
+
+### E2E Test Dependencies
+⚠️ **E2E tests require `@modelcontextprotocol/server-everything`**
+
+The package is:
+- Automatically installed via `npx -y` when tests run (self-contained)
+- Pre-installed in CI to avoid download delays during tests
+- Uses polling to wait for server readiness (60s timeout)
+
+---
+
+## Performance
+
+| Category | Count | Time | Per Test |
+|----------|-------|------|----------|
+| Unit Tests | 107 | ~0.02s | ~0.2ms |
+| Spec Tests (tools/prompts/resources) | 71 | ~0.5s | ~7ms |
+| Config Tests | 6 | ~0.5s | ~83ms |
+| CLI Tests | 5 | ~1.4s | ~280ms |
+| Import Tests | 18 | ~11.4s | ~633ms |
+| E2E Tests | 11 | ~12s | ~1.1s |
+| **Total** | **218** | **~35s** | |
+
+**Notes**:
+- E2E tests use shared server instance with polling for readiness (~12s total including startup)
+- Import tests are slower due to file I/O and fixture processing
+- Spec compliance tests run instantly (no actual server interaction)
+- Unit tests run in parallel for speed
+- First run may be slower if npm package needs to be downloaded
+
+---
+
+## Maintenance Notes
+
+- Spec compliance tests (`tools_test.rs`, `prompts_test.rs`, `resources_test.rs`) test the [MCP specification v2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25/). Update these if the spec changes.
+
+- E2E tests depend on `@modelcontextprotocol/server-everything` being available via npx. The package is pre-installed in CI for faster test execution.
+
+- Import tests use real tool config fixtures in `tests/fixtures/import/`. Fixture validation happens implicitly during test execution, not in separate tests.
+
+- Total test count: **218 tests** across 8 test files (~3,600 lines) plus inline unit tests in src/ (~107 tests).
 
 ---
 
@@ -365,17 +414,4 @@ cargo test --test <file_name> <test_name>
 
 ---
 
-## Performance
-
-| Category | Count | Time | Per Test |
-|----------|-------|------|----------|
-| Unit Tests | 107 | ~0.5s | ~5ms |
-| Integration Tests | 100 | ~10s | ~100ms |
-| E2E Tests | 11 | ~30s | ~2.7s |
-| **Total** | **218** | **~45s** | |
-
-**Notes**:
-- E2E tests are slower due to server startup overhead (~15s per test)
-- Integration tests validate spec compliance without spawning servers
-- Unit tests run in parallel for speed
-- First run: E2E tests may take longer (npm package download)
+**Last Updated**: January 2026

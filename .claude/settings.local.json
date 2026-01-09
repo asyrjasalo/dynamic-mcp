@@ -3,7 +3,10 @@
     "allow": [
       "Bash(cargo test:*)",
       "Bash(cargo fmt:*)",
-      "Bash(cargo clippy:*)"
+      "Bash(cargo clippy:*)",
+      "Bash(time cargo test:*)",
+      "Bash(find:*)",
+      "Bash(ls:*)"
     ]
   }
 }
