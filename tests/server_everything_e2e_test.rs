@@ -1,6 +1,7 @@
 use serde_json::{json, Value};
 use std::io::{BufRead, BufReader, Write};
 use std::process::{Child, Command, Stdio};
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Mutex, OnceLock};
 use std::thread;
 use std::time::Duration;
@@ -76,24 +77,26 @@ impl Drop for DynamicMcpServer {
 }
 
 static SHARED_SERVER: OnceLock<Arc<Mutex<DynamicMcpServer>>> = OnceLock::new();
+static REQUEST_ID_COUNTER: AtomicU64 = AtomicU64::new(1);
 
 fn get_shared_server() -> Arc<Mutex<DynamicMcpServer>> {
     SHARED_SERVER
-        .get_or_init(|| {
-            Arc::new(Mutex::new(
-                DynamicMcpServer::start_with_everything_server(),
-            ))
-        })
+        .get_or_init(|| Arc::new(Mutex::new(DynamicMcpServer::start_with_everything_server())))
         .clone()
+}
+
+fn next_request_id() -> u64 {
+    REQUEST_ID_COUNTER.fetch_add(1, Ordering::SeqCst)
 }
 
 #[test]
 fn test_e2e_initialize() {
     let server = get_shared_server();
+    let id = next_request_id();
 
     let request = json!({
         "jsonrpc": "2.0",
-        "id": 1,
+        "id": id,
         "method": "initialize",
         "params": {}
     });
@@ -101,7 +104,7 @@ fn test_e2e_initialize() {
     let response = server.lock().unwrap().send_request(request);
 
     assert_eq!(response["jsonrpc"], "2.0");
-    assert_eq!(response["id"], 1);
+    assert_eq!(response["id"], id);
     assert!(response["result"]["capabilities"]["tools"].is_object());
     assert!(response["result"]["capabilities"]["prompts"].is_object());
     assert!(response["result"]["capabilities"]["resources"].is_object());
@@ -111,17 +114,19 @@ fn test_e2e_initialize() {
 fn test_e2e_tools_list() {
     let server = get_shared_server();
 
+    let id1 = next_request_id();
     let initialize_request = json!({
         "jsonrpc": "2.0",
-        "id": 1,
+        "id": id1,
         "method": "initialize",
         "params": {}
     });
     let _ = server.lock().unwrap().send_request(initialize_request);
 
+    let id2 = next_request_id();
     let tools_list_request = json!({
         "jsonrpc": "2.0",
-        "id": 2,
+        "id": id2,
         "method": "tools/list",
         "params": {}
     });
@@ -129,7 +134,7 @@ fn test_e2e_tools_list() {
     let response = server.lock().unwrap().send_request(tools_list_request);
 
     assert_eq!(response["jsonrpc"], "2.0");
-    assert_eq!(response["id"], 2);
+    assert_eq!(response["id"], id2);
     assert!(response["result"]["tools"].is_array());
     let tools = response["result"]["tools"].as_array().unwrap();
 
@@ -148,17 +153,19 @@ fn test_e2e_tools_list() {
 fn test_e2e_get_dynamic_tools_everything() {
     let server = get_shared_server();
 
+    let id1 = next_request_id();
     let initialize_request = json!({
         "jsonrpc": "2.0",
-        "id": 1,
+        "id": id1,
         "method": "initialize",
         "params": {}
     });
     let _ = server.lock().unwrap().send_request(initialize_request);
 
+    let id2 = next_request_id();
     let tools_list_request = json!({
         "jsonrpc": "2.0",
-        "id": 2,
+        "id": id2,
         "method": "tools/list",
         "params": {}
     });
@@ -184,17 +191,19 @@ fn test_e2e_get_dynamic_tools_everything() {
 fn test_e2e_call_dynamic_tool_get_dynamic_tools() {
     let server = get_shared_server();
 
+    let id1 = next_request_id();
     let initialize_request = json!({
         "jsonrpc": "2.0",
-        "id": 1,
+        "id": id1,
         "method": "initialize",
         "params": {}
     });
     let _ = server.lock().unwrap().send_request(initialize_request);
 
+    let id2 = next_request_id();
     let call_tool_request = json!({
         "jsonrpc": "2.0",
-        "id": 3,
+        "id": id2,
         "method": "tools/call",
         "params": {
             "name": "call_dynamic_tool",
@@ -211,7 +220,7 @@ fn test_e2e_call_dynamic_tool_get_dynamic_tools() {
     let response = server.lock().unwrap().send_request(call_tool_request);
 
     assert_eq!(response["jsonrpc"], "2.0");
-    assert_eq!(response["id"], 3);
+    assert_eq!(response["id"], id2);
     assert!(response["result"]["content"].is_array());
 
     let content = response["result"]["content"][0].clone();
@@ -226,17 +235,19 @@ fn test_e2e_call_dynamic_tool_get_dynamic_tools() {
 fn test_e2e_tools_echo_execution() {
     let server = get_shared_server();
 
+    let id1 = next_request_id();
     let initialize_request = json!({
         "jsonrpc": "2.0",
-        "id": 1,
+        "id": id1,
         "method": "initialize",
         "params": {}
     });
     let _ = server.lock().unwrap().send_request(initialize_request);
 
+    let id2 = next_request_id();
     let call_tool_request = json!({
         "jsonrpc": "2.0",
-        "id": 4,
+        "id": id2,
         "method": "tools/call",
         "params": {
             "name": "call_dynamic_tool",
@@ -253,7 +264,7 @@ fn test_e2e_tools_echo_execution() {
     let response = server.lock().unwrap().send_request(call_tool_request);
 
     assert_eq!(response["jsonrpc"], "2.0");
-    assert_eq!(response["id"], 4);
+    assert_eq!(response["id"], id2);
     assert!(response["result"].is_object());
     assert!(response["result"]["content"].is_array());
 
@@ -267,17 +278,19 @@ fn test_e2e_tools_echo_execution() {
 fn test_e2e_prompts_list() {
     let server = get_shared_server();
 
+    let id1 = next_request_id();
     let initialize_request = json!({
         "jsonrpc": "2.0",
-        "id": 1,
+        "id": id1,
         "method": "initialize",
         "params": {}
     });
     let _ = server.lock().unwrap().send_request(initialize_request);
 
+    let id2 = next_request_id();
     let prompts_list_request = json!({
         "jsonrpc": "2.0",
-        "id": 5,
+        "id": id2,
         "method": "prompts/list",
         "params": {
             "group": "everything"
@@ -287,7 +300,7 @@ fn test_e2e_prompts_list() {
     let response = server.lock().unwrap().send_request(prompts_list_request);
 
     assert_eq!(response["jsonrpc"], "2.0");
-    assert_eq!(response["id"], 5);
+    assert_eq!(response["id"], id2);
     assert!(response["result"]["prompts"].is_array());
 
     let prompts = response["result"]["prompts"].as_array().unwrap();
@@ -305,17 +318,19 @@ fn test_e2e_prompts_list() {
 fn test_e2e_prompts_get_simple() {
     let server = get_shared_server();
 
+    let id1 = next_request_id();
     let initialize_request = json!({
         "jsonrpc": "2.0",
-        "id": 1,
+        "id": id1,
         "method": "initialize",
         "params": {}
     });
     let _ = server.lock().unwrap().send_request(initialize_request);
 
+    let id2 = next_request_id();
     let prompts_get_request = json!({
         "jsonrpc": "2.0",
-        "id": 6,
+        "id": id2,
         "method": "prompts/get",
         "params": {
             "group": "everything",
@@ -326,7 +341,7 @@ fn test_e2e_prompts_get_simple() {
     let response = server.lock().unwrap().send_request(prompts_get_request);
 
     assert_eq!(response["jsonrpc"], "2.0");
-    assert_eq!(response["id"], 6);
+    assert_eq!(response["id"], id2);
 
     if response["result"].is_object() {
         assert!(response["result"]["messages"].is_array());
@@ -344,17 +359,19 @@ fn test_e2e_prompts_get_simple() {
 fn test_e2e_resources_list() {
     let server = get_shared_server();
 
+    let id1 = next_request_id();
     let initialize_request = json!({
         "jsonrpc": "2.0",
-        "id": 1,
+        "id": id1,
         "method": "initialize",
         "params": {}
     });
     let _ = server.lock().unwrap().send_request(initialize_request);
 
+    let id2 = next_request_id();
     let resources_list_request = json!({
         "jsonrpc": "2.0",
-        "id": 7,
+        "id": id2,
         "method": "resources/list",
         "params": {
             "group": "everything"
@@ -364,7 +381,7 @@ fn test_e2e_resources_list() {
     let response = server.lock().unwrap().send_request(resources_list_request);
 
     assert_eq!(response["jsonrpc"], "2.0");
-    assert_eq!(response["id"], 7);
+    assert_eq!(response["id"], id2);
     assert!(response["result"]["resources"].is_array());
 
     let resources = response["result"]["resources"].as_array().unwrap();
@@ -383,17 +400,19 @@ fn test_e2e_resources_list() {
 fn test_e2e_resources_read() {
     let server = get_shared_server();
 
+    let id1 = next_request_id();
     let initialize_request = json!({
         "jsonrpc": "2.0",
-        "id": 1,
+        "id": id1,
         "method": "initialize",
         "params": {}
     });
     let _ = server.lock().unwrap().send_request(initialize_request);
 
+    let id2 = next_request_id();
     let resources_list_request = json!({
         "jsonrpc": "2.0",
-        "id": 7,
+        "id": id2,
         "method": "resources/list",
         "params": {
             "group": "everything"
@@ -407,9 +426,10 @@ fn test_e2e_resources_read() {
         let first_resource = &resources[0];
         let uri = first_resource["uri"].as_str().unwrap();
 
+        let id3 = next_request_id();
         let resources_read_request = json!({
             "jsonrpc": "2.0",
-            "id": 8,
+            "id": id3,
             "method": "resources/read",
             "params": {
                 "group": "everything",
@@ -420,7 +440,7 @@ fn test_e2e_resources_read() {
         let response = server.lock().unwrap().send_request(resources_read_request);
 
         assert_eq!(response["jsonrpc"], "2.0");
-        assert_eq!(response["id"], 8);
+        assert_eq!(response["id"], id3);
 
         if response["result"].is_object() {
             assert!(response["result"]["contents"].is_array());
@@ -439,17 +459,19 @@ fn test_e2e_resources_read() {
 fn test_e2e_resources_templates_list() {
     let server = get_shared_server();
 
+    let id1 = next_request_id();
     let initialize_request = json!({
         "jsonrpc": "2.0",
-        "id": 1,
+        "id": id1,
         "method": "initialize",
         "params": {}
     });
     let _ = server.lock().unwrap().send_request(initialize_request);
 
+    let id2 = next_request_id();
     let templates_list_request = json!({
         "jsonrpc": "2.0",
-        "id": 9,
+        "id": id2,
         "method": "resources/templates/list",
         "params": {
             "group": "everything"
@@ -459,7 +481,7 @@ fn test_e2e_resources_templates_list() {
     let response = server.lock().unwrap().send_request(templates_list_request);
 
     assert_eq!(response["jsonrpc"], "2.0");
-    assert_eq!(response["id"], 9);
+    assert_eq!(response["id"], id2);
 
     if response["result"].is_object() && response["result"]["resourceTemplates"].is_array() {
         let templates = response["result"]["resourceTemplates"].as_array().unwrap();
@@ -474,17 +496,19 @@ fn test_e2e_resources_templates_list() {
 fn test_e2e_error_handling_invalid_group() {
     let server = get_shared_server();
 
+    let id1 = next_request_id();
     let initialize_request = json!({
         "jsonrpc": "2.0",
-        "id": 1,
+        "id": id1,
         "method": "initialize",
         "params": {}
     });
     let _ = server.lock().unwrap().send_request(initialize_request);
 
+    let id2 = next_request_id();
     let invalid_request = json!({
         "jsonrpc": "2.0",
-        "id": 10,
+        "id": id2,
         "method": "tools/list",
         "params": {
             "group": "nonexistent"
@@ -494,7 +518,7 @@ fn test_e2e_error_handling_invalid_group() {
     let response = server.lock().unwrap().send_request(invalid_request);
 
     assert_eq!(response["jsonrpc"], "2.0");
-    assert_eq!(response["id"], 10);
+    assert_eq!(response["id"], id2);
     assert!(
         response["error"].is_object() || response["result"].is_object(),
         "Should either have error or handle gracefully"
