@@ -5,6 +5,7 @@
 **Goal**: Create a Rust-based MCP proxy server that reduces LLM context overhead by grouping tools from multiple upstream MCP servers and loading schemas on-demand.
 
 **Architecture**: Single binary application using the official `rmcp` SDK that acts as:
+
 - **MCP Server** (downstream): Exposes 2 tools to LLM clients
 - **MCP Client** (upstream): Connects to multiple configured MCP servers
 
@@ -21,7 +22,7 @@
 7. **Logging**: `tracing` for structured logging
 8. **Testing**: Unit tests + integration tests + example configs
 
----
+______________________________________________________________________
 
 ## Phase 1: Core Proxy Functionality (stdio transport only)
 
@@ -37,6 +38,7 @@ cd dynamic-mcp
 ```
 
 **Dependencies** (`Cargo.toml`):
+
 ```toml
 [package]
 name = "dynamic-mcp"
@@ -840,7 +842,7 @@ async fn main() -> Result<()> {
 - ✅ Error handling and graceful degradation
 - ✅ Logging with tracing
 
----
+______________________________________________________________________
 
 ## Phase 2: Full Transport Support (HTTP/SSE)
 
@@ -943,7 +945,7 @@ pub fn convert_to_mcp_remote_if_needed(config: McpServerConfig) -> McpServerConf
 - ✅ Fallback to mcp-remote for compatibility
 - ✅ Updated tests for all transports
 
----
+______________________________________________________________________
 
 ## Phase 3: OAuth Authentication
 
@@ -1044,7 +1046,7 @@ Update `create_transport` to handle OAuth when needed.
 - ✅ Token refresh logic
 - ✅ Integration with HTTP/SSE transports
 
----
+______________________________________________________________________
 
 ## Phase 4: Import Command
 
@@ -1097,7 +1099,7 @@ Prompt user for descriptions and transform config.
 - ✅ Config transformation
 - ✅ Original config replacement
 
----
+______________________________________________________________________
 
 ## Phase 5: Testing & Documentation
 
@@ -1132,7 +1134,7 @@ Prompt user for descriptions and transform config.
 - ✅ Example configurations
 - ✅ Architecture diagrams
 
----
+______________________________________________________________________
 
 ## Phase 6: Build & Distribution
 
@@ -1190,21 +1192,21 @@ jobs:
 - ✅ Published to crates.io
 - ✅ Release process documented
 
----
+______________________________________________________________________
 
 ## Implementation Timeline
 
-| Phase | Duration | Deliverable |
-|-------|----------|-------------|
-| **Phase 1** | 2-3 days | Core proxy with stdio transport |
-| **Phase 2** | 1-2 days | HTTP/SSE transport support |
-| **Phase 3** | 2-3 days | OAuth authentication |
-| **Phase 4** | 1 day | Import command |
-| **Phase 5** | 2-3 days | Tests + documentation |
-| **Phase 6** | 1 day | Build system + CI/CD |
-| **Total** | **9-13 days** | Production-ready v1.0.0 |
+| Phase       | Duration      | Deliverable                     |
+| ----------- | ------------- | ------------------------------- |
+| **Phase 1** | 2-3 days      | Core proxy with stdio transport |
+| **Phase 2** | 1-2 days      | HTTP/SSE transport support      |
+| **Phase 3** | 2-3 days      | OAuth authentication            |
+| **Phase 4** | 1 day         | Import command                  |
+| **Phase 5** | 2-3 days      | Tests + documentation           |
+| **Phase 6** | 1 day         | Build system + CI/CD            |
+| **Total**   | **9-13 days** | Production-ready v1.0.0         |
 
----
+______________________________________________________________________
 
 ## Success Criteria
 
@@ -1218,19 +1220,19 @@ jobs:
 8. ✅ Published to crates.io
 9. ✅ Cross-platform binaries available
 
----
+______________________________________________________________________
 
 ## Risk Mitigation
 
-| Risk | Mitigation |
-|------|------------|
-| rmcp API differences | Study examples, fallback to lower-level APIs |
-| OAuth complexity | Start with basic flow, add refresh later |
-| Transport compatibility | Thorough testing with real MCP servers |
-| Build time | Optimize dependencies, use cargo-chef |
-| Distribution | Multiple channels (crates.io, GitHub, Homebrew) |
+| Risk                    | Mitigation                                      |
+| ----------------------- | ----------------------------------------------- |
+| rmcp API differences    | Study examples, fallback to lower-level APIs    |
+| OAuth complexity        | Start with basic flow, add refresh later        |
+| Transport compatibility | Thorough testing with real MCP servers          |
+| Build time              | Optimize dependencies, use cargo-chef           |
+| Distribution            | Multiple channels (crates.io, GitHub, Homebrew) |
 
----
+______________________________________________________________________
 
 ## Next Steps
 

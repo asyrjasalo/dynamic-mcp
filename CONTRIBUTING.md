@@ -15,33 +15,39 @@ Thank you for your interest in contributing to dynamic-mcp! This document provid
 ### Development Setup
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/asyrjasalo/dynamic-mcp.git
    cd dynamic-mcp
    ```
 
 2. **Install Rust** (if not already installed)
+
    ```bash
    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
    ```
 
 3. **Install Python tools** (optional, for Python package work)
+
    ```bash
    pip install maturin build
    ```
 
 4. **Install pre-commit hooks** (recommended)
+
    ```bash
    pip install pre-commit
    pre-commit install --hook-type pre-commit --hook-type commit-msg
    ```
 
 5. **Build the project**
+
    ```bash
    cargo build
    ```
 
 6. **Run tests to verify setup**
+
    ```bash
    cargo test
    ```
@@ -67,7 +73,6 @@ cargo run
 # With debug logging
 RUST_LOG=debug cargo run -- examples/config.example.json
 ```
-
 
 ### Running Tests
 
@@ -113,6 +118,7 @@ uvx --from target/wheels/dmcp-*.whl dmcp config.json
 ```
 
 **Note**: The Python package uses maturin with `bindings = "bin"` mode, which:
+
 - Compiles the Rust binary directly into the wheel
 - Auto-generates the `dmcp` entry point
 - Creates platform-specific wheels (one per OS/architecture)
@@ -172,12 +178,14 @@ cargo clippy -- -D warnings
 This project uses [pre-commit](https://pre-commit.com/) to enforce code quality and consistency.
 
 **Installation:**
+
 ```bash
 pip install pre-commit
 pre-commit install --hook-type pre-commit --hook-type commit-msg
 ```
 
 **If a hook fails:**
+
 - Many hooks auto-fix issues (trailing whitespace, end-of-file, etc.)
 - Review changes with `git diff`
 - Stage fixed files with `git add`
@@ -196,6 +204,7 @@ Use conventional commits format (enforced by commitizen hook):
 ```
 
 **Types:**
+
 - `feat`: New feature
 - `fix`: Bug fix
 - `docs`: Documentation changes
@@ -206,6 +215,7 @@ Use conventional commits format (enforced by commitizen hook):
 - `build`: Build system changes
 
 **Examples:**
+
 ```
 feat(auth): add OAuth2 token refresh support
 
@@ -225,16 +235,19 @@ instead of silently failing.
 ## Pull Request Process
 
 1. **Create a feature branch**
+
    ```bash
    git checkout -b feature/your-feature-name
    ```
 
 2. **Make your changes**
+
    - Write clear, focused commits
    - Add tests for new functionality
    - Update documentation as needed
 
 3. **Ensure all checks pass**
+
    ```bash
    cargo fmt -- --check
    cargo clippy -- -D warnings
@@ -243,11 +256,13 @@ instead of silently failing.
    ```
 
 4. **Push your branch**
+
    ```bash
    git push origin feature/your-feature-name
    ```
 
 5. **Open a Pull Request**
+
    - Provide a clear description of changes
    - Reference any related issues
    - Wait for review and address feedback
@@ -311,6 +326,6 @@ Feature suggestions are welcome! Please:
 
 By contributing to dynamic-mcp, you agree that your contributions will be licensed under the MIT License.
 
----
+______________________________________________________________________
 
 Thank you for contributing to dynamic-mcp! 🎉

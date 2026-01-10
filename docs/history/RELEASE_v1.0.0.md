@@ -10,12 +10,15 @@ dynamic-mcp v1.0.0 is now available! This is the first production-ready release 
 ## 📦 Installation
 
 ### From crates.io
+
 ```bash
 cargo install dynamic-mcp
 ```
 
 ### Pre-built Binaries
+
 Download from [GitHub Releases](https://github.com/asyrjasalo/dynamic-mcp/releases/tag/v1.0.0):
+
 - Linux x86_64: `dynamic-mcp-x86_64-unknown-linux-gnu.tar.gz`
 - Linux ARM64: `dynamic-mcp-aarch64-unknown-linux-gnu.tar.gz`
 - macOS ARM64: `dynamic-mcp-aarch64-apple-darwin.tar.gz` (Apple Silicon)
@@ -24,6 +27,7 @@ Download from [GitHub Releases](https://github.com/asyrjasalo/dynamic-mcp/releas
 ## ✨ Features
 
 ### Core Functionality
+
 - **Dynamic Tool Loading**: Expose only 2 tools initially (`get_dynamic_tools`, `call_dynamic_tool`)
 - **Multiple Transport Support**: stdio, HTTP, SSE
 - **OAuth2 Authentication**: With PKCE flow and automatic token refresh
@@ -32,12 +36,14 @@ Download from [GitHub Releases](https://github.com/asyrjasalo/dynamic-mcp/releas
 - **Import Command**: Convert standard MCP configs to dynamic-mcp format
 
 ### Configuration
+
 - Environment variable interpolation (`${VAR}` syntax)
 - Server descriptions for LLM context
 - Flexible transport configuration
 - OAuth scopes and client configuration
 
 ### Development
+
 - Comprehensive test suite (46 tests, 100% pass rate)
 - Full Rust documentation
 - CI/CD pipeline with automated testing and releases
@@ -45,24 +51,28 @@ Download from [GitHub Releases](https://github.com/asyrjasalo/dynamic-mcp/releas
 ## 🖥️ Platform Support
 
 ### Available Binary Releases
-| Platform | Architecture | Target Triple | Status |
-|----------|-------------|---------------|--------|
-| Linux | x86_64 | `x86_64-unknown-linux-gnu` | ✅ Native build |
-| Linux | ARM64 | `aarch64-unknown-linux-gnu` | ✅ Cross-compiled (rustls) |
-| macOS | ARM64 | `aarch64-apple-darwin` | ✅ Native build (Apple Silicon) |
-| Windows | x86_64 | `x86_64-pc-windows-msvc` | ✅ Native build |
+
+| Platform | Architecture | Target Triple               | Status                          |
+| -------- | ------------ | --------------------------- | ------------------------------- |
+| Linux    | x86_64       | `x86_64-unknown-linux-gnu`  | ✅ Native build                 |
+| Linux    | ARM64        | `aarch64-unknown-linux-gnu` | ✅ Cross-compiled (rustls)      |
+| macOS    | ARM64        | `aarch64-apple-darwin`      | ✅ Native build (Apple Silicon) |
+| Windows  | x86_64       | `x86_64-pc-windows-msvc`    | ✅ Native build                 |
 
 ### Build from Source Required
-| Platform | Architecture | Target Triple | Reason | Workaround |
-|----------|-------------|---------------|--------|------------|
-| macOS | Intel | `x86_64-apple-darwin` | GitHub Actions runner retired | Use `cargo install dynamic-mcp` |
+
+| Platform | Architecture | Target Triple         | Reason                        | Workaround                      |
+| -------- | ------------ | --------------------- | ----------------------------- | ------------------------------- |
+| macOS    | Intel        | `x86_64-apple-darwin` | GitHub Actions runner retired | Use `cargo install dynamic-mcp` |
 
 ### Planned for Future Release
+
 - **Windows ARM64** (`aarch64-pc-windows-msvc`) - Planned for v1.1.0+
 
 ## 🔧 Technical Details
 
 ### Dependencies
+
 - **MCP Protocol**: rmcp v0.12
 - **Async Runtime**: Tokio
 - **HTTP Client**: reqwest
@@ -70,6 +80,7 @@ Download from [GitHub Releases](https://github.com/asyrjasalo/dynamic-mcp/releas
 - **114 total crates**
 
 ### Metrics
+
 - **Lines of Code**: ~2,900 (Rust)
 - **Source Files**: 17
 - **Tests**: 46 (37 unit + 9 integration)
@@ -78,11 +89,13 @@ Download from [GitHub Releases](https://github.com/asyrjasalo/dynamic-mcp/releas
 ## 📝 Known Limitations
 
 ### Platform Availability
+
 - Windows ARM64 not yet supported (planned for v1.1.0+)
 - macOS Intel binaries not included (GitHub Actions deprecated macOS-13 runners)
   - Intel Mac users can build from source
 
 ### Runtime Limitations
+
 - Live reload works for config changes only (binary updates require restart)
 - OAuth tokens stored as plain text in `~/.dynamic-mcp/oauth-servers/` (see SECURITY.md)
 - No built-in rate limiting for tool calls
@@ -91,11 +104,13 @@ Download from [GitHub Releases](https://github.com/asyrjasalo/dynamic-mcp/releas
 ## 🚀 Getting Started
 
 1. **Install dynamic-mcp**:
+
    ```bash
    cargo install dynamic-mcp
    ```
 
 2. **Create configuration** (`dynamic-mcp.json`):
+
    ```json
    {
      "mcpServers": {
@@ -109,6 +124,7 @@ Download from [GitHub Releases](https://github.com/asyrjasalo/dynamic-mcp/releas
    ```
 
 3. **Configure your AI agent** to use dynamic-mcp:
+
    ```json
    {
      "mcpServers": {
@@ -142,6 +158,6 @@ Download from [GitHub Releases](https://github.com/asyrjasalo/dynamic-mcp/releas
 - **Releases**: https://github.com/asyrjasalo/dynamic-mcp/releases
 - **Documentation**: https://docs.rs/dynamic-mcp
 
----
+______________________________________________________________________
 
 **Full Changelog**: https://github.com/asyrjasalo/dynamic-mcp/commits/v1.0.0

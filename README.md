@@ -48,7 +48,9 @@ Set the `DYNAMIC_MCP_CONFIG` environment variable and omit the `args` altogether
 
 Install from [crates.io](https://crates.io/crates/dynamic-mcp):
 
-    cargo install dynamic-mcp
+```
+cargo install dynamic-mcp
+```
 
 The binary is then available at `~/.cargo/bin/dmcp` (`$CARGO_HOME/bin/dmcp`).
 
@@ -57,6 +59,7 @@ The binary is then available at `~/.cargo/bin/dmcp` (`$CARGO_HOME/bin/dmcp`).
 Dynamic-mcp can automatically import MCP server configurations from popular AI coding tools.
 
 **Supported Tools** (`<tool-name>`):
+
 - Cursor (`cursor`)
 - OpenCode (`opencode`)
 - Claude Desktop (`claude-desktop`)
@@ -71,21 +74,25 @@ Dynamic-mcp can automatically import MCP server configurations from popular AI c
 #### Quick Start
 
 **Import from project config** (run in project directory):
+
 ```bash
 dmcp import <tool-name>
 ```
 
 **Import from global/user config**:
+
 ```bash
 dmcp import --global <tool-name>
 ```
 
 **Force overwrite** (skip confirmation prompt):
+
 ```bash
 dmcp import <tool-name> --force
 ```
 
 The command will:
+
 1. Detect your tool's config location
 2. Parse the existing MCP servers
 3. Interactively prompt for descriptions
@@ -123,11 +130,13 @@ Config details:
 ```
 
 **Feature Selection**: During import, you can customize which MCP features are enabled per server:
+
 - Press Enter (or Y) to keep all features (tools, resources, prompts)
 - Type 'n' to selectively enable/disable individual features
 - This allows fine-grained control without manually editing the config file
 
 Example of custom feature selection:
+
 ```bash
 🔧 Keep all features (tools, resources, prompts) for 'server'? [Y/n]: n
 
@@ -155,13 +164,13 @@ Example of custom feature selection:
 
 The import command automatically normalizes environment variables to dynamic-mcp's `${VAR}` format:
 
-| Tool | Original Format | Converted To |
-|------|----------------|--------------|
-| Cursor | `${env:GITHUB_TOKEN}` | `${GITHUB_TOKEN}` |
-| Claude Desktop | `${GITHUB_TOKEN}` | `${GITHUB_TOKEN}` |
-| Claude Code CLI | `${GITHUB_TOKEN}` | `${GITHUB_TOKEN}` |
-| VS Code | `${env:GITHUB_TOKEN}` | `${GITHUB_TOKEN}` |
-| Codex | `"${GITHUB_TOKEN}"` | `${GITHUB_TOKEN}` |
+| Tool            | Original Format       | Converted To      |
+| --------------- | --------------------- | ----------------- |
+| Cursor          | `${env:GITHUB_TOKEN}` | `${GITHUB_TOKEN}` |
+| Claude Desktop  | `${GITHUB_TOKEN}`     | `${GITHUB_TOKEN}` |
+| Claude Code CLI | `${GITHUB_TOKEN}`     | `${GITHUB_TOKEN}` |
+| VS Code         | `${env:GITHUB_TOKEN}` | `${GITHUB_TOKEN}` |
+| Codex           | `"${GITHUB_TOKEN}"`   | `${GITHUB_TOKEN}` |
 
 **Note**: VS Code's `${input:ID}` secure prompts cannot be automatically converted. You'll need to manually configure these after import.
 

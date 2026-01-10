@@ -1,6 +1,7 @@
 # Rust MCP SDK Research
 
 ## Research Date
+
 January 6, 2026
 
 ## Executive Summary
@@ -42,12 +43,12 @@ oauth2 = { version = "5.0", optional = true }
 
 ### Officially Supported
 
-| Transport | Crate Feature | Status |
-|-----------|--------------|--------|
-| **STDIO** | Built-in | ✅ Production |
-| **HTTP/SSE** | `transport-streamable-http-server`, `transport-streamable-http-client-reqwest` | ✅ Production |
-| **Child Process** | `transport-child-process` | ✅ Production |
-| **In-Process** | Built-in | ✅ Testing |
+| Transport         | Crate Feature                                                                  | Status        |
+| ----------------- | ------------------------------------------------------------------------------ | ------------- |
+| **STDIO**         | Built-in                                                                       | ✅ Production |
+| **HTTP/SSE**      | `transport-streamable-http-server`, `transport-streamable-http-client-reqwest` | ✅ Production |
+| **Child Process** | `transport-child-process`                                                      | ✅ Production |
+| **In-Process**    | Built-in                                                                       | ✅ Testing    |
 
 ### Community Transports
 
@@ -62,6 +63,7 @@ oauth2 = { version = "5.0", optional = true }
 Tools are executable functions that the LLM can call. The SDK provides a `#[tool]` macro for declarative tool definition.
 
 **Example**:
+
 ```rust
 #[tool_router]
 impl Counter {
@@ -83,6 +85,7 @@ impl Counter {
 Resources provide read-only data access through URIs. Implement via `ServerHandler` trait.
 
 **Example**:
+
 ```rust
 impl ServerHandler for Counter {
     async fn list_resources(&self, ...) -> Result<ListResourcesResult, McpError> {
@@ -115,6 +118,7 @@ impl ServerHandler for Counter {
 Prompts are reusable message templates that can be parameterized.
 
 **Example**:
+
 ```rust
 #[prompt_router]
 impl Counter {
@@ -181,6 +185,7 @@ impl ServerHandler for Counter {
 **Purpose**: Production MCP gateway/proxy server
 
 Features:
+
 - Multi-tenant support
 - RBAC (Role-Based Access Control)
 - Dynamic configuration
@@ -212,23 +217,23 @@ impl ServerHandler for MCPProxy {
 
 ## Ecosystem Statistics
 
-| Metric | Value |
-|--------|-------|
-| **Total Rust MCP Projects** | 800+ on GitHub |
-| **Active Crates** | 50+ on crates.io |
-| **Official SDK Downloads** | 2.3M+ |
-| **Specialized Servers** | 50+ (Elasticsearch, Terraform, SurrealDB, etc.) |
-| **Proxy/Gateway Solutions** | 5+ (AgentGateway, mcp-guardian, etc.) |
-| **Maintenance Status** | 90% updated in last 6 months |
+| Metric                      | Value                                           |
+| --------------------------- | ----------------------------------------------- |
+| **Total Rust MCP Projects** | 800+ on GitHub                                  |
+| **Active Crates**           | 50+ on crates.io                                |
+| **Official SDK Downloads**  | 2.3M+                                           |
+| **Specialized Servers**     | 50+ (Elasticsearch, Terraform, SurrealDB, etc.) |
+| **Proxy/Gateway Solutions** | 5+ (AgentGateway, mcp-guardian, etc.)           |
+| **Maintenance Status**      | 90% updated in last 6 months                    |
 
 ## Alternative Libraries (Tier-1)
 
-| Library | Downloads | Best For | GitHub |
-|---------|-----------|----------|--------|
-| **rust-mcp-schema** | 188k+ | Type-safe schema definitions | [link](https://github.com/rust-mcp-stack/rust-mcp-schema) |
-| **MCPR** | 10k+ | Rapid development, project generation | [link](https://github.com/conikeec/mcpr) |
-| **turul-mcp-framework** | 1.3k+ | High-performance, HTTP/SSE focus | [link](https://github.com/aussierobots/turul-mcp-framework) |
-| **turbomcp** | 10k+ | Complete protocol with context mgmt | [link](https://github.com/Epistates/turbomcp) |
+| Library                 | Downloads | Best For                              | GitHub                                                      |
+| ----------------------- | --------- | ------------------------------------- | ----------------------------------------------------------- |
+| **rust-mcp-schema**     | 188k+     | Type-safe schema definitions          | [link](https://github.com/rust-mcp-stack/rust-mcp-schema)   |
+| **MCPR**                | 10k+      | Rapid development, project generation | [link](https://github.com/conikeec/mcpr)                    |
+| **turul-mcp-framework** | 1.3k+     | High-performance, HTTP/SSE focus      | [link](https://github.com/aussierobots/turul-mcp-framework) |
+| **turbomcp**            | 10k+      | Complete protocol with context mgmt   | [link](https://github.com/Epistates/turbomcp)               |
 
 ## Recommended Stack for MCP Proxy
 
@@ -268,6 +273,7 @@ Layer 3: Features
 ## Conclusion
 
 The Rust MCP ecosystem is production-ready with:
+
 - ✅ Mature, well-maintained official SDK
 - ✅ Comprehensive transport support (stdio, HTTP, SSE)
 - ✅ OAuth2 authentication built-in

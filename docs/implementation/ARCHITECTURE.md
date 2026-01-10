@@ -104,12 +104,14 @@ dynamic-mcp/
 Dynamic-MCP provides full proxying support for all three MCP APIs:
 
 ### Tools API
+
 - **Purpose**: Execute actions and commands
 - **Proxy Tools**: `get_dynamic_tools`, `call_dynamic_tool`
 - **On-demand loading**: Tool schemas loaded per group, reducing initial context
 - **Caching**: Tools cached after first fetch for performance
 
 ### Resources API
+
 - **Purpose**: Access files, documents, and data sources
 - **Endpoints**: `resources/list`, `resources/read`, `resources/templates/list`
 - **Features**:
@@ -121,6 +123,7 @@ Dynamic-MCP provides full proxying support for all three MCP APIs:
 - **Timeout**: 10s per operation
 
 ### Prompts API
+
 - **Purpose**: Discover and retrieve prompt templates
 - **Endpoints**: `prompts/list`, `prompts/get`
 - **Features**:
@@ -131,6 +134,7 @@ Dynamic-MCP provides full proxying support for all three MCP APIs:
 - **Timeout**: 10s per operation
 
 ### Per-Server Feature Flags
+
 - **Configuration**: Optional `features` field per server
 - **Flags**: `tools`, `resources`, `prompts` (all default to `true`)
 - **Opt-out design**: All APIs enabled unless explicitly disabled
@@ -144,11 +148,13 @@ Dynamic-MCP provides full proxying support for all three MCP APIs:
 **Purpose**: Load and validate server configurations
 
 **Components**:
+
 - `schema.rs`: Defines config structures (`ServerConfig`, `McpServerConfig`)
 - `loader.rs`: Loads JSON config from disk
 - `env_sub.rs`: Substitutes `${VAR}` environment variables
 
 **Flow**:
+
 ```
 config.json → load_config() → substitute_env_vars() → ServerConfig
 ```
@@ -158,6 +164,7 @@ config.json → load_config() → substitute_env_vars() → ServerConfig
 **Purpose**: Manage connections to upstream MCP servers
 
 **State Machine**:
+
 ```
                     ┌─────────────┐
                     │   Initial   │
@@ -175,6 +182,7 @@ config.json → load_config() → substitute_env_vars() → ServerConfig
 ```
 
 **Group State**:
+
 - `Connected`: Active connection, tools cached, transport ready
 - `Failed`: Connection attempt failed, error recorded, group unavailable
 
@@ -184,11 +192,11 @@ config.json → load_config() → substitute_env_vars() → ServerConfig
 
 **Transport Types**:
 
-| Type    | Use Case              | Implementation                    |
-|---------|-----------------------|-----------------------------------|
-| stdio   | Local processes       | `StdioTransport` (tokio process)  |
-| HTTP    | Remote HTTP servers   | rmcp HTTP client                  |
-| SSE     | Server-sent events    | rmcp SSE client                   |
+| Type  | Use Case            | Implementation                   |
+| ----- | ------------------- | -------------------------------- |
+| stdio | Local processes     | `StdioTransport` (tokio process) |
+| HTTP  | Remote HTTP servers | rmcp HTTP client                 |
+| SSE   | Server-sent events  | rmcp SSE client                  |
 
 **Protocol**: All transports use JSON-RPC 2.0 over their respective channels
 
@@ -197,6 +205,7 @@ config.json → load_config() → substitute_env_vars() → ServerConfig
 **Purpose**: Handle OAuth2 authentication for remote servers
 
 **Flow**:
+
 ```
 1. Check ~/.dynamic-mcp/oauth-servers/{server}.json for cached token
 2. If missing/expired:
@@ -210,6 +219,7 @@ config.json → load_config() → substitute_env_vars() → ServerConfig
 ```
 
 **Token Refresh**:
+
 - Tokens checked before each connection
 - Auto-refresh if expiring within 5 minutes
 - Refresh token used if available
@@ -221,25 +231,30 @@ config.json → load_config() → substitute_env_vars() → ServerConfig
 **Tools API (2 proxy tools)**:
 
 1. **`get_dynamic_tools`**
+
    - Input: `{ "group": "group_name" }`
    - Output: JSON array of tools with schemas
    - Purpose: On-demand schema loading (reduces initial context)
 
 2. **`call_dynamic_tool`**
+
    - Input: `{ "group": "group_name", "name": "tool_name", "args": {...} }`
    - Output: Tool execution result
    - Purpose: Proxy calls to upstream servers
 
 **Resources API (proxied)**:
+
 - `resources/list`: Discover available resources from upstream servers
 - `resources/read`: Retrieve resource content (text/binary)
 - `resources/templates/list`: List resource URI templates (RFC 6570)
 
 **Prompts API (proxied)**:
+
 - `prompts/list`: Discover available prompts with metadata
 - `prompts/get`: Retrieve prompt template with argument substitution
 
 **JSON-RPC Methods**:
+
 - `initialize`: Handshake with client (advertises tools/resources/prompts capabilities)
 - `initialized`: Notification sent after initialize (MCP spec compliance)
 - `tools/list`: Return the two proxy tools
@@ -248,6 +263,7 @@ config.json → load_config() → substitute_env_vars() → ServerConfig
 - `prompts/list`, `prompts/get`: Proxy to upstream
 
 **Feature Flags**:
+
 - Per-server `features` config field (tools, resources, prompts)
 - Opt-out design: All features enabled by default
 - Runtime enforcement with clear error messages
@@ -257,10 +273,12 @@ config.json → load_config() → substitute_env_vars() → ServerConfig
 **Purpose**: Command-line interface and config import
 
 **Commands**:
+
 - `dynamic-mcp <config.json>`: Start server with config
 - `dynamic-mcp import <tool-name>`: Import MCP configs from AI coding tools
 
 **Import Process**:
+
 ```
 Standard MCP Config          Dynamic-MCP Config
 ─────────────────           ──────────────────
@@ -477,11 +495,13 @@ struct Features {
 ### Context Efficiency
 
 **Without dynamic-mcp**:
+
 - LLM receives ALL tools from ALL servers upfront
 - Large context window consumed by tool schemas
 - Example: 10 servers × 20 tools = 200 tool schemas in initial context
 
 **With dynamic-mcp**:
+
 - LLM receives only 2 proxy tools initially
 - Tool schemas loaded on-demand per group
 - Resources/Prompts proxied without schema overhead
@@ -530,6 +550,7 @@ struct Features {
 ## Testing Strategy
 
 ### Unit Tests
+
 - Config parsing and validation
 - Environment variable substitution
 - OAuth token management
@@ -539,6 +560,7 @@ struct Features {
 - Feature flags configuration
 
 ### Integration Tests
+
 - End-to-end CLI workflows
 - Import command with 10 AI coding tools
 - Config schema validation
@@ -548,6 +570,7 @@ struct Features {
 - Feature selection during import
 
 ### Manual Testing
+
 - Real MCP server connections
 - OAuth flow with actual providers
 - Multi-transport scenarios (stdio, HTTP, SSE)

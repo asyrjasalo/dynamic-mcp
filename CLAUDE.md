@@ -26,7 +26,7 @@
 - Implementation Status: @docs/implementation/STATUS.md
 - Test Coverage: @docs/implementation/TESTING.md
 
----
+______________________________________________________________________
 
 ## 🛠️ Development Workflow
 
@@ -80,7 +80,7 @@ The project owner will:
 
 **Why this matters**: Maintains clean git history, proper attribution, version control integrity, and ensures the project owner has full control over what gets committed.
 
----
+______________________________________________________________________
 
 ## ✨ Feature Development
 
@@ -133,6 +133,7 @@ The project owner will:
    ```
 
 6. **Verify with LSP diagnostics**
+
    ```bash
    # If using rust-analyzer
    # Check for warnings/errors in your editor
@@ -202,7 +203,7 @@ mod tests {
   ```
 - Document performance characteristics in code comments
 
----
+______________________________________________________________________
 
 ## 🧪 Testing Guide
 
@@ -238,7 +239,7 @@ cargo test -- --test-threads=1
 1. Update @docs/implementation/TESTING.md with new test counts
 2. Update @docs/implementation/STATUS.md if significant
 
----
+______________________________________________________________________
 
 ## 📚 Documentation Requirements
 
@@ -265,7 +266,7 @@ cargo test -- --test-threads=1
 - Skip running tests (`cargo test`, `cargo clippy`, `cargo build`)
 - Only verify grammar, cross-references and formatting is correct
 
----
+______________________________________________________________________
 
 ## 🚀 Release Process
 
@@ -505,6 +506,6 @@ When updating README.md or IMPORT.md:
 - **@docs/IMPORT.md** - Multi-tool import functionality (update if adding new tool support)
 - **@CLAUDE.md** - This document (agent guidelines)
 
----
+______________________________________________________________________
 
 **Remember**: Documentation is code. Keep it accurate, up-to-date, and helpful for both humans and AI agents.

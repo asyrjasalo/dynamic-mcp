@@ -13,6 +13,7 @@
 > **Status**: **PRODUCTION-READY**
 
 **Summary**:
+
 - ✅ **stdio transport**: 100% spec-compliant
 - ✅ **HTTP/SSE transport**: 100% spec-compliant (all MUST-have requirements implemented)
 - ✅ **JSON-RPC protocol**: 100% compliant
@@ -22,12 +23,13 @@
 - ✅ **Tools API**: 100% compliant
 
 **Critical Protocol Features Implemented** (v1.2.1):
+
 1. ✅ Added `MCP-Protocol-Version` header on HTTP/SSE requests
 2. ✅ Implemented `MCP-Session-Id` header with UUID generation
 3. ✅ Fixed tool error format to use `isError` flag (enables LLM self-correction)
 4. ✅ Added OAuth 2.1 `resource` parameter
 
-**Note**: The `initialized` notification is intentionally NOT implemented to avoid stdio transport deadlock. See [MCP_SPEC_COMPLIANCE.md](MCP_SPEC_COMPLIANCE.md#11-initialized-notification--️-intentionally-not-implemented) for details.
+**Note**: The `initialized` notification is intentionally NOT implemented to avoid stdio transport deadlock. See [MCP_SPEC_COMPLIANCE.md](MCP_SPEC_COMPLIANCE.md#11-initialized-notification--%EF%B8%8F-intentionally-not-implemented) for details.
 
 See [MCP_SPEC_COMPLIANCE.md](MCP_SPEC_COMPLIANCE.md) for detailed compliance audit.
 
@@ -36,6 +38,7 @@ See [MCP_SPEC_COMPLIANCE.md](MCP_SPEC_COMPLIANCE.md) for detailed compliance aud
 ### Core Functionality
 
 #### MCP Server & Protocol
+
 - [x] JSON-RPC 2.0 protocol implementation
 - [x] Two-tool proxy API (get_dynamic_tools, call_dynamic_tool)
 - [x] On-demand tool schema loading
@@ -44,6 +47,7 @@ See [MCP_SPEC_COMPLIANCE.md](MCP_SPEC_COMPLIANCE.md) for detailed compliance aud
 - [x] Automatic retry with exponential backoff for failed connections
 
 #### Configuration System
+
 - [x] JSON configuration schema
 - [x] Environment variable substitution (`${VAR}` syntax)
 - [x] Per-server feature flags (tools, resources, prompts)
@@ -53,6 +57,7 @@ See [MCP_SPEC_COMPLIANCE.md](MCP_SPEC_COMPLIANCE.md) for detailed compliance aud
 ### Transport Layer
 
 #### Supported Transports
+
 - [x] **stdio transport** - Local child processes
   - Process group management (Unix)
   - Clean termination with SIGTERM
@@ -66,6 +71,7 @@ See [MCP_SPEC_COMPLIANCE.md](MCP_SPEC_COMPLIANCE.md) for detailed compliance aud
   - Automatic reconnection
 
 #### Transport Features
+
 - [x] Unified Transport enum
 - [x] Async request/response handling
 - [x] Header support (Authorization, custom headers)
@@ -75,6 +81,7 @@ See [MCP_SPEC_COMPLIANCE.md](MCP_SPEC_COMPLIANCE.md) for detailed compliance aud
 ### Authentication
 
 #### OAuth2 Support
+
 - [x] OAuth2 with PKCE flow
 - [x] Automatic token discovery via `/.well-known/oauth-authorization-server`
 - [x] Secure token storage in `~/.dynamic-mcp/oauth-servers/`
@@ -88,6 +95,7 @@ See [MCP_SPEC_COMPLIANCE.md](MCP_SPEC_COMPLIANCE.md) for detailed compliance aud
 ### MCP APIs
 
 #### Tools API
+
 - [x] `tools/list` - Return proxy tools
 - [x] `tools/call` - Execute get_dynamic_tools or call_dynamic_tool
 - [x] Tool caching for performance
@@ -95,6 +103,7 @@ See [MCP_SPEC_COMPLIANCE.md](MCP_SPEC_COMPLIANCE.md) for detailed compliance aud
 - [x] Per-server tools feature flag
 
 #### Resources API
+
 - [x] `resources/list` - Discover available resources
 - [x] `resources/read` - Retrieve resource content (text/binary)
 - [x] `resources/templates/list` - URI templates (RFC 6570)
@@ -105,6 +114,7 @@ See [MCP_SPEC_COMPLIANCE.md](MCP_SPEC_COMPLIANCE.md) for detailed compliance aud
 - [x] Per-server resources feature flag
 
 #### Prompts API
+
 - [x] `prompts/list` - Discover available prompts
 - [x] `prompts/get` - Retrieve prompt templates
 - [x] Prompt metadata (name, description, arguments)
@@ -117,6 +127,7 @@ See [MCP_SPEC_COMPLIANCE.md](MCP_SPEC_COMPLIANCE.md) for detailed compliance aud
 ### CLI & Import
 
 #### Commands
+
 - [x] `dmcp <config.json>` - Start server with config
 - [x] `dmcp import <tool-name>` - Import from AI coding tools
 - [x] `--global` flag for user-level configs
@@ -125,6 +136,7 @@ See [MCP_SPEC_COMPLIANCE.md](MCP_SPEC_COMPLIANCE.md) for detailed compliance aud
 - [x] `--help` flag
 
 #### Import Support (10 AI Coding Tools)
+
 - [x] Cursor
 - [x] OpenCode
 - [x] Claude Desktop
@@ -137,6 +149,7 @@ See [MCP_SPEC_COMPLIANCE.md](MCP_SPEC_COMPLIANCE.md) for detailed compliance aud
 - [x] Google Antigravity
 
 #### Import Features
+
 - [x] Interactive description prompts for each server
 - [x] Interactive feature selection (tools, resources, prompts)
 - [x] Config format detection (JSON/JSONC/TOML)
@@ -153,6 +166,7 @@ See [MCP_SPEC_COMPLIANCE.md](MCP_SPEC_COMPLIANCE.md) for detailed compliance aud
 ### Testing & Quality
 
 #### Test Infrastructure
+
 - [x] Unit tests for all core modules
 - [x] Integration tests for CLI and end-to-end workflows
 - [x] Import integration tests (all 10 tools)
@@ -164,6 +178,7 @@ See [MCP_SPEC_COMPLIANCE.md](MCP_SPEC_COMPLIANCE.md) for detailed compliance aud
 - See [TESTING.md](TESTING.md) for detailed test counts and coverage
 
 #### Performance
+
 - [x] Performance benchmarking suite
   - Environment variable substitution benchmarks
   - JSON parsing performance tests
@@ -171,6 +186,7 @@ See [MCP_SPEC_COMPLIANCE.md](MCP_SPEC_COMPLIANCE.md) for detailed compliance aud
   - Parallel connection simulation
 
 #### Code Quality
+
 - [x] Comprehensive Rust documentation (cargo doc)
 - [x] All public APIs documented with examples
 - [x] Linting with clippy
@@ -179,12 +195,14 @@ See [MCP_SPEC_COMPLIANCE.md](MCP_SPEC_COMPLIANCE.md) for detailed compliance aud
 ### Build & Distribution
 
 #### CI/CD
+
 - [x] GitHub Actions pipeline
 - [x] Automated testing on push/PR
 - [x] Linting and formatting checks
 - [x] Cross-platform builds with caching
 
 #### Binary Releases (5 Platforms)
+
 - [x] Linux x86_64 (`x86_64-unknown-linux-gnu`)
 - [x] Linux ARM64 (`aarch64-unknown-linux-gnu`)
 - [x] macOS ARM64 (`aarch64-apple-darwin`)
@@ -192,10 +210,12 @@ See [MCP_SPEC_COMPLIANCE.md](MCP_SPEC_COMPLIANCE.md) for detailed compliance aud
 - [x] Windows ARM64 (`aarch64-pc-windows-msvc`)
 
 #### Build Optimization
+
 - [x] Release profile tuned (LTO, strip symbols)
 - [x] Binary size reduction (~40-50%)
 
 #### Package Distribution
+
 - [x] **crates.io** - Rust package (`dynamic-mcp`)
 - [x] **PyPI** - Python package (`dmcp`)
   - Maturin bin bindings
@@ -207,12 +227,14 @@ See [MCP_SPEC_COMPLIANCE.md](MCP_SPEC_COMPLIANCE.md) for detailed compliance aud
 ### Documentation
 
 #### User Documentation
+
 - [x] README.md with quick start guide
 - [x] IMPORT.md with tool-specific import guides
 - [x] CONTRIBUTING.md with development setup
 - [x] SECURITY.md with OAuth token storage details
 
 #### Technical Documentation
+
 - [x] ARCHITECTURE.md with system design and data flows
 - [x] Module-level Rust documentation
 - [x] API documentation (docs.rs)
@@ -222,22 +244,22 @@ See [MCP_SPEC_COMPLIANCE.md](MCP_SPEC_COMPLIANCE.md) for detailed compliance aud
 
 ## 📊 Project Metrics
 
-| Metric | Value |
-|--------|-------|
-| **Version** | 1.3.0 |
-| **LOC** | ~6,400 Rust |
-| **Source Files** | 19 Rust files (3 top-level + 16 in modules) |
-| **Test Files** | 8 integration test files |
-| **Dependencies** | 53 direct crates |
-| **Modules** | config (4 files), proxy (4 files), server, cli (5 files), auth (3 files), watcher |
-| **CLI Commands** | serve (default), import |
-| **Transports** | stdio, HTTP, SSE |
-| **Supported Tools** | 10 AI coding tools |
-| **Authentication** | OAuth2 with PKCE |
+| Metric              | Value                                                                               |
+| ------------------- | ----------------------------------------------------------------------------------- |
+| **Version**         | 1.3.0                                                                               |
+| **LOC**             | ~6,400 Rust                                                                         |
+| **Source Files**    | 19 Rust files (3 top-level + 16 in modules)                                         |
+| **Test Files**      | 8 integration test files                                                            |
+| **Dependencies**    | 53 direct crates                                                                    |
+| **Modules**         | config (4 files), proxy (4 files), server, cli (5 files), auth (3 files), watcher   |
+| **CLI Commands**    | serve (default), import                                                             |
+| **Transports**      | stdio, HTTP, SSE                                                                    |
+| **Supported Tools** | 10 AI coding tools                                                                  |
+| **Authentication**  | OAuth2 with PKCE                                                                    |
 | **Binary Releases** | 5 platforms (Linux x86_64, Linux ARM64, macOS ARM64, Windows x86_64, Windows ARM64) |
-| **Python Wheels** | 5 platforms (maturin-built via GitHub Actions) |
-| **CI/CD** | GitHub Actions (test, lint, build, release, PyPI publish) |
-| **Published** | crates.io (dynamic-mcp), PyPI (dmcp), GitHub Releases |
+| **Python Wheels**   | 5 platforms (maturin-built via GitHub Actions)                                      |
+| **CI/CD**           | GitHub Actions (test, lint, build, release, PyPI publish)                           |
+| **Published**       | crates.io (dynamic-mcp), PyPI (dmcp), GitHub Releases                               |
 
 **Test Coverage**: See [TESTING.md](TESTING.md) for detailed test counts and coverage.
 
@@ -296,6 +318,7 @@ cargo test
 ## 🎯 Release Information
 
 ### Publication Status (v1.3.0) ✅
+
 - [x] Published to crates.io: https://crates.io/crates/dynamic-mcp
 - [x] Published to PyPI: https://pypi.org/project/dmcp/
 - [x] GitHub release created: https://github.com/asyrjasalo/dynamic-mcp/releases
@@ -303,6 +326,7 @@ cargo test
 - [x] Python wheels available (5 platforms)
 
 ### Available Binary Downloads
+
 - ✅ **Linux x86_64** (`x86_64-unknown-linux-gnu`) - Native build
 - ✅ **Linux ARM64** (`aarch64-unknown-linux-gnu`) - Cross-compiled with `cross` tool
 - ✅ **macOS ARM64** (`aarch64-apple-darwin`) - Native build for Apple Silicon
@@ -310,6 +334,7 @@ cargo test
 - ✅ **Windows ARM64** (`aarch64-pc-windows-msvc`) - Cross-compiled with `cross` tool
 
 ### Python Package Distribution
+
 - **Package Name**: `dmcp` on PyPI
 - **Build System**: maturin with `bindings = "bin"` mode
 - **Wheel Format**: Platform-specific wheels (one per OS/architecture)
@@ -325,35 +350,40 @@ cargo test
 ### Platform Limitations
 
 #### Not Supported
+
 - ❌ **macOS Intel** (`x86_64-apple-darwin`) - Not supported
   - Intel Mac users must build from source with `cargo install dynamic-mcp`
 
 ## 📝 Known Limitations
 
 ### Runtime Limitations
+
 - **Live Reload**: Works for config changes but requires manual update for code changes (expected behavior for compiled binaries)
 - **Token Storage**: Plain text in filesystem (not encrypted at rest) - see SECURITY.md
 - **No Rate Limiting**: No built-in rate limiting for tool calls
 - **No Sandboxing**: Child processes run with full privileges
 
 ### Platform Binary Availability
+
 - **macOS Intel**: Not supported - Intel Mac users must build from source with `cargo install dynamic-mcp`
 
 ## 🔍 Code Quality
 
 ### Linting & Formatting
+
 ```bash
 cargo fmt --check     # All code formatted
 cargo clippy          # No warnings
 ```
 
 ### Documentation
+
 ```bash
 cargo doc --no-deps   # Full API documentation
 ```
 
 All public APIs have doc comments with examples.
 
----
+______________________________________________________________________
 
 **Status**: ✅ Production-Ready | v1.3.0

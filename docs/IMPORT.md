@@ -15,6 +15,7 @@ Standard MCP clients load all tool schemas from all servers upfront, consuming s
 ### Import from AI Coding Tools
 
 **Project-level config** (run in project directory):
+
 ```bash
 dmcp import cursor
 dmcp import vscode
@@ -22,6 +23,7 @@ dmcp import cline
 ```
 
 **Global/user-level config**:
+
 ```bash
 dmcp import --global claude-desktop
 dmcp import --global opencode
@@ -29,6 +31,7 @@ dmcp import --global codex
 ```
 
 **Force overwrite**:
+
 ```bash
 dmcp import cursor --force
 ```
@@ -37,20 +40,21 @@ dmcp import cursor --force
 
 The import command currently supports the following AI coding tools:
 
-| Tool | Tool Name | Config Locations |
-|------|-----------|------------------|
-| **Cursor** | `cursor` | Project: `.cursor/mcp.json`<br>Global: `~/.cursor/mcp.json` |
-| **OpenCode** | `opencode` | Project: `.opencode/opencode.json(c)`<br>Global: `~/.config/opencode/opencode.json(c)` |
-| **Claude Desktop** | `claude-desktop` | Global only (OS-specific paths) |
-| **Claude Code CLI** | `claude` | Project: `.mcp.json`<br>User: `~/.claude.json` |
-| **Visual Studio Code** | `vscode` | Project: `.vscode/mcp.json`<br>Global: OS-specific |
-| **Cline** | `cline` | Project: `.cline/mcp.json`<br>Global: VS Code extension settings |
-| **KiloCode** | `kilocode` | Project: `.kilocode/mcp.json`<br>Global: Extension settings |
-| **Codex CLI** | `codex` | Global: `~/.codex/config.toml` (TOML format) |
-| **Gemini CLI** | `gemini` | Project: `.gemini/settings.json`<br>Global: `~/.gemini/settings.json` |
-| **Google Antigravity** | `antigravity` | Global: `~/.gemini/antigravity/mcp_config.json` |
+| Tool                   | Tool Name        | Config Locations                                                                       |
+| ---------------------- | ---------------- | -------------------------------------------------------------------------------------- |
+| **Cursor**             | `cursor`         | Project: `.cursor/mcp.json`<br>Global: `~/.cursor/mcp.json`                            |
+| **OpenCode**           | `opencode`       | Project: `.opencode/opencode.json(c)`<br>Global: `~/.config/opencode/opencode.json(c)` |
+| **Claude Desktop**     | `claude-desktop` | Global only (OS-specific paths)                                                        |
+| **Claude Code CLI**    | `claude`         | Project: `.mcp.json`<br>User: `~/.claude.json`                                         |
+| **Visual Studio Code** | `vscode`         | Project: `.vscode/mcp.json`<br>Global: OS-specific                                     |
+| **Cline**              | `cline`          | Project: `.cline/mcp.json`<br>Global: VS Code extension settings                       |
+| **KiloCode**           | `kilocode`       | Project: `.kilocode/mcp.json`<br>Global: Extension settings                            |
+| **Codex CLI**          | `codex`          | Global: `~/.codex/config.toml` (TOML format)                                           |
+| **Gemini CLI**         | `gemini`         | Project: `.gemini/settings.json`<br>Global: `~/.gemini/settings.json`                  |
+| **Google Antigravity** | `antigravity`    | Global: `~/.gemini/antigravity/mcp_config.json`                                        |
 
 **What the import command does**:
+
 - Automatically detects the tool's config location
 - Parses the config format (JSON, JSONC, or TOML)
 - Normalizes environment variables to `${VAR}` format
@@ -59,6 +63,7 @@ The import command currently supports the following AI coding tools:
 - Generates `dynamic-mcp.json` in the current directory
 
 **Example import session**:
+
 ```bash
 $ dmcp import cursor
 
@@ -98,6 +103,7 @@ Git repository operations
 If the import command doesn't support your tool or you prefer manual control:
 
 **Before (Standard MCP)**:
+
 ```json
 {
   "mcpServers": {
@@ -125,6 +131,7 @@ If the import command doesn't support your tool or you prefer manual control:
 ```
 
 **After (dynamic-mcp)**:
+
 ```json
 {
   "mcpServers": {
@@ -157,6 +164,7 @@ If the import command doesn't support your tool or you prefer manual control:
 ```
 
 **Changes required**:
+
 1. Add `"type"` field for each server (http or sse) - stdio is default and optional
 2. Add `"description"` field explaining what the server does
 3. Keep all other fields unchanged
@@ -234,11 +242,13 @@ Descriptions are shown to the LLM when listing tools. Write them from the LLM's 
 ### Description Template
 
 Use this format:
+
 ```
 "[Primary capability] [using/with/on] [technology/resource]"
 ```
 
 Examples:
+
 - "File operations on /tmp directory"
 - "Web search using Brave API"
 - "Documentation search using Context7"
@@ -249,6 +259,7 @@ Examples:
 ### Scenario 1: NPX-based Servers
 
 **Before**:
+
 ```json
 {
   "server": {
@@ -259,6 +270,7 @@ Examples:
 ```
 
 **After**:
+
 ```json
 {
   "server": {
@@ -272,6 +284,7 @@ Examples:
 ### Scenario 2: Environment Variables
 
 **Before**:
+
 ```json
 {
   "server": {
@@ -286,6 +299,7 @@ Examples:
 ```
 
 **After** (unchanged except for description):
+
 ```json
 {
   "server": {
@@ -303,6 +317,7 @@ Examples:
 ### Scenario 3: OAuth-Protected Servers
 
 **Before**:
+
 ```json
 {
   "server": {
@@ -314,6 +329,7 @@ Examples:
 ```
 
 **After**:
+
 ```json
 {
   "server": {
@@ -329,6 +345,7 @@ Examples:
 ### Scenario 4: Custom Headers
 
 **Before**:
+
 ```json
 {
   "server": {
@@ -342,6 +359,7 @@ Examples:
 ```
 
 **After**:
+
 ```json
 {
   "server": {
@@ -366,6 +384,7 @@ dmcp dynamic-mcp.json
 ```
 
 You should see:
+
 ```
 ✅ MCP server config loaded successfully
 ✅ Successfully connected MCP Server: filesystem
@@ -376,6 +395,7 @@ MCP server listening on stdio
 ```
 
 If any servers fail:
+
 ```
 ❌ Failed to connect to server-name: [error details]
 ...
@@ -389,6 +409,7 @@ Some MCP groups failed to connect. success_groups=[...], failed_groups=[...]
 **Symptom**: `❌ Failed to connect to server-name`
 
 **Solutions**:
+
 1. Check server is running (for HTTP/SSE)
 2. Verify command/URL is correct
 3. Ensure environment variables are set
@@ -399,6 +420,7 @@ Some MCP groups failed to connect. success_groups=[...], failed_groups=[...]
 **Symptom**: Browser doesn't open for OAuth
 
 **Solutions**:
+
 1. Check `oauth_client_id` is correct
 2. Ensure server supports `.well-known/oauth-authorization-server`
 3. Manually open the URL shown in console
@@ -409,6 +431,7 @@ Some MCP groups failed to connect. success_groups=[...], failed_groups=[...]
 **Symptom**: Variables not substituted
 
 **Solutions**:
+
 1. Ensure vars are exported: `export VAR=value`
 2. Use `${VAR}` syntax (not `$VAR`)
 3. Check variable name matches exactly (case-sensitive)
@@ -460,10 +483,12 @@ dmcp dynamic-mcp.json
 ### Cursor
 
 **Config Locations**:
+
 - Project: `.cursor/mcp.json` (in project root)
 - Global: `~/.cursor/mcp.json`
 
 **Import**:
+
 ```bash
 # From project config
 cd /path/to/project
@@ -475,15 +500,17 @@ dmcp import --global cursor
 
 **Environment Variables**: Cursor uses `${env:VAR}` format, automatically converted to `${VAR}`.
 
----
+______________________________________________________________________
 
 ### OpenCode
 
 **Config Locations**:
+
 - Project: `.opencode/opencode.json` or `.opencode/opencode.jsonc`
 - Global: `~/.config/opencode/opencode.json` or `~/.config/opencode/opencode.jsonc`
 
 **Import**:
+
 ```bash
 # From project config (auto-detects .json or .jsonc)
 dmcp import opencode
@@ -493,22 +520,25 @@ dmcp import --global opencode
 ```
 
 **Special Notes**:
+
 - Supports both JSON and JSONC (JSON with comments) formats
 - Auto-detects file extension (.json or .jsonc)
 - Prefers .jsonc if both exist
 - Uses `command` as array: `["npx", "-y", "package"]` instead of separate command/args
 - Automatically parsed and normalized
 
----
+______________________________________________________________________
 
 ### Claude Desktop
 
 **Config Locations** (global only):
+
 - macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
 - Windows: `%APPDATA%\Claude\claude_desktop_config.json`
 - Linux: `~/.config/Claude/claude_desktop_config.json`
 
 **Import**:
+
 ```bash
 dmcp import --global claude-desktop
 # or
@@ -517,15 +547,17 @@ dmcp import --global claude
 
 **Environment Variables**: Uses `${VAR}` format (already compatible).
 
----
+______________________________________________________________________
 
 ### Claude Code CLI
 
 **Config Locations**:
+
 - Project: `.mcp.json` (in project root - shared with team, version-controlled)
 - User: `~/.claude.json` (cross-project, private to you)
 
 **Import**:
+
 ```bash
 # From project config (.mcp.json in project root)
 cd /path/to/project
@@ -538,6 +570,7 @@ dmcp import --global claude
 **Environment Variables**: Uses `${VAR}` format (already compatible).
 
 **Special Notes**:
+
 - Uses `.mcp.json` in project root (shared/version-controlled)
 - User scope uses `~/.claude.json` (cross-project, private)
 - Different from Claude Desktop (which uses `~/Library/Application Support/Claude/`)
@@ -547,11 +580,12 @@ dmcp import --global claude
   - User: `~/.claude.json` (private, cross-project)
 - Ideal for developers using Claude Code via CLI
 
----
+______________________________________________________________________
 
 ### Visual Studio Code
 
 **Config Locations**:
+
 - Project: `.vscode/mcp.json` (workspace-level)
 - Global:
   - macOS: `~/Library/Application Support/Code/User/mcp.json`
@@ -559,6 +593,7 @@ dmcp import --global claude
   - Linux: `~/.config/Code/User/mcp.json`
 
 **Import**:
+
 ```bash
 # From project config
 dmcp import vscode
@@ -568,6 +603,7 @@ dmcp import --global vscode
 ```
 
 **Special Notes**:
+
 - Uses `servers` instead of `mcpServers`
 - Supports `${input:ID}` for secure credential prompts (cannot auto-convert)
 - VS Code specific `inputs` array not imported
@@ -576,58 +612,68 @@ dmcp import --global vscode
 
 **Manual Steps After Import**:
 If your config used `${input:credential-id}`:
+
 1. Replace with environment variable: `${API_KEY}`
 2. Export the variable: `export API_KEY=your-key`
 
----
+______________________________________________________________________
 
 ### Cline (VS Code Extension)
 
 **Config Location**:
+
 - Project: `.cline/mcp.json`
 
 **Import**:
+
 ```bash
 dmcp import cline
 ```
 
 **Special Notes**:
+
 - `alwaysAllow` field is not imported (Cline-specific)
 - `disabled` field is not imported
 - Environment variables use `${env:VAR}` format (auto-converted)
 
----
+______________________________________________________________________
 
 ### KiloCode
 
 **Config Location**:
+
 - Project: `.kilocode/mcp.json`
 
 **Import**:
+
 ```bash
 dmcp import kilocode
 ```
 
 **Similar to Cline**: Extension-specific fields (`alwaysAllow`, `disabled`) are not imported.
 
----
+______________________________________________________________________
 
 ### Codex CLI
 
 **Config Location**:
+
 - Global: `~/.codex/config.toml`
 
 **Import**:
+
 ```bash
 dmcp import --global codex
 ```
 
 **Special Notes**:
+
 - Uses TOML format instead of JSON
 - Format: `[mcp.server-name]` sections
 - Environment variables: TOML string syntax automatically handled
 
 **Example TOML**:
+
 ```toml
 [mcp.github]
 command = "docker"
@@ -637,14 +683,16 @@ args = ["run", "-i", "ghcr.io/github/github-mcp-server"]
 GITHUB_TOKEN = "${GITHUB_TOKEN}"
 ```
 
----
+______________________________________________________________________
 
 ### Google Antigravity
 
 **Config Location**:
+
 - Global: `~/.gemini/antigravity/mcp_config.json`
 
 **Import**:
+
 ```bash
 # From global config (standard location)
 dmcp import --global antigravity
@@ -654,17 +702,20 @@ dmcp import /path/to/mcp_config.json
 ```
 
 **Environment Variables**:
+
 - Uses system environment (no special conversion needed)
 
----
+______________________________________________________________________
 
 ### Gemini CLI
 
 **Config Locations**:
+
 - Project: `.gemini/settings.json` (in project root)
 - Global: `~/.gemini/settings.json`
 
 **Import**:
+
 ```bash
 # From project config
 cd /path/to/project
@@ -677,10 +728,11 @@ dmcp import --global gemini
 **Environment Variables**: Uses standard environment variables (no special syntax).
 
 **Special Notes**:
+
 - Project config allows per-project MCP server configuration
 - Useful for different contexts in different projects
 
----
+______________________________________________________________________
 
 ## Getting Help
 

@@ -7,6 +7,7 @@
 **Location**: `~/.dynamic-mcp/oauth-servers/`
 
 **Security Measures**:
+
 - Tokens stored in user's home directory
 - File-based storage with JSON serialization
 - No encryption at rest (relies on filesystem permissions)
@@ -15,12 +16,14 @@
 - **WARNING**: No automatic permission hardening - operators must manually set restrictive permissions
 
 **Token Security**:
+
 - PKCE (Proof Key for Code Exchange) used for authorization
 - RFC 6749 compliant refresh token rotation
 - Automatic token refresh before expiry (5-minute buffer)
 - Tokens include expiry timestamp for validation
 
 **Recommendations for Production**:
+
 1. Ensure home directory has proper permissions (mode 0700)
 2. Consider using OS keychain integration for token storage:
    - macOS: Keychain Access
@@ -35,11 +38,13 @@
 **Syntax**: Only `${VAR}` syntax supported (not `$VAR`)
 
 **Security Considerations**:
+
 - Environment variables exposed to child processes (stdio transport)
 - No sanitization of env var values
 - Undefined variables preserved as `${VAR}` with warning
 
 **Recommendations**:
+
 1. Avoid storing secrets directly in config files
 2. Use environment variables for sensitive data
 3. Set restrictive permissions on config files (0600)
@@ -49,12 +54,14 @@
 ### Network Security
 
 **HTTP/SSE Transports**:
+
 - HTTPS recommended but not enforced (HTTP URLs accepted)
 - No certificate pinning (uses system trust store via rustls)
 - Custom headers supported (including `Authorization`)
 - No request/response size limits enforced
 
 **Recommendations**:
+
 1. Use HTTPS for all remote MCP servers
 2. Validate TLS certificates (default behavior)
 3. Implement rate limiting on upstream servers
@@ -63,6 +70,7 @@
 ### Process Security
 
 **Child Process Management** (stdio transport):
+
 - Spawns child processes with configured environment variables
 - Process groups created for proper cleanup (Unix: setpgid, Windows: CREATE_NEW_PROCESS_GROUP)
 - Graceful shutdown with SIGTERM, forced cleanup with SIGKILL on drop
@@ -72,6 +80,7 @@
 - No resource limits enforced (CPU, memory, file descriptors)
 
 **Recommendations**:
+
 1. Review command and args in configuration before deployment
 2. Use absolute paths for commands to prevent PATH hijacking
 3. Consider using containerization for isolation
@@ -81,10 +90,12 @@
 ### Configuration Security
 
 **Config File**: User-specified path (no default discovery)
+
 - Must be explicitly provided as CLI argument or via `DYNAMIC_MCP_CONFIG` environment variable
 - Common names: `config.json`, `dynamic-mcp.json` (by convention, not enforced)
 
 **Security Considerations**:
+
 - Plain text JSON (no encryption)
 - May contain sensitive data (URLs, OAuth client IDs, API tokens)
 - Read by multiple modules during startup
@@ -92,6 +103,7 @@
 - File path validation not enforced (accepts any valid path)
 
 **Recommendations**:
+
 1. Set restrictive permissions: `chmod 600 config.json`
 2. Store in secure location (not web-accessible directories)
 3. Use environment variables for secrets (${VAR} syntax)
@@ -114,6 +126,7 @@
 ### For Operators
 
 1. **Least Privilege**:
+
    ```bash
    # Run as dedicated user with minimal permissions
    useradd -r -s /bin/false dynamic-mcp
@@ -121,6 +134,7 @@
    ```
 
 2. **File Permissions** (CRITICAL - not set automatically):
+
    ```bash
    # Config file (use your actual config filename)
    chmod 600 config.json
@@ -136,12 +150,14 @@
    ```
 
 3. **Network Isolation**:
+
    ```bash
    # Restrict network access with firewall rules
    # Allow only necessary outbound connections
    ```
 
 4. **Monitoring**:
+
    ```bash
    # Enable debug logging
    RUST_LOG=debug dmcp config.json
@@ -151,6 +167,7 @@
    ```
 
 5. **Regular Updates**:
+
    ```bash
    # Check for updates regularly
    pip install --upgrade dmcp
@@ -160,26 +177,31 @@
 ### For Developers
 
 1. **Input Validation**:
+
    - Validate all tool arguments before passing to upstream
    - Sanitize file paths and command arguments
    - Implement schema validation for tool inputs
 
 2. **Secret Management**:
+
    - Never log tokens or secrets
    - Use secure comparison for CSRF tokens
    - Implement token rotation policies
 
 3. **Error Handling**:
+
    - Don't leak sensitive information in error messages
    - Log security events separately
    - Implement rate limiting for authentication
 
 4. **Code Review**:
+
    - Security-focused code review for auth changes
    - Dependency audit: `cargo audit`
    - Static analysis: `cargo clippy`
 
 5. **Testing**:
+
    - Security test cases in CI/CD
    - Fuzzing for input validation
    - Regular penetration testing
@@ -191,7 +213,7 @@
 - Token Refresh: [RFC 6749 Section 6](https://tools.ietf.org/html/rfc6749#section-6)
 - MCP Specification: [Model Context Protocol](https://modelcontextprotocol.io/)
 
----
+______________________________________________________________________
 
 **Last Updated**: January 10, 2026
 **Version**: 1.3.0
