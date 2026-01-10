@@ -16,7 +16,7 @@ Thank you for your interest in contributing to dynamic-mcp! This document provid
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/dynamic-mcp.git
+   git clone https://github.com/asyrjasalo/dynamic-mcp.git
    cd dynamic-mcp
    ```
 
@@ -290,13 +290,20 @@ Feature suggestions are welcome! Please:
 ## Additional Resources
 
 ### Project Documentation
-- **[docs/README.md](docs/README.md)** - Documentation root
-- **[docs/implementation/TESTING.md](docs/implementation/TESTING.md)** - Test organization and coverage
-- **[docs/implementation/ARCHITECTURE.md](docs/implementation/ARCHITECTURE.md)** - System design and architecture
-- **[docs/implementation/MCP_SPEC_COMPLIANCE.md](docs/implementation/MCP_SPEC_COMPLIANCE.md)** - MCP specification compliance
-- **[docs/implementation/STATUS.md](docs/implementation/STATUS.md)** - Implementation status and metrics
+
+- **[README.md](README.md)** - User guide and project overview
+- **[docs/IMPORT.md](docs/IMPORT.md)** - How to import configs from other AI tools
+- **[CLAUDE.md](CLAUDE.md)** - Guidelines for AI coding agents working on this project
+
+### Understanding the Codebase
+
+- **[docs/implementation/ARCHITECTURE.md](docs/implementation/ARCHITECTURE.md)** - System design and component structure
+- **[docs/implementation/STATUS.md](docs/implementation/STATUS.md)** - Current features and implementation metrics
+- **[docs/implementation/TESTING.md](docs/implementation/TESTING.md)** - Test organization and coverage details
+- **[docs/implementation/MCP_SPEC_COMPLIANCE.md](docs/implementation/MCP_SPEC_COMPLIANCE.md)** - How we comply with MCP specification
 
 ### External Resources
+
 - **[Rust Book](https://doc.rust-lang.org/book/)** - Official Rust learning resource
 - **[MCP Specification](https://modelcontextprotocol.io/)** - Model Context Protocol documentation
 

@@ -206,7 +206,7 @@ It supports the `${VAR}` syntax for environment variable interpolation:
 
 ### Server Types
 
-It supports all [standard MCP transport mechanisms](https://modelcontextprotocol.io/specification/2025-03-26/basic/transports).
+It supports all [standard MCP transport mechanisms](https://modelcontextprotocol.io/specification/2025-11-25/basic/transports).
 
 #### stdio (Default)
 

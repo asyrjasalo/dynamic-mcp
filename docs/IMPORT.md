@@ -97,8 +97,6 @@ Git repository operations
 
 If the import command doesn't support your tool or you prefer manual control:
 
-If you prefer manual control:
-
 **Before (Standard MCP)**:
 ```json
 {
@@ -116,16 +114,17 @@ If you prefer manual control:
         "Authorization": "Bearer ${BRAVE_API_KEY}"
       }
     },
-    "playwright": {
-      "url": "https://mcp.playwright.dev/sse",
-      "oauth_client_id": "your-client-id",
-      "oauth_scopes": ["read", "write"]
+    "context7": {
+      "url": "https://mcp.context7.com/mcp",
+      "headers": {
+        "CONTEXT7_API_KEY": "${CONTEXT7_API_KEY}"
+      }
     }
   }
 }
 ```
 
-**After (Dynamic-MCP)**:
+**After (dynamic-mcp)**:
 ```json
 {
   "mcpServers": {
@@ -145,12 +144,13 @@ If you prefer manual control:
         "Authorization": "Bearer ${BRAVE_API_KEY}"
       }
     },
-    "playwright": {
-      "type": "sse",
-      "description": "Browser automation with Playwright",
-      "url": "https://mcp.playwright.dev/sse",
-      "oauth_client_id": "your-client-id",
-      "oauth_scopes": ["read", "write"]
+    "context7": {
+      "type": "http",
+      "description": "Documentation and code samples search",
+      "url": "https://mcp.context7.com/mcp",
+      "headers": {
+        "CONTEXT7_API_KEY": "${CONTEXT7_API_KEY}"
+      }
     }
   }
 }
@@ -220,7 +220,7 @@ Descriptions are shown to the LLM when listing tools. Write them from the LLM's 
 
 ✅ "File operations on the /tmp directory"
 ✅ "Web search using Brave Search API"
-✅ "Browser automation with Playwright"
+✅ "Documentation and code samples search"
 ✅ "Slack workspace integration for messaging and channels"
 ✅ "PostgreSQL database queries on production DB"
 
@@ -228,7 +228,7 @@ Descriptions are shown to the LLM when listing tools. Write them from the LLM's 
 
 ❌ "Filesystem server" (too vague)
 ❌ "MCP server for Brave" (redundant, LLM knows it's an MCP server)
-❌ "Server that does playwright stuff" (informal, unclear)
+❌ "Server that does context7 stuff" (informal, unclear)
 ❌ "" (empty, not helpful)
 
 ### Description Template
@@ -241,7 +241,7 @@ Use this format:
 Examples:
 - "File operations on /tmp directory"
 - "Web search using Brave API"
-- "Browser automation with Playwright"
+- "Documentation search using Context7"
 - "Database queries on PostgreSQL"
 
 ## Common Import Scenarios
@@ -370,8 +370,8 @@ You should see:
 ✅ MCP server config loaded successfully
 ✅ Successfully connected MCP Server: filesystem
 ✅ Successfully connected MCP Server: brave-search
-...
-Successfully connected N MCP groups. All groups are valid.
+✅ Successfully connected MCP Server: context7
+Successfully connected 3 MCP groups. All groups are valid.
 MCP server listening on stdio
 ```
 
