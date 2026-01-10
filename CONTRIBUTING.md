@@ -290,11 +290,11 @@ Feature suggestions are welcome! Please:
 ## Additional Resources
 
 ### Project Documentation
-- **[CLAUDE.md](CLAUDE.md)** - Guidelines for AI coding agents
-- **[docs/implementation/ARCHITECTURE.md](docs/implementation/ARCHITECTURE.md)** - System design and architecture
-- **[docs/implementation/STATUS.md](docs/implementation/STATUS.md)** - Implementation status and metrics
+- **[docs/README.md](docs/README.md)** - Documentation root
 - **[docs/implementation/TESTING.md](docs/implementation/TESTING.md)** - Test organization and coverage
+- **[docs/implementation/ARCHITECTURE.md](docs/implementation/ARCHITECTURE.md)** - System design and architecture
 - **[docs/implementation/MCP_SPEC_COMPLIANCE.md](docs/implementation/MCP_SPEC_COMPLIANCE.md)** - MCP specification compliance
+- **[docs/implementation/STATUS.md](docs/implementation/STATUS.md)** - Implementation status and metrics
 
 ### External Resources
 - **[Rust Book](https://doc.rust-lang.org/book/)** - Official Rust learning resource

@@ -436,13 +436,13 @@ When updating README.md or IMPORT.md:
 ## 📊 Documentation Reference
 
 **Where to find details:**
-- **System design & architecture** → [docs/implementation/ARCHITECTURE.md](docs/implementation/ARCHITECTURE.md)
+- **Documentation root** → [docs/README.md](docs/README.md)
+- **User guide** → [README.md](README.md)
 - **Implementation status & metrics** → [docs/implementation/STATUS.md](docs/implementation/STATUS.md)
 - **Test organization & coverage** → [docs/implementation/TESTING.md](docs/implementation/TESTING.md)
+- **System design & architecture** → [docs/implementation/ARCHITECTURE.md](docs/implementation/ARCHITECTURE.md)
 - **MCP spec compliance** → [docs/implementation/MCP_SPEC_COMPLIANCE.md](docs/implementation/MCP_SPEC_COMPLIANCE.md)
-- **User guide** → [README.md](README.md)
 - **Development setup** → [CONTRIBUTING.md](CONTRIBUTING.md)
-
 ---
 
 **Remember**: Documentation is code. Keep it accurate, up-to-date, and helpful for both humans and AI agents.
