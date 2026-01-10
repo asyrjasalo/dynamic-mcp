@@ -34,6 +34,14 @@ repos:
   hooks:
     - id: fmt
 
+- repo: https://github.com/executablebooks/mdformat
+  rev: 0.7.22
+  hooks:
+    - id: mdformat
+      args: [--number]
+      additional_dependencies:
+        - mdformat-gfm
+
 - repo: https://github.com/codespell-project/codespell
   rev: v2.4.1
   hooks:
