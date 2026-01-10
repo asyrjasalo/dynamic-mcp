@@ -29,6 +29,14 @@ repos:
       - id: mixed-line-ending
       - id: trailing-whitespace
 
+  - repo: https://github.com/python-jsonschema/check-jsonschema
+    rev: 0.31.0
+    hooks:
+      - id: check-jsonschema
+        files: ^(examples/.*\.json|dynamic-mcp\.json)$
+        args: ["--schemafile", "config-schema.json"]
+      - id: check-github-workflows
+
   - repo: https://github.com/doublify/pre-commit-rust
     rev: v1.0
     hooks:
