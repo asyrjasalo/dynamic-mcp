@@ -34,7 +34,7 @@ repos:
     hooks:
       - id: fmt
 
-  - repo: https://github.com/executablebooks/mdformat
+  - repo: https://github.com/hukkin/mdformat
     rev: 0.7.22
     hooks:
       - id: mdformat
