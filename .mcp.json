@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "dynamic-mcp": {
+      "type": "stdio",
+      "command": "./target/release/dmcp",
+      "env": {
+        "DYNAMIC_MCP_CONFIG": "dynamic-mcp.json"
+      }
+    }
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": ["Bash", "WebFetch"]
+  },
+  "enabledMcpjsonServers": ["dynamic-mcp"],
+  "enableAllProjectMcpServers": true,
+  "enabledPlugins": {
+    "rust-analyzer-lsp@claude-plugins-official": true
+  }
+}
