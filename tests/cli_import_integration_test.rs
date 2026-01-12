@@ -1002,3 +1002,74 @@ fn test_import_default_all_features_enabled() {
         "features field should be omitted when all features are enabled (default)"
     );
 }
+
+#[test]
+fn test_import_preserves_enabled_field() {
+    let config = r#"{
+        "mcpServers": {
+            "enabled-server": {
+                "command": "npx",
+                "args": ["-y", "test-package"],
+                "enabled": true
+            },
+            "disabled-server": {
+                "command": "npx",
+                "args": ["-y", "other-package"],
+                "enabled": false
+            },
+            "default-server": {
+                "command": "npx",
+                "args": ["-y", "default-package"]
+            }
+        }
+    }"#;
+
+    let project = TestProject::new("cursor", ".cursor", "mcp.json", config);
+
+    let output = run_import_with_input(
+        "cursor",
+        project.path(),
+        "dynamic-mcp.json",
+        true,
+        false,
+        vec![
+            "Enabled server",
+            "",
+            "Disabled server",
+            "",
+            "Default server",
+            "",
+        ],
+    );
+
+    assert!(
+        output.status.success(),
+        "Import command failed: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    let output_path = project.output_path();
+    assert!(output_path.exists(), "Output file should be created");
+
+    let output_content = fs::read_to_string(&output_path).expect("Failed to read output file");
+    let parsed: serde_json::Value =
+        serde_json::from_str(&output_content).expect("Output should be valid JSON");
+
+    let enabled_server = &parsed["mcpServers"]["enabled-server"];
+    assert!(
+        enabled_server.get("enabled").is_none(),
+        "enabled: true should be omitted (default value)"
+    );
+
+    let disabled_server = &parsed["mcpServers"]["disabled-server"];
+    assert_eq!(
+        disabled_server["enabled"], false,
+        "enabled: false should be preserved"
+    );
+
+    let default_server = &parsed["mcpServers"]["default-server"];
+    assert!(
+        default_server.get("enabled").is_none(),
+        "enabled should be omitted when not specified in source (defaults to true)"
+    );
+}

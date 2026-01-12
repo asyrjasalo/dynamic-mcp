@@ -259,15 +259,17 @@ pub struct IntermediateServerConfig {
     pub headers: Option<HashMap<String, String>>,
     /// Server type hint
     pub server_type: Option<String>,
+    /// Whether the server is enabled (defaults to true if not specified)
+    pub enabled: Option<bool>,
 }
 
 impl IntermediateServerConfig {
     /// Convert to McpServerConfig with a description
     #[allow(clippy::wrong_self_convention)]
     pub fn to_mcp_config(self, description: String) -> Result<McpServerConfig, String> {
-        // Determine server type
+        let enabled = self.enabled.unwrap_or(true);
+
         if let Some(url) = self.url {
-            // HTTP or SSE server
             let server_type = self.server_type.as_deref().unwrap_or("http").to_lowercase();
 
             if server_type == "sse" {
@@ -278,7 +280,7 @@ impl IntermediateServerConfig {
                     oauth_client_id: None,
                     oauth_scopes: None,
                     features: Features::default(),
-                    enabled: true,
+                    enabled,
                 })
             } else {
                 Ok(McpServerConfig::Http {
@@ -288,18 +290,17 @@ impl IntermediateServerConfig {
                     oauth_client_id: None,
                     oauth_scopes: None,
                     features: Features::default(),
-                    enabled: true,
+                    enabled,
                 })
             }
         } else if let Some(command) = self.command {
-            // Stdio server
             Ok(McpServerConfig::Stdio {
                 description,
                 command,
                 args: self.args,
                 env: self.env,
                 features: Features::default(),
-                enabled: true,
+                enabled,
             })
         } else {
             Err("Server config must have either 'command' or 'url'".to_string())
@@ -800,5 +801,77 @@ mod tests {
             }
             _ => panic!("Expected Http config when url is present with headers but no type"),
         }
+    }
+
+    #[test]
+    fn test_intermediate_config_preserves_enabled_true() {
+        let intermediate = IntermediateServerConfig {
+            command: Some("test-cmd".to_string()),
+            args: None,
+            env: None,
+            url: None,
+            headers: None,
+            server_type: None,
+            enabled: Some(true),
+        };
+
+        let config = intermediate
+            .to_mcp_config("Test server".to_string())
+            .unwrap();
+        assert!(config.is_enabled());
+    }
+
+    #[test]
+    fn test_intermediate_config_preserves_enabled_false() {
+        let intermediate = IntermediateServerConfig {
+            command: Some("test-cmd".to_string()),
+            args: None,
+            env: None,
+            url: None,
+            headers: None,
+            server_type: None,
+            enabled: Some(false),
+        };
+
+        let config = intermediate
+            .to_mcp_config("Test server".to_string())
+            .unwrap();
+        assert!(!config.is_enabled());
+    }
+
+    #[test]
+    fn test_intermediate_config_defaults_enabled_to_true() {
+        let intermediate = IntermediateServerConfig {
+            command: Some("test-cmd".to_string()),
+            args: None,
+            env: None,
+            url: None,
+            headers: None,
+            server_type: None,
+            enabled: None,
+        };
+
+        let config = intermediate
+            .to_mcp_config("Test server".to_string())
+            .unwrap();
+        assert!(config.is_enabled());
+    }
+
+    #[test]
+    fn test_intermediate_http_preserves_enabled_false() {
+        let intermediate = IntermediateServerConfig {
+            command: None,
+            args: None,
+            env: None,
+            url: Some("http://localhost:8080".to_string()),
+            headers: None,
+            server_type: None,
+            enabled: Some(false),
+        };
+
+        let config = intermediate
+            .to_mcp_config("HTTP test server".to_string())
+            .unwrap();
+        assert!(!config.is_enabled());
     }
 }

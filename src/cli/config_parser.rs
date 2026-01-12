@@ -108,6 +108,8 @@ impl ConfigParser {
                 .and_then(|v| v.as_str())
                 .map(|s| s.to_string());
 
+            let enabled = server_table.get("enabled").and_then(|v| v.as_bool());
+
             let intermediate = IntermediateServerConfig {
                 command,
                 args,
@@ -115,6 +117,7 @@ impl ConfigParser {
                 url,
                 headers: None,
                 server_type,
+                enabled,
             };
 
             servers.insert(name.clone(), intermediate);
@@ -215,6 +218,8 @@ impl ConfigParser {
                 .and_then(|v| v.as_str())
                 .map(|s| s.to_string());
 
+            let enabled = server_obj.get("enabled").and_then(|v| v.as_bool());
+
             let intermediate = IntermediateServerConfig {
                 command,
                 args,
@@ -222,6 +227,7 @@ impl ConfigParser {
                 url,
                 headers: headers.map(|h| self.normalize_env_vars(h)),
                 server_type,
+                enabled,
             };
 
             result.insert(name.clone(), intermediate);
@@ -293,6 +299,7 @@ mod tests {
             server.args,
             Some(vec!["-y".to_string(), "package".to_string()])
         );
+        assert_eq!(server.enabled, Some(true));
     }
 
     #[test]
@@ -389,5 +396,41 @@ TOKEN = "${GITHUB_TOKEN}"
 
         assert!(result.is_err());
         assert!(result.unwrap_err().to_string().contains("not an object"));
+    }
+
+    #[test]
+    fn test_parse_enabled_field() {
+        let config = r#"{
+            "mcpServers": {
+                "enabled-server": {
+                    "command": "npx",
+                    "args": ["-y", "package"],
+                    "enabled": true
+                },
+                "disabled-server": {
+                    "command": "npx",
+                    "args": ["-y", "other-package"],
+                    "enabled": false
+                },
+                "default-server": {
+                    "command": "npx",
+                    "args": ["-y", "default-package"]
+                }
+            }
+        }"#;
+
+        let parser = ConfigParser::new(Tool::Cursor);
+        let result = parser.parse(config).unwrap();
+
+        assert_eq!(result.len(), 3);
+
+        let enabled = result.get("enabled-server").unwrap();
+        assert_eq!(enabled.enabled, Some(true));
+
+        let disabled = result.get("disabled-server").unwrap();
+        assert_eq!(disabled.enabled, Some(false));
+
+        let default = result.get("default-server").unwrap();
+        assert_eq!(default.enabled, None);
     }
 }
