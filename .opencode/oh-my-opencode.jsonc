@@ -21,13 +21,13 @@
       "model": "anthropic/claude-sonnet-4-5"
     },
     "librarian": {
-      "model": "anthropic/claude-sonnet-4-5"
+      "model": "anthropic/claude-haiku-4-5"
     },
     "explore": {
       "model": "anthropic/claude-haiku-4-5"
     },
     "frontend-ui-ux-engineer": {
-      "model": "anthropic/claude-haiku-4-5"
+      "model": "anthropic/claude-sonnet-4-5"
     },
     "document-writer": {
       "model": "anthropic/claude-haiku-4-5"
