@@ -1,15 +1,15 @@
 # Testing Documentation
 
-The test suite contains 242+ tests organized into logical layers, each testing a specific aspect of dynamic-mcp.
+The test suite contains 259+ tests organized into logical layers, each testing a specific aspect of dynamic-mcp.
 
 ## Current Test Status
 
-**Total Tests**: 242+ (exact count varies with unit test additions)
+**Total Tests**: 259 (with strict schema validation tests added)
 
-- **Unit Tests**: 120+ (inline in src/ modules)
+- **Unit Tests**: 138 (inline in src/ modules)
 - **Integration Tests**: 121
   - CLI Tests: 5
-  - Config Tests: 9
+  - Config Tests: 9 (includes strict validation tests)
   - Features Tests: 5
   - Import Tests: 20
   - Spec Compliance: 71 (Tools: 15, Prompts: 28, Resources: 28)
@@ -17,7 +17,7 @@ The test suite contains 242+ tests organized into logical layers, each testing a
 
 **Pass Rate**: 100% ✅
 
-**Last Updated**: 2026-01-10
+**Last Updated**: 2026-01-12
 
 ______________________________________________________________________
 
@@ -83,8 +83,14 @@ Tests configuration file parsing, schema validation, and live reload functionali
 - `test_config_live_reload_file_modified` - Tests live reload detects file modifications
 - `test_config_live_reload_add_server` - Tests live reload when new servers are added
 - `test_config_live_reload_remove_server` - Tests live reload when servers are removed
+- ✨ **NEW**: `test_load_config_rejects_unknown_field_in_server` - Strict validation rejects unknown server fields
+- ✨ **NEW**: `test_load_config_rejects_unknown_top_level_field` - Strict validation rejects unknown top-level fields
+- ✨ **NEW**: `test_load_config_rejects_unknown_field_in_features` - Strict validation rejects unknown features fields
+- ✨ **NEW**: `test_load_http_config_rejects_unknown_field` - HTTP server strict validation
+- ✨ **NEW**: `test_load_sse_config_rejects_unknown_field` - SSE server strict validation
+- ✨ **NEW**: `test_load_config_with_optional_fields_valid` - Verifies all valid fields are accepted
 
-**Purpose**: Ensures configuration files parse correctly, follow the expected schema, and live reload works properly.
+**Purpose**: Ensures configuration files parse correctly, follow the expected schema (with strict field validation), and live reload works properly.
 
 ______________________________________________________________________
 
@@ -184,10 +190,8 @@ Tests the complete server lifecycle using the official `@modelcontextprotocol/se
 - Makes live JSON-RPC requests through dynamic-mcp proxy
 - Tests complete request/response cycles
 - Uses shared server instance (OnceLock) across all tests
-- Polls for readiness with 200ms intervals (60s timeout)
+- Polls for readiness with 60s timeout before test execution
 - Pre-installed in CI to avoid download delays
-- Each test: ~1s (after initial server startup)
-- Total suite: ~12s (includes server startup and health check)
 
 ______________________________________________________________________
 
@@ -255,10 +259,12 @@ Core module testing across all source files. Each source file with `#[cfg(test)]
 
 - **`src/config/schema.rs`** - Configuration data structures
   - Tests: Features default values, deserialization, per-server feature flags
-  - Coverage: JSON schema validation, serde behavior
+  - ✨ **NEW**: Strict validation tests - Unknown field rejection for stdio/http/sse servers and features
+  - Coverage: JSON schema validation, serde behavior, `deny_unknown_fields` attribute
 - **`src/config/loader.rs`** - Config file loading
   - Tests: Valid config loading, env var substitution, nonexistent file errors
-  - Coverage: File I/O, error handling
+  - ✨ **NEW**: Integration tests for strict field validation across all server types
+  - Coverage: File I/O, error handling, schema enforcement
 - **`src/config/env_sub.rs`** - Environment variable substitution
   - Tests: `${VAR}` with/without braces, undefined vars, nested substitution
   - Coverage: Regex matching, env var expansion
@@ -302,8 +308,9 @@ ______________________________________________________________________
 cargo test
 ```
 
-- **Result**: 242+ tests passed in ~40-45 seconds
+- **Result**: 259 tests passed
 - **Coverage**: Unit + Integration + E2E tests
+- **Speed**: Execution time depends on machine hardware and load
 
 ### Run by Category
 
@@ -461,26 +468,26 @@ The package is:
 
 ______________________________________________________________________
 
-## Performance
+## Test Coverage
 
-| Category                             | Count    | Time        | Per Test |
-| ------------------------------------ | -------- | ----------- | -------- |
-| Unit Tests                           | 120+     | ~0.5s       | ~4ms     |
-| Spec Tests (tools/prompts/resources) | 71       | ~0.5s       | ~7ms     |
-| Features Tests                       | 5        | ~0.1s       | ~20ms    |
-| Config Tests                         | 9        | ~0.5s       | ~55ms    |
-| CLI Tests                            | 5        | ~1.2s       | ~240ms   |
-| Import Tests                         | 20       | ~12s        | ~600ms   |
-| E2E Tests                            | 11       | ~2.2s       | ~200ms   |
-| **Total**                            | **242+** | **~40-45s** |          |
+| Category                             | Count   | Coverage                                       |
+| ------------------------------------ | ------- | ---------------------------------------------- |
+| Unit Tests                           | 138     | Core modules, internal logic, edge cases       |
+| Spec Tests (tools/prompts/resources) | 71      | MCP specification compliance (v2025-11-25)     |
+| Features Tests                       | 5       | Per-server feature flag configuration          |
+| Config Tests                         | 9       | Config parsing, schema validation, live reload |
+| CLI Tests                            | 5       | Binary build, CLI flags, error handling        |
+| Import Tests                         | 20      | Import from 10 AI tools, env var conversion    |
+| E2E Tests                            | 11      | End-to-end workflows with real MCP server      |
+| **Total**                            | **259** | **Comprehensive coverage**                     |
 
 **Notes**:
 
-- E2E tests use shared server instance with polling for readiness (~12s total including startup)
-- Import tests are slower due to file I/O and fixture processing
-- Spec compliance tests run instantly (no actual server interaction)
-- Unit tests run in parallel for speed
-- First run may be slower if npm package needs to be downloaded
+- E2E tests use shared server instance with 60s readiness timeout
+- Import tests validate real tool config fixtures
+- Spec compliance tests verify MCP protocol adherence
+- Unit tests run in parallel for efficiency
+- First run may be slower if npm dependencies need to be downloaded
 
 ______________________________________________________________________
 
@@ -551,11 +558,12 @@ cargo test --test <file_name> <test_name>
 
 ______________________________________________________________________
 
-**Last Updated**: January 10, 2026
+**Last Updated**: January 12, 2026
 
 ______________________________________________________________________
 
 ## Recent Updates
 
+- **2026-01-12**: Added strict JSON schema validation tests (17 new tests across schema.rs and loader.rs). Total: 259 tests.
 - **2026-01-10**: Documentation update - Added comprehensive test file listing and unit test breakdown by module. Total: 242+ tests.
 - **2026-01-09**: Added live reload tests (3 tests) and watcher unit tests (2 tests) for ConfigWatcher.

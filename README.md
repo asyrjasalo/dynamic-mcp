@@ -395,6 +395,15 @@ uvx dmcp config.json
 - Check for trailing commas
 - Ensure all required fields are present (`description` is always required; `type` is required only for http/sse servers)
 
+**Problem**: Unknown field in config (e.g., `unknown field \`typo_field\`\`)
+
+**Solutions**:
+
+- dynamic-mcp uses strict JSON schema validation that only allows defined fields
+- Check for typos in field names: `description`, `command`, `url`, `type`, `args`, `env`, `headers`, `oauth_client_id`, `oauth_scopes`, `features`
+- Remove any extra or misspelled fields from your config
+- Refer to the schema examples above to see valid fields for each server type
+
 **Problem**: `Failed to resolve config path`
 
 **Solutions**:

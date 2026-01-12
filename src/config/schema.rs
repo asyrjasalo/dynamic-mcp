@@ -4,6 +4,7 @@ use std::collections::HashMap;
 
 /// Per-server feature flags (opt-out design: all features enabled by default)
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
 pub struct Features {
     #[serde(default = "default_true")]
     pub tools: bool,
@@ -35,7 +36,7 @@ impl Features {
 }
 
 #[derive(Debug, Clone, Serialize, JsonSchema)]
-#[serde(tag = "type", rename_all = "lowercase")]
+#[serde(tag = "type", rename_all = "lowercase", deny_unknown_fields)]
 pub enum McpServerConfig {
     #[serde(rename = "stdio")]
     Stdio {
@@ -98,7 +99,7 @@ impl<'de> Deserialize<'de> for McpServerConfig {
         }
 
         #[derive(Deserialize)]
-        #[serde(tag = "type", rename_all = "lowercase")]
+        #[serde(tag = "type", rename_all = "lowercase", deny_unknown_fields)]
         enum McpServerConfigHelper {
             #[serde(rename = "stdio")]
             Stdio {
@@ -198,6 +199,7 @@ impl McpServerConfig {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
 pub struct ServerConfig {
     #[serde(rename = "mcpServers")]
     pub mcp_servers: HashMap<String, McpServerConfig>,
@@ -436,5 +438,144 @@ mod tests {
         assert!(features.get("tools").unwrap().as_bool().unwrap());
         assert!(!features.get("resources").unwrap().as_bool().unwrap());
         assert!(features.get("prompts").unwrap().as_bool().unwrap());
+    }
+
+    #[test]
+    fn test_stdio_server_rejects_unknown_field() {
+        let json = json!({
+            "description": "Test server",
+            "command": "test-cmd",
+            "unknown_field": "should fail"
+        });
+        let result: Result<McpServerConfig, _> = serde_json::from_value(json);
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("unknown field"));
+    }
+
+    #[test]
+    fn test_stdio_server_rejects_multiple_unknown_fields() {
+        let json = json!({
+            "description": "Test server",
+            "command": "test-cmd",
+            "typo_field": "error",
+            "invalid_field": "also error"
+        });
+        let result: Result<McpServerConfig, _> = serde_json::from_value(json);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_http_server_rejects_unknown_field() {
+        let json = json!({
+            "type": "http",
+            "description": "Test HTTP server",
+            "url": "http://localhost:8080",
+            "unknown_field": "should fail"
+        });
+        let result: Result<McpServerConfig, _> = serde_json::from_value(json);
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("unknown field"));
+    }
+
+    #[test]
+    fn test_sse_server_rejects_unknown_field() {
+        let json = json!({
+            "type": "sse",
+            "description": "Test SSE server",
+            "url": "http://localhost:8080",
+            "typo_field": "should fail"
+        });
+        let result: Result<McpServerConfig, _> = serde_json::from_value(json);
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("unknown field"));
+    }
+
+    #[test]
+    fn test_features_rejects_unknown_field() {
+        let json = json!({
+            "tools": true,
+            "unknown_feature": true
+        });
+        let result: Result<Features, _> = serde_json::from_value(json);
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("unknown field"));
+    }
+
+    #[test]
+    fn test_server_config_rejects_unknown_top_level_field() {
+        let json = json!({
+            "mcpServers": {
+                "test": {
+                    "description": "Test server",
+                    "command": "test-cmd"
+                }
+            },
+            "unknown_top_level": "should fail"
+        });
+        let result: Result<ServerConfig, _> = serde_json::from_value(json);
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("unknown field"));
+    }
+
+    #[test]
+    fn test_stdio_server_accepts_all_valid_fields() {
+        let json = json!({
+            "type": "stdio",
+            "description": "Valid server",
+            "command": "test-cmd",
+            "args": ["arg1", "arg2"],
+            "env": {
+                "KEY": "value"
+            },
+            "features": {
+                "tools": true,
+                "resources": false,
+                "prompts": true
+            }
+        });
+        let result: Result<McpServerConfig, _> = serde_json::from_value(json);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_http_server_accepts_all_valid_fields() {
+        let json = json!({
+            "type": "http",
+            "description": "Valid HTTP server",
+            "url": "http://localhost:8080",
+            "headers": {
+                "Authorization": "Bearer token"
+            },
+            "oauth_client_id": "client-id",
+            "oauth_scopes": ["read", "write"],
+            "features": {
+                "tools": true,
+                "resources": true,
+                "prompts": false
+            }
+        });
+        let result: Result<McpServerConfig, _> = serde_json::from_value(json);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_sse_server_accepts_all_valid_fields() {
+        let json = json!({
+            "type": "sse",
+            "description": "Valid SSE server",
+            "url": "http://localhost:8080/sse",
+            "headers": {
+                "Authorization": "Bearer token"
+            },
+            "oauth_client_id": "client-id",
+            "oauth_scopes": ["read"],
+            "features": {
+                "tools": false,
+                "resources": true,
+                "prompts": true
+            }
+        });
+        let result: Result<McpServerConfig, _> = serde_json::from_value(json);
+        assert!(result.is_ok());
     }
 }

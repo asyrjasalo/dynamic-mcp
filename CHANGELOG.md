@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **Strict JSON Schema Validation** - Config files now enforce strict schema compliance
+  - Only defined fields are allowed in config (denies unknown fields)
+  - Catches typos and misspelled field names with clear error messages
+  - Applies to all config levels: root, server objects, and feature flags
+  - Helps prevent silent config errors and unexpected behavior
+
 ## [1.3.0] - 2026-01-09
 
 ### Added

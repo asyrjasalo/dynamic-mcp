@@ -4,6 +4,7 @@
   "description": "Configuration schema for dynamic-mcp proxy server",
   "type": "object",
   "required": ["mcpServers"],
+  "additionalProperties": false,
   "properties": {
     "mcpServers": {
       "type": "object",
@@ -14,6 +15,7 @@
             "type": "object",
             "description": "stdio transport server configuration",
             "required": ["description", "command"],
+            "additionalProperties": false,
             "properties": {
               "type": {
                 "type": "string",
@@ -44,6 +46,7 @@
               },
               "features": {
                 "type": "object",
+                "additionalProperties": false,
                 "description": "Feature flags (all enabled by default if omitted)",
                 "properties": {
                   "tools": {
@@ -69,6 +72,7 @@
             "type": "object",
             "description": "HTTP transport server configuration",
             "required": ["type", "description", "url"],
+            "additionalProperties": false,
             "properties": {
               "type": {
                 "type": "string",
@@ -104,6 +108,7 @@
               },
               "features": {
                 "type": "object",
+                "additionalProperties": false,
                 "description": "Feature flags (all enabled by default if omitted)",
                 "properties": {
                   "tools": {
@@ -129,6 +134,7 @@
             "type": "object",
             "description": "SSE (Server-Sent Events) transport server configuration",
             "required": ["type", "description", "url"],
+            "additionalProperties": false,
             "properties": {
               "type": {
                 "type": "string",
@@ -164,6 +170,7 @@
               },
               "features": {
                 "type": "object",
+                "additionalProperties": false,
                 "description": "Feature flags (all enabled by default if omitted)",
                 "properties": {
                   "tools": {

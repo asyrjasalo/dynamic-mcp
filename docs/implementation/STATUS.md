@@ -1,7 +1,7 @@
 # Current Implementation Status
 
-> **Last Updated**: January 10, 2026
-> **Version**: 1.3.0
+> **Last Updated**: January 12, 2026
+> **Version**: 1.3.0+
 > **Status**: Production-Ready ✅
 
 ## 🔍 MCP Specification Compliance
@@ -49,6 +49,7 @@ See [MCP_SPEC_COMPLIANCE.md](MCP_SPEC_COMPLIANCE.md) for detailed compliance aud
 #### Configuration System
 
 - [x] JSON configuration schema
+- [x] **Strict schema validation** - Rejects unknown fields at all levels (root, server, features)
 - [x] Environment variable substitution (`${VAR}` syntax)
 - [x] Per-server feature flags (tools, resources, prompts)
 - [x] Live reload - Configuration file watching with automatic reconnection

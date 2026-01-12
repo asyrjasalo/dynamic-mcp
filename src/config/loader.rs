@@ -333,4 +333,145 @@ mod tests {
         let result = load_config(temp_file.path().to_str().unwrap()).await;
         assert!(result.is_err());
     }
+
+    #[tokio::test]
+    async fn test_load_config_rejects_unknown_field_in_server() {
+        let mut temp_file = NamedTempFile::new().unwrap();
+        let config_json = r#"{
+            "mcpServers": {
+                "test": {
+                    "type": "stdio",
+                    "description": "Test server",
+                    "command": "node",
+                    "unknown_field": "invalid"
+                }
+            }
+        }"#;
+        temp_file.write_all(config_json.as_bytes()).unwrap();
+        temp_file.flush().unwrap();
+
+        let result = load_config(temp_file.path().to_str().unwrap()).await;
+        assert!(result.is_err());
+        let error_msg = result.unwrap_err().to_string();
+        assert!(error_msg.contains("unknown field") || error_msg.contains("Configuration Error"));
+    }
+
+    #[tokio::test]
+    async fn test_load_config_rejects_unknown_top_level_field() {
+        let mut temp_file = NamedTempFile::new().unwrap();
+        let config_json = r#"{
+            "mcpServers": {
+                "test": {
+                    "type": "stdio",
+                    "description": "Test server",
+                    "command": "node"
+                }
+            },
+            "unknown_top_level": "invalid"
+        }"#;
+        temp_file.write_all(config_json.as_bytes()).unwrap();
+        temp_file.flush().unwrap();
+
+        let result = load_config(temp_file.path().to_str().unwrap()).await;
+        assert!(result.is_err());
+        let error_msg = result.unwrap_err().to_string();
+        assert!(error_msg.contains("unknown field") || error_msg.contains("Configuration Error"));
+    }
+
+    #[tokio::test]
+    async fn test_load_config_rejects_unknown_field_in_features() {
+        let mut temp_file = NamedTempFile::new().unwrap();
+        let config_json = r#"{
+            "mcpServers": {
+                "test": {
+                    "type": "stdio",
+                    "description": "Test server",
+                    "command": "node",
+                    "features": {
+                        "tools": true,
+                        "invalid_feature": true
+                    }
+                }
+            }
+        }"#;
+        temp_file.write_all(config_json.as_bytes()).unwrap();
+        temp_file.flush().unwrap();
+
+        let result = load_config(temp_file.path().to_str().unwrap()).await;
+        assert!(result.is_err());
+    }
+
+    #[tokio::test]
+    async fn test_load_http_config_rejects_unknown_field() {
+        let mut temp_file = NamedTempFile::new().unwrap();
+        let config_json = r#"{
+            "mcpServers": {
+                "http_server": {
+                    "type": "http",
+                    "description": "HTTP test server",
+                    "url": "https://api.example.com",
+                    "typo_field": "error"
+                }
+            }
+        }"#;
+        temp_file.write_all(config_json.as_bytes()).unwrap();
+        temp_file.flush().unwrap();
+
+        let result = load_config(temp_file.path().to_str().unwrap()).await;
+        assert!(result.is_err());
+    }
+
+    #[tokio::test]
+    async fn test_load_sse_config_rejects_unknown_field() {
+        let mut temp_file = NamedTempFile::new().unwrap();
+        let config_json = r#"{
+            "mcpServers": {
+                "sse_server": {
+                    "type": "sse",
+                    "description": "SSE test server",
+                    "url": "https://api.example.com/sse",
+                    "unknown_field": "error"
+                }
+            }
+        }"#;
+        temp_file.write_all(config_json.as_bytes()).unwrap();
+        temp_file.flush().unwrap();
+
+        let result = load_config(temp_file.path().to_str().unwrap()).await;
+        assert!(result.is_err());
+    }
+
+    #[tokio::test]
+    async fn test_load_config_with_optional_fields_valid() {
+        let mut temp_file = NamedTempFile::new().unwrap();
+        let config_json = r#"{
+            "mcpServers": {
+                "full_featured": {
+                    "type": "http",
+                    "description": "Full featured HTTP server",
+                    "url": "https://api.example.com",
+                    "headers": {
+                        "Authorization": "Bearer token",
+                        "Content-Type": "application/json"
+                    },
+                    "oauth_client_id": "client-123",
+                    "oauth_scopes": ["read", "write", "admin"],
+                    "features": {
+                        "tools": true,
+                        "resources": false,
+                        "prompts": true
+                    }
+                }
+            }
+        }"#;
+        temp_file.write_all(config_json.as_bytes()).unwrap();
+        temp_file.flush().unwrap();
+
+        let result = load_config(temp_file.path().to_str().unwrap()).await;
+        assert!(result.is_ok());
+
+        let config = result.unwrap();
+        assert_eq!(config.mcp_servers.len(), 1);
+        assert!(config.mcp_servers.contains_key("full_featured"));
+    }
 }
