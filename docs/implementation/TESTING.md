@@ -1,15 +1,15 @@
 # Testing Documentation
 
-The test suite contains 259+ tests organized into logical layers, each testing a specific aspect of dynamic-mcp.
+The test suite contains 266+ tests organized into logical layers, each testing a specific aspect of dynamic-mcp.
 
 ## Current Test Status
 
-**Total Tests**: 259 (with strict schema validation tests added)
+**Total Tests**: 266 (with enabled field and strict schema validation tests)
 
-- **Unit Tests**: 138 (inline in src/ modules)
-- **Integration Tests**: 121
+- **Unit Tests**: 146 (inline in src/ modules, +8 for enabled field)
+- **Integration Tests**: 120
   - CLI Tests: 5
-  - Config Tests: 9 (includes strict validation tests)
+  - Config Tests: 9
   - Features Tests: 5
   - Import Tests: 20
   - Spec Compliance: 71 (Tools: 15, Prompts: 28, Resources: 28)
@@ -564,6 +564,7 @@ ______________________________________________________________________
 
 ## Recent Updates
 
+- **2026-01-12**: Added per-server enable/disable feature (8 new tests in schema.rs for enabled field). Total: 266 tests.
 - **2026-01-12**: Added strict JSON schema validation tests (17 new tests across schema.rs and loader.rs). Total: 259 tests.
 - **2026-01-10**: Documentation update - Added comprehensive test file listing and unit test breakdown by module. Total: 242+ tests.
 - **2026-01-09**: Added live reload tests (3 tests) and watcher unit tests (2 tests) for ConfigWatcher.

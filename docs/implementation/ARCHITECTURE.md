@@ -463,7 +463,8 @@ enum McpServerConfig {
         command: String,
         args: Option<Vec<String>>,
         env: Option<HashMap<String, String>>,
-        features: Option<Features>  // Optional per-server feature flags
+        features: Option<Features>,  // Optional per-server feature flags
+        enabled: bool  // Default: true
     },
     Http {
         description: String,
@@ -471,7 +472,8 @@ enum McpServerConfig {
         headers: Option<HashMap<String, String>>,
         oauth_client_id: Option<String>,
         oauth_scopes: Option<Vec<String>>,
-        features: Option<Features>  // Optional per-server feature flags
+        features: Option<Features>,  // Optional per-server feature flags
+        enabled: bool  // Default: true
     },
     Sse {
         description: String,
@@ -479,7 +481,8 @@ enum McpServerConfig {
         headers: Option<HashMap<String, String>>,
         oauth_client_id: Option<String>,
         oauth_scopes: Option<Vec<String>>,
-        features: Option<Features>  // Optional per-server feature flags
+        features: Option<Features>,  // Optional per-server feature flags
+        enabled: bool  // Default: true
     }
 }
 

@@ -120,7 +120,16 @@ async fn run_server(config_path: String, config_source: &str) -> Result<()> {
     let config_path_init = config_path.clone();
     tokio::spawn(async move {
         if let Ok(config) = config::load_config(&config_path_init).await {
-            let servers: Vec<_> = config.mcp_servers.into_iter().collect();
+            let servers: Vec<_> = config
+                .mcp_servers
+                .into_iter()
+                .filter(|(_, server_config)| {
+                    if !server_config.is_enabled() {
+                        tracing::info!("⊘ Server is disabled, skipping connection");
+                    }
+                    server_config.is_enabled()
+                })
+                .collect();
 
             let handles: Vec<_> = servers
                 .into_iter()
@@ -194,6 +203,14 @@ async fn run_server(config_path: String, config_source: &str) -> Result<()> {
 
                     // Reconnect with new config
                     for (group_name, server_config) in new_config.mcp_servers {
+                        if !server_config.is_enabled() {
+                            tracing::info!(
+                                "⊘ Server is disabled, skipping connection: {}",
+                                group_name
+                            );
+                            continue;
+                        }
+
                         match client_lock
                             .connect(group_name.clone(), server_config.clone())
                             .await

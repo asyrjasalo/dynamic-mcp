@@ -40,12 +40,14 @@ pub fn substitute_in_config(config: McpServerConfig) -> McpServerConfig {
             args,
             env,
             features,
+            enabled,
         } => McpServerConfig::Stdio {
             description,
             command,
             args: args.map(substitute_in_array),
             env: env.map(substitute_in_object),
             features,
+            enabled,
         },
         McpServerConfig::Http {
             description,
@@ -54,6 +56,7 @@ pub fn substitute_in_config(config: McpServerConfig) -> McpServerConfig {
             oauth_client_id,
             oauth_scopes,
             features,
+            enabled,
         } => McpServerConfig::Http {
             description,
             url: substitute_env_vars(&url),
@@ -61,6 +64,7 @@ pub fn substitute_in_config(config: McpServerConfig) -> McpServerConfig {
             oauth_client_id: oauth_client_id.map(|id| substitute_env_vars(&id)),
             oauth_scopes,
             features,
+            enabled,
         },
         McpServerConfig::Sse {
             description,
@@ -69,6 +73,7 @@ pub fn substitute_in_config(config: McpServerConfig) -> McpServerConfig {
             oauth_client_id,
             oauth_scopes,
             features,
+            enabled,
         } => McpServerConfig::Sse {
             description,
             url: substitute_env_vars(&url),
@@ -76,6 +81,7 @@ pub fn substitute_in_config(config: McpServerConfig) -> McpServerConfig {
             oauth_client_id: oauth_client_id.map(|id| substitute_env_vars(&id)),
             oauth_scopes,
             features,
+            enabled,
         },
     }
 }

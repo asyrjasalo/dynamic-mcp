@@ -631,6 +631,7 @@ mod tests {
             oauth_client_id: None,
             oauth_scopes: None,
             features: Features::default(),
+            enabled: true,
         };
 
         let result = Transport::new(&config, "test_server").await;
@@ -649,6 +650,7 @@ mod tests {
             oauth_client_id: None,
             oauth_scopes: None,
             features: Features::default(),
+            enabled: true,
         };
 
         let result = Transport::new(&config, "test_server").await;
@@ -664,6 +666,7 @@ mod tests {
             oauth_client_id: None,
             oauth_scopes: None,
             features: Features::default(),
+            enabled: true,
         };
 
         let result = Transport::new(&config, "test_server").await;
@@ -682,6 +685,7 @@ mod tests {
             oauth_client_id: None,
             oauth_scopes: None,
             features: Features::default(),
+            enabled: true,
         };
 
         let result = Transport::new(&config, "test_server").await;
@@ -696,6 +700,7 @@ mod tests {
             args: Some(vec!["test".to_string()]),
             env: None,
             features: Features::default(),
+            enabled: true,
         };
 
         let result = Transport::new(&config, "test_server").await;
@@ -713,6 +718,7 @@ mod tests {
             oauth_client_id: None,
             oauth_scopes: None,
             features: Features::default(),
+            enabled: true,
         };
 
         let sse_config = McpServerConfig::Sse {
@@ -722,6 +728,7 @@ mod tests {
             oauth_client_id: None,
             oauth_scopes: None,
             features: Features::default(),
+            enabled: true,
         };
 
         let stdio_config = McpServerConfig::Stdio {
@@ -730,6 +737,7 @@ mod tests {
             args: None,
             env: None,
             features: Features::default(),
+            enabled: true,
         };
 
         assert!(discriminant(&http_config) != discriminant(&sse_config));

@@ -35,6 +35,10 @@ impl Features {
     }
 }
 
+fn default_true_enabled() -> bool {
+    true
+}
+
 #[derive(Debug, Clone, Serialize, JsonSchema)]
 #[serde(tag = "type", rename_all = "lowercase", deny_unknown_fields)]
 pub enum McpServerConfig {
@@ -48,6 +52,8 @@ pub enum McpServerConfig {
         env: Option<HashMap<String, String>>,
         #[serde(default, skip_serializing_if = "Features::is_default")]
         features: Features,
+        #[serde(default = "default_true_enabled", skip_serializing_if = "is_true")]
+        enabled: bool,
     },
     Http {
         description: String,
@@ -60,6 +66,8 @@ pub enum McpServerConfig {
         oauth_scopes: Option<Vec<String>>,
         #[serde(default, skip_serializing_if = "Features::is_default")]
         features: Features,
+        #[serde(default = "default_true_enabled", skip_serializing_if = "is_true")]
+        enabled: bool,
     },
     Sse {
         description: String,
@@ -72,7 +80,13 @@ pub enum McpServerConfig {
         oauth_scopes: Option<Vec<String>>,
         #[serde(default, skip_serializing_if = "Features::is_default")]
         features: Features,
+        #[serde(default = "default_true_enabled", skip_serializing_if = "is_true")]
+        enabled: bool,
     },
+}
+
+fn is_true(value: &bool) -> bool {
+    *value
 }
 
 impl<'de> Deserialize<'de> for McpServerConfig {
@@ -109,6 +123,8 @@ impl<'de> Deserialize<'de> for McpServerConfig {
                 env: Option<HashMap<String, String>>,
                 #[serde(default)]
                 features: Features,
+                #[serde(default = "default_true_enabled")]
+                enabled: bool,
             },
             Http {
                 description: String,
@@ -118,6 +134,8 @@ impl<'de> Deserialize<'de> for McpServerConfig {
                 oauth_scopes: Option<Vec<String>>,
                 #[serde(default)]
                 features: Features,
+                #[serde(default = "default_true_enabled")]
+                enabled: bool,
             },
             Sse {
                 description: String,
@@ -127,6 +145,8 @@ impl<'de> Deserialize<'de> for McpServerConfig {
                 oauth_scopes: Option<Vec<String>>,
                 #[serde(default)]
                 features: Features,
+                #[serde(default = "default_true_enabled")]
+                enabled: bool,
             },
         }
 
@@ -139,12 +159,14 @@ impl<'de> Deserialize<'de> for McpServerConfig {
                 args,
                 env,
                 features,
+                enabled,
             } => Ok(McpServerConfig::Stdio {
                 description,
                 command,
                 args,
                 env,
                 features,
+                enabled,
             }),
             McpServerConfigHelper::Http {
                 description,
@@ -153,6 +175,7 @@ impl<'de> Deserialize<'de> for McpServerConfig {
                 oauth_client_id,
                 oauth_scopes,
                 features,
+                enabled,
             } => Ok(McpServerConfig::Http {
                 description,
                 url,
@@ -160,6 +183,7 @@ impl<'de> Deserialize<'de> for McpServerConfig {
                 oauth_client_id,
                 oauth_scopes,
                 features,
+                enabled,
             }),
             McpServerConfigHelper::Sse {
                 description,
@@ -168,6 +192,7 @@ impl<'de> Deserialize<'de> for McpServerConfig {
                 oauth_client_id,
                 oauth_scopes,
                 features,
+                enabled,
             } => Ok(McpServerConfig::Sse {
                 description,
                 url,
@@ -175,6 +200,7 @@ impl<'de> Deserialize<'de> for McpServerConfig {
                 oauth_client_id,
                 oauth_scopes,
                 features,
+                enabled,
             }),
         }
     }
@@ -194,6 +220,14 @@ impl McpServerConfig {
             McpServerConfig::Stdio { features, .. } => features,
             McpServerConfig::Http { features, .. } => features,
             McpServerConfig::Sse { features, .. } => features,
+        }
+    }
+
+    pub fn is_enabled(&self) -> bool {
+        match self {
+            McpServerConfig::Stdio { enabled, .. } => *enabled,
+            McpServerConfig::Http { enabled, .. } => *enabled,
+            McpServerConfig::Sse { enabled, .. } => *enabled,
         }
     }
 }
@@ -240,6 +274,7 @@ impl IntermediateServerConfig {
                     oauth_client_id: None,
                     oauth_scopes: None,
                     features: Features::default(),
+                    enabled: true,
                 })
             } else {
                 Ok(McpServerConfig::Http {
@@ -249,6 +284,7 @@ impl IntermediateServerConfig {
                     oauth_client_id: None,
                     oauth_scopes: None,
                     features: Features::default(),
+                    enabled: true,
                 })
             }
         } else if let Some(command) = self.command {
@@ -259,6 +295,7 @@ impl IntermediateServerConfig {
                 args: self.args,
                 env: self.env,
                 features: Features::default(),
+                enabled: true,
             })
         } else {
             Err("Server config must have either 'command' or 'url'".to_string())
@@ -404,6 +441,7 @@ mod tests {
             args: None,
             env: None,
             features: Features::default(),
+            enabled: true,
         };
 
         let serialized = serde_json::to_value(&config).unwrap();
@@ -426,6 +464,7 @@ mod tests {
                 resources: false,
                 prompts: true,
             },
+            enabled: true,
         };
 
         let serialized = serde_json::to_value(&config).unwrap();
@@ -577,5 +616,100 @@ mod tests {
         });
         let result: Result<McpServerConfig, _> = serde_json::from_value(json);
         assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_server_enabled_default_true() {
+        let json = json!({
+            "description": "Test server",
+            "command": "test-cmd"
+        });
+        let config: McpServerConfig = serde_json::from_value(json).unwrap();
+        assert!(config.is_enabled());
+    }
+
+    #[test]
+    fn test_server_enabled_explicit_true() {
+        let json = json!({
+            "description": "Test server",
+            "command": "test-cmd",
+            "enabled": true
+        });
+        let config: McpServerConfig = serde_json::from_value(json).unwrap();
+        assert!(config.is_enabled());
+    }
+
+    #[test]
+    fn test_server_enabled_explicit_false() {
+        let json = json!({
+            "description": "Test server",
+            "command": "test-cmd",
+            "enabled": false
+        });
+        let config: McpServerConfig = serde_json::from_value(json).unwrap();
+        assert!(!config.is_enabled());
+    }
+
+    #[test]
+    fn test_http_server_enabled_false() {
+        let json = json!({
+            "type": "http",
+            "description": "HTTP test server",
+            "url": "http://localhost:8080",
+            "enabled": false
+        });
+        let config: McpServerConfig = serde_json::from_value(json).unwrap();
+        assert!(!config.is_enabled());
+    }
+
+    #[test]
+    fn test_sse_server_enabled_false() {
+        let json = json!({
+            "type": "sse",
+            "description": "SSE test server",
+            "url": "http://localhost:8080/sse",
+            "enabled": false
+        });
+        let config: McpServerConfig = serde_json::from_value(json).unwrap();
+        assert!(!config.is_enabled());
+    }
+
+    #[test]
+    fn test_serialize_omits_enabled_when_true() {
+        // Test that enabled field is omitted when set to true (default)
+        let config = McpServerConfig::Stdio {
+            description: "Test server".to_string(),
+            command: "test-cmd".to_string(),
+            args: None,
+            env: None,
+            features: Features::default(),
+            enabled: true,
+        };
+
+        let serialized = serde_json::to_value(&config).unwrap();
+        let obj = serialized.as_object().unwrap();
+
+        // enabled should NOT be present when true (default)
+        assert!(!obj.contains_key("enabled"));
+    }
+
+    #[test]
+    fn test_serialize_includes_enabled_when_false() {
+        // Test that enabled field IS included when set to false
+        let config = McpServerConfig::Stdio {
+            description: "Test server".to_string(),
+            command: "test-cmd".to_string(),
+            args: None,
+            env: None,
+            features: Features::default(),
+            enabled: false,
+        };
+
+        let serialized = serde_json::to_value(&config).unwrap();
+        let obj = serialized.as_object().unwrap();
+
+        // enabled SHOULD be present when false
+        assert!(obj.contains_key("enabled"));
+        assert!(!obj.get("enabled").unwrap().as_bool().unwrap());
     }
 }

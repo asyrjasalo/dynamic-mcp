@@ -310,6 +310,34 @@ Control which MCP features are exposed per server using the optional `features` 
 - Disabled features return an error if accessed via the proxy
 - Example: If `resources: false`, calling `resources/list` returns an error
 
+### Disabling Servers
+
+Use the optional `enabled` field to disable a specific server without removing it from the config:
+
+```json
+{
+  "mcpServers": {
+    "filesystem": {
+      "description": "File operations",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/tmp"]
+    },
+    "disabled-server": {
+      "description": "This server won't connect",
+      "command": "some-command",
+      "enabled": false
+    }
+  }
+}
+```
+
+**Behavior:**
+
+- If `enabled` is omitted, the server is enabled (default behavior)
+- If `enabled: false`, the server is skipped during connection and won't appear in available groups
+- Useful for temporarily disabling servers during testing or maintenance without editing config structure
+- See `examples/config.features.example.json` for a complete example
+
 ## Troubleshooting
 
 ### Server Connection Issues

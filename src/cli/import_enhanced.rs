@@ -291,6 +291,7 @@ fn apply_features_to_config(config: McpServerConfig, features: Features) -> McpS
             command,
             args,
             env,
+            enabled,
             ..
         } => McpServerConfig::Stdio {
             description,
@@ -298,6 +299,7 @@ fn apply_features_to_config(config: McpServerConfig, features: Features) -> McpS
             args,
             env,
             features,
+            enabled,
         },
         McpServerConfig::Http {
             description,
@@ -305,6 +307,7 @@ fn apply_features_to_config(config: McpServerConfig, features: Features) -> McpS
             headers,
             oauth_client_id,
             oauth_scopes,
+            enabled,
             ..
         } => McpServerConfig::Http {
             description,
@@ -313,6 +316,7 @@ fn apply_features_to_config(config: McpServerConfig, features: Features) -> McpS
             oauth_client_id,
             oauth_scopes,
             features,
+            enabled,
         },
         McpServerConfig::Sse {
             description,
@@ -320,6 +324,7 @@ fn apply_features_to_config(config: McpServerConfig, features: Features) -> McpS
             headers,
             oauth_client_id,
             oauth_scopes,
+            enabled,
             ..
         } => McpServerConfig::Sse {
             description,
@@ -328,6 +333,7 @@ fn apply_features_to_config(config: McpServerConfig, features: Features) -> McpS
             oauth_client_id,
             oauth_scopes,
             features,
+            enabled,
         },
     }
 }

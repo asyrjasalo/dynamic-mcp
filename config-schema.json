@@ -6,6 +6,10 @@
   "required": ["mcpServers"],
   "additionalProperties": false,
   "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "JSON Schema reference (optional, for IDE validation)"
+    },
     "mcpServers": {
       "type": "object",
       "description": "Map of server names to their configurations",

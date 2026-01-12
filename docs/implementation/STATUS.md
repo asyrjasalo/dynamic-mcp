@@ -52,6 +52,7 @@ See [MCP_SPEC_COMPLIANCE.md](MCP_SPEC_COMPLIANCE.md) for detailed compliance aud
 - [x] **Strict schema validation** - Rejects unknown fields at all levels (root, server, features)
 - [x] Environment variable substitution (`${VAR}` syntax)
 - [x] Per-server feature flags (tools, resources, prompts)
+- [x] Per-server enable/disable control (`enabled` field)
 - [x] Live reload - Configuration file watching with automatic reconnection
 - [x] Multi-format config parsing (JSON, JSONC, TOML)
 

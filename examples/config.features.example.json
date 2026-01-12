@@ -4,7 +4,8 @@
     "filesystem": {
       "description": "Use when you need to read, write, or search files on the local filesystem.",
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/tmp"]
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/tmp"],
+      "enabled": false
     },
     "everything-tools-only": {
       "description": "Comprehensive MCP server with only tools enabled (no resources or prompts).",

@@ -259,7 +259,10 @@ ______________________________________________________________________
 2. **@docs/implementation/STATUS.md** - Add new features, update metrics if significant
 3. **@docs/implementation/TESTING.md** - Update test counts after adding tests
 4. **@docs/implementation/ARCHITECTURE.md** - Update if adding new modules or changing architecture
-5. **@README.md** - Update if user-facing (new features, config changes)
+5. **@config-schema.json** - Keep in sync with `src/config/schema.rs` (JSON Schema Draft 7 format)
+6. **@README.md** - Update if user-facing (new features, config changes)
+
+**Critical**: The `config-schema.json` file is the source of truth for config validation exposed to users. Any changes to `McpServerConfig` struct must be reflected in the JSON schema immediately.
 
 **For documentation-only changes:**
 

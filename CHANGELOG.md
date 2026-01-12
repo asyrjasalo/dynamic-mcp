@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Per-Server Enable/Disable Control** - Optional `enabled` field to disable specific MCP servers
+  - Add `"enabled": false` to any server config to skip connection
+  - Defaults to `true` when omitted (all servers enabled by default)
+  - Clean way to comment out servers without modifying config structure
 - **Strict JSON Schema Validation** - Config files now enforce strict schema compliance
   - Only defined fields are allowed in config (denies unknown fields)
   - Catches typos and misspelled field names with clear error messages
