@@ -262,6 +262,15 @@ ______________________________________________________________________
 5. **@config-schema.json** - Keep in sync with `src/config/schema.rs` (JSON Schema Draft 7 format)
 6. **@README.md** - Update if user-facing (new features, config changes)
 
+### Planning Documents
+
+**⚠️ IMPORTANT**: Do NOT update current implementation docs (STATUS.md, ARCHITECTURE.md) to reference planning documents.
+
+- Documents in `docs/implementation/plans/` are **planning/research only**
+- They are **not implemented features** and should not be checked off in STATUS.md
+- They should **not** be referenced as implemented in ARCHITECTURE.md
+- Only update implementation docs when features are actually implemented and merged
+
 **Critical**: The `config-schema.json` file is the source of truth for config validation exposed to users. Any changes to `McpServerConfig` struct must be reflected in the JSON schema immediately.
 
 **For documentation-only changes:**
