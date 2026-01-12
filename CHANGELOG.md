@@ -182,7 +182,7 @@ cargo install dynamic-mcp
 - **crates.io**: https://crates.io/crates/dynamic-mcp
 - **GitHub**: https://github.com/asyrjasalo/dynamic-mcp
 - **Documentation**: https://docs.rs/dynamic-mcp
-- **Release Notes**: [docs/history/RELEASE_v1.0.0.md](docs/history/RELEASE_v1.0.0.md)
+- **Release Notes**: [docs/implementation/mvp/RELEASE_v1.0.0.md](docs/implementation/mvp/RELEASE_v1.0.0.md)
 
 [1.0.0]: https://github.com/asyrjasalo/dynamic-mcp/releases/tag/v1.0.0
 [1.1.0]: https://github.com/asyrjasalo/dynamic-mcp/releases/tag/v1.1.0

@@ -411,7 +411,7 @@ git push origin main --tags
 
 **Do NOT modify:**
 
-- **Historical documentation** (`docs/history` such as RELEASE_v1.0.0.md, PLAN.md, RESEARCH.md)
+- **Historical documentation** (`docs/implementation/mvp` such as RELEASE_v1.0.0.md, PLAN.md, RESEARCH.md)
 - **Previous release entries in CHANGELOG.md** - Only add new releases at the top, never modify historical entries
 
 These are historical records and should remain unchanged.
