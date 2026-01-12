@@ -99,6 +99,8 @@ impl<'de> Deserialize<'de> for McpServerConfig {
         if let Some(obj) = value.as_object_mut() {
             if !obj.contains_key("type") {
                 if obj.contains_key("url") {
+                    // Default to "http" when url is present but type is not specified
+                    // The transport layer will auto-detect SSE responses per MCP spec
                     obj.insert(
                         "type".to_string(),
                         serde_json::Value::String("http".to_string()),
@@ -237,6 +239,8 @@ impl McpServerConfig {
 pub struct ServerConfig {
     #[serde(rename = "mcpServers")]
     pub mcp_servers: HashMap<String, McpServerConfig>,
+    #[serde(skip_serializing_if = "Option::is_none", rename = "$schema")]
+    pub schema: Option<String>,
 }
 
 /// Intermediate representation for migration from various tools
@@ -711,5 +715,90 @@ mod tests {
         // enabled SHOULD be present when false
         assert!(obj.contains_key("enabled"));
         assert!(!obj.get("enabled").unwrap().as_bool().unwrap());
+    }
+
+    #[test]
+    fn test_http_server_without_type_field() {
+        let json = json!({
+            "description": "HTTP server without explicit type",
+            "url": "http://localhost:8080"
+        });
+        let config: McpServerConfig = serde_json::from_value(json).unwrap();
+        match config {
+            McpServerConfig::Http { url, .. } => {
+                assert_eq!(url, "http://localhost:8080");
+            }
+            _ => panic!("Expected Http config when url is present without type field"),
+        }
+    }
+
+    #[test]
+    fn test_sse_server_with_explicit_type() {
+        let json = json!({
+            "type": "sse",
+            "description": "SSE server with explicit type",
+            "url": "http://localhost:8080/sse"
+        });
+        let config: McpServerConfig = serde_json::from_value(json).unwrap();
+        match config {
+            McpServerConfig::Sse { url, .. } => {
+                assert_eq!(url, "http://localhost:8080/sse");
+            }
+            _ => panic!("Expected Sse config when type is explicitly sse"),
+        }
+    }
+
+    #[test]
+    fn test_http_server_with_explicit_type() {
+        let json = json!({
+            "type": "http",
+            "description": "HTTP server with explicit type",
+            "url": "http://localhost:8080"
+        });
+        let config: McpServerConfig = serde_json::from_value(json).unwrap();
+        match config {
+            McpServerConfig::Http { url, .. } => {
+                assert_eq!(url, "http://localhost:8080");
+            }
+            _ => panic!("Expected Http config when type is explicitly http"),
+        }
+    }
+
+    #[test]
+    fn test_stdio_server_without_type_field() {
+        let json = json!({
+            "description": "Stdio server without explicit type",
+            "command": "npx"
+        });
+        let config: McpServerConfig = serde_json::from_value(json).unwrap();
+        match config {
+            McpServerConfig::Stdio { command, .. } => {
+                assert_eq!(command, "npx");
+            }
+            _ => panic!("Expected Stdio config when command is present without type field"),
+        }
+    }
+
+    #[test]
+    fn test_url_based_config_with_headers_and_no_type() {
+        let json = json!({
+            "description": "URL-based server with headers but no type",
+            "url": "https://api.example.com/mcp",
+            "headers": {
+                "Authorization": "Bearer token"
+            }
+        });
+        let config: McpServerConfig = serde_json::from_value(json).unwrap();
+        match config {
+            McpServerConfig::Http { url, headers, .. } => {
+                assert_eq!(url, "https://api.example.com/mcp");
+                assert!(headers.is_some());
+                assert_eq!(
+                    headers.unwrap().get("Authorization"),
+                    Some(&"Bearer token".to_string())
+                );
+            }
+            _ => panic!("Expected Http config when url is present with headers but no type"),
+        }
     }
 }

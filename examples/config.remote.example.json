@@ -1,0 +1,32 @@
+{
+  "$schema": "https://raw.githubusercontent.com/asyrjasalo/dynamic-mcp/refs/heads/main/config-schema.json",
+  "mcpServers": {
+    "http-server": {
+      "description": "HTTP-based MCP server with automatic transport detection (type is optional)",
+      "url": "http://localhost:8080/mcp"
+    },
+    "http-server-explicit": {
+      "type": "http",
+      "description": "HTTP server with explicit type field (backwards compatible)",
+      "url": "http://localhost:8080/mcp"
+    },
+    "sse-server-explicit": {
+      "type": "sse",
+      "description": "SSE server with explicit type field (for servers that only support SSE)",
+      "url": "http://localhost:8080/sse"
+    },
+    "authenticated-server": {
+      "description": "URL-based server with authentication (type optional, automatically uses http with SSE detection)",
+      "url": "https://api.example.com/mcp",
+      "headers": {
+        "Authorization": "Bearer ${API_TOKEN}"
+      }
+    },
+    "oauth-server": {
+      "description": "OAuth-protected MCP server (type optional)",
+      "url": "https://oauth-server.example.com/mcp",
+      "oauth_client_id": "your-client-id",
+      "oauth_scopes": ["read", "write"]
+    }
+  }
+}

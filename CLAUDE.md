@@ -311,16 +311,25 @@ version = "1.x.x"
 
 ### Added
 
-- User-facing feature descriptions (e.g., "Added WebSocket transport support")
+- Entirely new features (e.g., "Added WebSocket transport support")
+- New capabilities that didn't exist before
 
 ### Changed
 
-- User-facing behavior changes (e.g., "Changed default timeout to 30s")
+- Modifications to existing behavior (e.g., "Made `type` field optional for URL-based servers")
+- Config format changes that remain backwards compatible
+- Default value changes (e.g., "Changed default timeout from 10s to 30s")
 
 ### Fixed
 
 - User-facing bug fixes (e.g., "Fixed OAuth token refresh failing after expiry")
 ```
+
+**How to classify changes**:
+
+- **Added** = Something that didn't exist before (new feature, new field, new command)
+- **Changed** = Modification to something that already existed (optional field that was required, different default, behavior adjustment)
+- **Fixed** = Correction of broken/incorrect behavior
 
 **Note**: Do NOT include technical metrics, internal refactorings, or implementation details in CHANGELOG.md.
 
@@ -422,9 +431,22 @@ These are historical records and should remain unchanged.
 - ❌ NEVER repeat the same change in multiple sections (e.g., don't list a new feature in both "Added" and "Changed")
 - Historical accuracy is more important than current correctness for past releases
 
+**How to classify changes (Added vs Changed vs Fixed)**:
+
+- **Added** = Something that didn't exist before
+  - Examples: "Added WebSocket transport support", "Added `--force` flag", "Added `enabled` field"
+  - Test: If users couldn't do this at all before → Added
+- **Changed** = Modification to something that already existed
+  - Examples: "Made `type` field optional for URL-based servers", "Changed default timeout from 10s to 30s", "Updated error message format"
+  - Test: If users could do this before but differently → Changed
+- **Fixed** = Correction of broken/incorrect behavior
+  - Examples: "Fixed OAuth token refresh failing after expiry", "Fixed panic on empty config"
+  - Test: If it wasn't working as intended → Fixed
+
 **What to include in CHANGELOG.md**:
 
 - ✅ New user-facing features ("Added OAuth2 authentication support")
+- ✅ Modifications to existing behavior ("Made `type` field optional for URL-based servers")
 - ✅ Bug fixes affecting users ("Fixed token refresh failing after expiry")
 - ✅ Breaking changes ("Removed support for legacy config format")
 - ✅ Deprecation notices ("Deprecated `--old-flag`, use `--new-flag` instead")

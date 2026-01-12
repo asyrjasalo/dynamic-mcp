@@ -17,13 +17,13 @@
         "oneOf": [
           {
             "type": "object",
-            "description": "stdio transport server configuration",
+            "description": "stdio transport server configuration (command-based)",
             "required": ["description", "command"],
             "additionalProperties": false,
             "properties": {
               "type": {
                 "type": "string",
-                "const": "stdio",
+                "enum": ["stdio"],
                 "description": "Transport type (optional, defaults to stdio if command is present)"
               },
               "description": {
@@ -77,17 +77,17 @@
                }
              }
            },
-           {
-             "type": "object",
-             "description": "HTTP transport server configuration",
-             "required": ["type", "description", "url"],
-             "additionalProperties": false,
-             "properties": {
-               "type": {
-                 "type": "string",
-                 "const": "http",
-                 "description": "Transport type"
-               },
+            {
+              "type": "object",
+              "description": "HTTP/SSE transport server configuration (url-based, type is optional and defaults to http with automatic SSE detection)",
+              "required": ["description", "url"],
+              "additionalProperties": false,
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": ["http", "sse"],
+                  "description": "Transport type (optional: omit for automatic detection, 'http' for HTTP-only, 'sse' for SSE-only)"
+                },
                "description": {
                  "type": "string",
                  "description": "Description of what this server does (shown to LLM for routing decisions)"
@@ -137,81 +137,14 @@
                    }
                  }
                },
-               "enabled": {
-                 "type": "boolean",
-                 "default": true,
-                 "description": "Enable or disable this server (default: true)"
-               }
-             }
-           },
-           {
-             "type": "object",
-             "description": "SSE (Server-Sent Events) transport server configuration",
-             "required": ["type", "description", "url"],
-             "additionalProperties": false,
-             "properties": {
-               "type": {
-                 "type": "string",
-                 "const": "sse",
-                 "description": "Transport type"
-               },
-               "description": {
-                 "type": "string",
-                 "description": "Description of what this server does (shown to LLM for routing decisions)"
-               },
-               "url": {
-                 "type": "string",
-                 "format": "uri",
-                 "description": "SSE endpoint URL (supports ${VAR} environment variable syntax)"
-               },
-               "headers": {
-                 "type": "object",
-                 "additionalProperties": {
-                   "type": "string"
-                 },
-                 "description": "HTTP headers (supports ${VAR} syntax for variable substitution)"
-               },
-               "oauth_client_id": {
-                 "type": "string",
-                 "description": "OAuth2 client ID for authentication (triggers OAuth flow)"
-               },
-               "oauth_scopes": {
-                 "type": "array",
-                 "items": {
-                   "type": "string"
-                 },
-                 "description": "OAuth2 scopes to request during authentication"
-               },
-               "features": {
-                 "type": "object",
-                 "additionalProperties": false,
-                 "description": "Feature flags (all enabled by default if omitted)",
-                 "properties": {
-                   "tools": {
-                     "type": "boolean",
-                     "default": true,
-                     "description": "Enable tools from this server"
-                   },
-                   "resources": {
-                     "type": "boolean",
-                     "default": true,
-                     "description": "Enable resources from this server"
-                   },
-                   "prompts": {
-                     "type": "boolean",
-                     "default": true,
-                     "description": "Enable prompts from this server"
-                   }
-                 }
-               },
-               "enabled": {
-                 "type": "boolean",
-                 "default": true,
-                 "description": "Enable or disable this server (default: true)"
-               }
-             }
-           }
-        ]
+                "enabled": {
+                  "type": "boolean",
+                  "default": true,
+                  "description": "Enable or disable this server (default: true)"
+                }
+              }
+            }
+         ]
       }
     }
   }

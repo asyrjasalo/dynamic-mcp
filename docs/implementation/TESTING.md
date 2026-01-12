@@ -1,12 +1,12 @@
 # Testing Documentation
 
-The test suite contains 266+ tests organized into logical layers, each testing a specific aspect of dynamic-mcp.
+The test suite contains 270+ tests organized into logical layers, each testing a specific aspect of dynamic-mcp.
 
 ## Current Test Status
 
-**Total Tests**: 266 (with enabled field and strict schema validation tests)
+**Total Tests**: 270 (with optional type field, enabled field, and strict schema validation tests)
 
-- **Unit Tests**: 146 (inline in src/ modules, +8 for enabled field)
+- **Unit Tests**: 150 (inline in src/ modules, +5 for optional type field)
 - **Integration Tests**: 120
   - CLI Tests: 5
   - Config Tests: 9
@@ -257,10 +257,12 @@ Core module testing across all source files. Each source file with `#[cfg(test)]
 
 **Config Module** (3 files):
 
-- **`src/config/schema.rs`** - Configuration data structures
+- **`src/config/schema.rs`** - Configuration data structures (37 tests)
   - Tests: Features default values, deserialization, per-server feature flags
+  - ✨ **NEW**: Optional type field tests - HTTP/SSE servers without explicit type field (5 tests)
   - ✨ **NEW**: Strict validation tests - Unknown field rejection for stdio/http/sse servers and features
-  - Coverage: JSON schema validation, serde behavior, `deny_unknown_fields` attribute
+  - ✨ **NEW**: `$schema` field support test
+  - Coverage: JSON schema validation, serde behavior, `deny_unknown_fields` attribute, automatic type inference
 - **`src/config/loader.rs`** - Config file loading
   - Tests: Valid config loading, env var substitution, nonexistent file errors
   - ✨ **NEW**: Integration tests for strict field validation across all server types

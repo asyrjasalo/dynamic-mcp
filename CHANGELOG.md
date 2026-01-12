@@ -18,6 +18,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Catches typos and misspelled field names with clear error messages
   - Applies to all config levels: root, server objects, and feature flags
   - Helps prevent silent config errors and unexpected behavior
+- **JSON Schema Reference Support** - Config files can now include `$schema` field for IDE validation
+
+### Changed
+
+- **Optional `type` Field for URL-Based Servers** - Simplified configuration for HTTP/SSE servers
+  - `type` field is now optional when `url` is present (automatically defaults to `"http"`)
+  - Automatic SSE detection per MCP spec when server responds with `text/event-stream`
+  - Explicit `type: "sse"` still supported for SSE-only servers
+  - Maintains full backwards compatibility with existing configs
 
 ## [1.3.0] - 2026-01-09
 

@@ -84,6 +84,7 @@ pub async fn run_import_from_tool(
 
     let imported_config = ServerConfig {
         mcp_servers: imported_servers,
+        schema: None,
     };
 
     let output_json = serde_json::to_string_pretty(&imported_config)

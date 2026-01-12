@@ -217,6 +217,8 @@ It supports the `${VAR}` syntax for environment variable interpolation:
 
 It supports all [standard MCP transport mechanisms](https://modelcontextprotocol.io/specification/2025-11-25/basic/transports).
 
+**Note**: The `type` field is **optional** when `url` is present. If omitted, the server automatically uses HTTP transport with SSE detection per the MCP spec. This maintains backwards compatibility with tools like [OpenCode](https://opencode.ai/docs/mcp-servers/).
+
 #### stdio (Default)
 
 ```json
@@ -234,8 +236,20 @@ It supports all [standard MCP transport mechanisms](https://modelcontextprotocol
 
 ```json
 {
+  "description": "HTTP server (type is optional)",
+  "url": "https://api.example.com",
+  "headers": {
+    "Authorization": "Bearer ${TOKEN}"
+  }
+}
+```
+
+Or with explicit type:
+
+```json
+{
   "type": "http",
-  "description": "HTTP server",
+  "description": "HTTP server with explicit type",
   "url": "https://api.example.com",
   "headers": {
     "Authorization": "Bearer ${TOKEN}"
@@ -245,10 +259,12 @@ It supports all [standard MCP transport mechanisms](https://modelcontextprotocol
 
 #### sse
 
+SSE servers are automatically detected when the server responds with `Content-Type: text/event-stream`. You can also explicitly specify `type: "sse"` if the server only supports SSE:
+
 ```json
 {
   "type": "sse",
-  "description": "SSE server",
+  "description": "SSE server (explicit type required only if server doesn't auto-detect)",
   "url": "https://api.example.com/sse",
   "headers": {
     "Authorization": "Bearer ${TOKEN}"
@@ -260,8 +276,7 @@ It supports all [standard MCP transport mechanisms](https://modelcontextprotocol
 
 ```json
 {
-  "type": "http",
-  "description": "OAuth-protected MCP server",
+  "description": "OAuth-protected MCP server (type is optional)",
   "url": "https://api.example.com/mcp",
   "oauth_client_id": "your-client-id",
   "oauth_scopes": ["read", "write"]
@@ -292,8 +307,7 @@ Control which MCP features are exposed per server using the optional `features` 
       }
     },
     "server-without-prompts": {
-      "type": "http",
-      "description": "HTTP server without prompt templates",
+      "description": "HTTP server without prompt templates (type is optional)",
       "url": "https://api.example.com",
       "features": {
         "prompts": false
