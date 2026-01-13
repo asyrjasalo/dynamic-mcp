@@ -3,7 +3,7 @@
     "allow": ["Bash", "WebFetch"]
   },
   "enabledMcpjsonServers": ["dynamic-mcp"],
-  "enableAllProjectMcpServers": true,
+  "enableAllProjectMcpServers": false,
   "enabledPlugins": {
     "rust-analyzer-lsp@claude-plugins-official": true
   }
