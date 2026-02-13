@@ -5,13 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.5.0] - 2026-02-14
 
 ### Added
 
 - **Per-Server Timeout Configuration** - Custom timeouts per server for tools, resources, and prompts
   - Add `"timeout": { "tools": "30s", "resources": "30s", "prompts": "30s" }` to any server config
-  - Supports formats: `30s`, `1min`, `1m`, `500ms`, `1h`, plain numbers
+  - Supports formats: `30s`, `1min`, `1m`, `500ms`, plain numbers
   - Defaults: tools 30 seconds, resources 10 seconds, prompts 10 seconds
   - Useful for servers with long-running operations
 
