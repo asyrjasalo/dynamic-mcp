@@ -250,7 +250,7 @@ instead of silently failing.
    cargo fmt -- --check
    cargo clippy -- -D warnings
    cargo test
-   pre-commit run --all-files  # Optional: run pre-commit hooks manually
+   prek run --all-files  # Optional: run pre-commit hooks manually
    ```
 
 4. **Push your branch**
