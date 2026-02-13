@@ -1,0 +1,51 @@
+# Uses https://mise.jdx.dev/
+
+### Development dependencies ###################################################
+
+[tools]
+
+rust = { version = "1.93", components = "rust-analyzer" }
+prek = "latest"
+"cargo:cargo-nextest" = "latest"
+
+[settings]
+lockfile = true
+task_output = "interleave"
+
+### Environment ################################################################
+
+# Run dmcp by name (instead of cargo run --) in the project directory
+[shell_alias]
+dmcp = "mise build --quiet --manifest-path {{ [config_root] | concat(with='Cargo.toml') | join_path }} && {{ [config_root] | concat(with='target/debug/dmcp') | join_path }}"
+
+### Tasks ######################################################################
+
+# Usage: mise <task-name> [task-args]
+
+[tasks.build]
+description = "Build binary"
+run = "cargo build"
+
+[tasks.check]
+description = "Run all checks"
+alias = "c"
+run = [{ task = "format" }, { task = "lint" }, { task = "test" }]
+
+[tasks.format]
+description = "Format codebase"
+run = "cargo fmt"
+
+[tasks.test]
+description = "Run tests"
+run = "cargo nextest run --no-fail-fast"
+
+[tasks.lint]
+description = "Lint codebase with auto-fix"
+run = "cargo clippy --fix --allow-dirty --all-features"
+
+[tasks.hooks]
+description = "Run pre-commit hooks"
+run = [
+  "prek install --hook-type pre-commit --hook-type commit-msg",
+  "prek run --all-files",
+]

@@ -1,0 +1,16 @@
+[[tools."cargo:cargo-nextest"]]
+version = "0.9.126"
+backend = "cargo:cargo-nextest"
+
+[[tools.prek]]
+version = "0.3.2"
+backend = "aqua:j178/prek"
+"platforms.linux-arm64" = { checksum = "sha256:fce387f0c31e87ceebb1ae84ad5fe3502931b248c89cfe5ee8208dcfa0656260", url = "https://github.com/j178/prek/releases/download/v0.3.2/prek-aarch64-unknown-linux-musl.tar.gz"}
+"platforms.linux-x64" = { checksum = "sha256:7960379beca845367258ce4080a0ce1754d88846d9cfe273106f272442729eff", url = "https://github.com/j178/prek/releases/download/v0.3.2/prek-x86_64-unknown-linux-musl.tar.gz"}
+"platforms.macos-arm64" = { checksum = "sha256:9705b3e3df6db7f1128058fb4f5198736553e6c3957afe0810fa7e974679c88c", url = "https://github.com/j178/prek/releases/download/v0.3.2/prek-aarch64-apple-darwin.tar.gz"}
+"platforms.macos-x64" = { checksum = "sha256:4bdf9b59530b7593a3f5d8dcce43c67e442a79af730cbd1b73c223ef30b5c1b5", url = "https://github.com/j178/prek/releases/download/v0.3.2/prek-x86_64-apple-darwin.tar.gz"}
+"platforms.windows-x64" = { checksum = "sha256:4aaf87523d3588090a6f547a5eca379264ddb287e3a424a1fab73aca6cd9c0c0", url = "https://github.com/j178/prek/releases/download/v0.3.2/prek-x86_64-pc-windows-msvc.zip"}
+
+[[tools.rust]]
+version = "1.93.0"
+backend = "core:rust"

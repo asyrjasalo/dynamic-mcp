@@ -26,6 +26,8 @@ exclude = [
     "CONTRIBUTING.md",
     "config-schema.json",
     "dynamic-mcp.json",
+    "mise.toml",
+    "mise.lock",
     "pyproject.toml",
     "SECURITY.md"
 ]

@@ -1,17 +1,17 @@
 # Install the hooks in this file:
-#   pre-commit install --hook-type pre-commit --hook-type commit-msg
+#   prek install --hook-type pre-commit --hook-type commit-msg
 #
 # (optional) test hooks for staged files:
-#   pre-commit run --verbose
+#   prek run --verbose
 #
 # (optional) test hooks for all files:
-#   pre-commit run --all-files --verbose
+#   prek run --all-files --verbose
 
 default_stages: [pre-commit]
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v5.0.0
+    rev: v6.0.0
     hooks:
       - id: check-merge-conflict
       - id: check-added-large-files
@@ -30,20 +30,15 @@ repos:
       - id: trailing-whitespace
 
   - repo: https://github.com/python-jsonschema/check-jsonschema
-    rev: 0.31.0
+    rev: 0.36.1
     hooks:
       - id: check-jsonschema
         files: ^(examples/.*\.json|dynamic-mcp\.json)$
         args: ["--schemafile", "config-schema.json"]
       - id: check-github-workflows
 
-  - repo: https://github.com/doublify/pre-commit-rust
-    rev: v1.0
-    hooks:
-      - id: fmt
-
   - repo: https://github.com/hukkin/mdformat
-    rev: 0.7.22
+    rev: 1.0.0
     hooks:
       - id: mdformat
         args: [--number]
@@ -56,7 +51,7 @@ repos:
       - id: codespell
 
   - repo: https://github.com/commitizen-tools/commitizen
-    rev: v4.11.1
+    rev: v4.13.7
     hooks:
       - id: commitizen
         stages: [commit-msg]
