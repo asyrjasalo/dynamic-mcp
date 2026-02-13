@@ -37,18 +37,17 @@ repos:
         args: ["--schemafile", "config-schema.json"]
       - id: check-github-workflows
 
-  - repo: https://github.com/hukkin/mdformat
-    rev: 1.0.0
+  - repo: https://github.com/rvben/rumdl-pre-commit
+    rev: v0.1.18
     hooks:
-      - id: mdformat
-        args: [--number]
-        additional_dependencies:
-          - mdformat-gfm
+      - id: rumdl-fmt
+        args: ["--disable", "MD013,MD033,MD034"]
+        files: ^(?!.*skills/).*$
 
-  - repo: https://github.com/codespell-project/codespell
-    rev: v2.4.1
+  - repo: https://github.com/crate-ci/typos
+    rev: v1.43.4
     hooks:
-      - id: codespell
+      - id: typos
 
   - repo: https://github.com/commitizen-tools/commitizen
     rev: v4.13.7
