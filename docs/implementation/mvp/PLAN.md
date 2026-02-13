@@ -2,33 +2,33 @@
 
 ## Project Overview
 
-**Goal**: Create a Rust-based MCP proxy server that reduces LLM context overhead by grouping tools from multiple upstream MCP servers and loading schemas on-demand.
+__Goal__: Create a Rust-based MCP proxy server that reduces LLM context overhead by grouping tools from multiple upstream MCP servers and loading schemas on-demand.
 
-**Architecture**: Single binary application using the official `rmcp` SDK that acts as:
+__Architecture__: Single binary application using the official `rmcp` SDK that acts as:
 
-- **MCP Server** (downstream): Exposes 2 tools to LLM clients
-- **MCP Client** (upstream): Connects to multiple configured MCP servers
+- __MCP Server__ (downstream): Exposes 2 tools to LLM clients
+- __MCP Client__ (upstream): Connects to multiple configured MCP servers
 
-**Reference Implementation**: https://github.com/d-kimuson/modular-mcp (TypeScript)
+__Reference Implementation__: https://github.com/d-kimuson/modular-mcp (TypeScript)
 
 ## Design Principles
 
-1. **Single Binary**: Simpler distribution, follows TypeScript model
-2. **Official SDK**: Leverage `rmcp` for MCP compliance
-3. **JSON Config**: Keep compatibility with TypeScript version
-4. **Phased Approach**: Incremental delivery, testable at each phase
-5. **Error Handling**: Use `anyhow` for application errors, `thiserror` for library errors
-6. **Async**: Tokio for all I/O operations
-7. **Logging**: `tracing` for structured logging
-8. **Testing**: Unit tests + integration tests + example configs
+1. __Single Binary__: Simpler distribution, follows TypeScript model
+2. __Official SDK__: Leverage `rmcp` for MCP compliance
+3. __JSON Config__: Keep compatibility with TypeScript version
+4. __Phased Approach__: Incremental delivery, testable at each phase
+5. __Error Handling__: Use `anyhow` for application errors, `thiserror` for library errors
+6. __Async__: Tokio for all I/O operations
+7. __Logging__: `tracing` for structured logging
+8. __Testing__: Unit tests + integration tests + example configs
 
 ______________________________________________________________________
 
 ## Phase 1: Core Proxy Functionality (stdio transport only)
 
-**Goal**: Implement basic proxy that works with stdio-based MCP servers
+__Goal__: Implement basic proxy that works with stdio-based MCP servers
 
-**Duration**: 2-3 days
+__Duration__: 2-3 days
 
 ### 1.1 Project Setup
 
@@ -37,7 +37,7 @@ cargo new dynamic-mcp
 cd dynamic-mcp
 ```
 
-**Dependencies** (`Cargo.toml`):
+__Dependencies__ (`Cargo.toml`):
 
 ```toml
 [package]
@@ -82,7 +82,7 @@ regex = "1"
 
 ### 1.2 Project Structure
 
-```
+```text
 dynamic-mcp/
 ├── Cargo.toml
 ├── README.md
@@ -114,7 +114,7 @@ dynamic-mcp/
 
 ### 1.3 Configuration Module
 
-**File**: `src/config/schema.rs`
+__File__: `src/config/schema.rs`
 
 Define configuration structures that mirror the TypeScript version:
 
@@ -166,7 +166,7 @@ pub struct ServerConfig {
 }
 ```
 
-**File**: `src/config/env_sub.rs`
+__File__: `src/config/env_sub.rs`
 
 Environment variable substitution (${VAR} syntax only):
 
@@ -234,7 +234,7 @@ pub fn substitute_in_config(config: McpServerConfig) -> McpServerConfig {
 }
 ```
 
-**File**: `src/config/loader.rs`
+__File__: `src/config/loader.rs`
 
 Configuration file loading and validation:
 
@@ -273,7 +273,7 @@ pub async fn load_config(path: &str) -> Result<ServerConfig> {
 
 ### 1.4 Proxy Client Module
 
-**File**: `src/proxy/types.rs`
+__File__: `src/proxy/types.rs`
 
 Shared types:
 
@@ -301,7 +301,7 @@ pub struct ToolInfo {
 }
 ```
 
-**File**: `src/proxy/client.rs`
+__File__: `src/proxy/client.rs`
 
 Group state management and upstream client coordination:
 
@@ -475,7 +475,7 @@ impl ModularMcpClient {
 }
 ```
 
-**File**: `src/proxy/transport.rs`
+__File__: `src/proxy/transport.rs`
 
 Transport creation (Phase 1: stdio only):
 
@@ -511,7 +511,7 @@ pub async fn create_transport(config: &McpServerConfig) -> Result<Box<dyn Transp
 
 ### 1.5 MCP Server Implementation
 
-**File**: `src/server.rs`
+__File__: `src/server.rs`
 
 Main MCP server that exposes two tools:
 
@@ -697,7 +697,7 @@ Example usage:
 
 ### 1.6 Main Entry Point
 
-**File**: `src/main.rs`
+__File__: `src/main.rs`
 
 ```rust
 mod config;
@@ -810,7 +810,7 @@ async fn main() -> Result<()> {
 
 ### 1.7 Example Configuration
 
-**File**: `config.example.json`
+__File__: `config.example.json`
 
 ```json
 {
@@ -846,9 +846,9 @@ ______________________________________________________________________
 
 ## Phase 2: Full Transport Support (HTTP/SSE)
 
-**Goal**: Add support for HTTP and SSE transports
+__Goal__: Add support for HTTP and SSE transports
 
-**Duration**: 1-2 days
+__Duration__: 1-2 days
 
 ### 2.1 Add Dependencies
 
@@ -860,7 +860,7 @@ reqwest = { version = "0.11", features = ["json"] }
 
 ### 2.2 Update Transport Creation
 
-**File**: `src/proxy/transport.rs`
+__File__: `src/proxy/transport.rs`
 
 ```rust
 pub async fn create_transport(config: &McpServerConfig) -> Result<Box<dyn Transport>> {
@@ -949,9 +949,9 @@ ______________________________________________________________________
 
 ## Phase 3: OAuth Authentication
 
-**Goal**: Implement OAuth2 authentication for remote MCP servers
+__Goal__: Implement OAuth2 authentication for remote MCP servers
 
-**Duration**: 2-3 days
+__Duration__: 2-3 days
 
 ### 3.1 Add Dependencies
 
@@ -966,7 +966,7 @@ chrono = "0.4"
 
 ### 3.2 Auth Store
 
-**File**: `src/auth/store.rs`
+__File__: `src/auth/store.rs`
 
 ```rust
 use serde::{Deserialize, Serialize};
@@ -1017,7 +1017,7 @@ impl AuthStore {
 
 ### 3.3 OAuth Client
 
-**File**: `src/auth/oauth_client.rs`
+__File__: `src/auth/oauth_client.rs`
 
 ```rust
 use oauth2::*;
@@ -1050,13 +1050,13 @@ ______________________________________________________________________
 
 ## Phase 4: Import Command
 
-**Goal**: CLI command to import standard MCP configs
+__Goal__: CLI command to import standard MCP configs
 
-**Duration**: 1 day
+__Duration__: 1 day
 
 ### 4.1 CLI Structure
 
-**File**: `src/cli/mod.rs`
+__File__: `src/cli/mod.rs`
 
 ```rust
 use clap::{Parser, Subcommand};
@@ -1088,7 +1088,7 @@ pub enum Commands {
 
 ### 4.2 Import Logic
 
-**File**: `src/cli/import.rs`
+__File__: `src/cli/import.rs`
 
 Prompt user for descriptions and transform config.
 
@@ -1103,9 +1103,9 @@ ______________________________________________________________________
 
 ## Phase 5: Testing & Documentation
 
-**Goal**: Comprehensive tests and documentation
+__Goal__: Comprehensive tests and documentation
 
-**Duration**: 2-3 days
+__Duration__: 2-3 days
 
 ### 5.1 Unit Tests
 
@@ -1138,9 +1138,9 @@ ______________________________________________________________________
 
 ## Phase 6: Build & Distribution
 
-**Goal**: Production-ready builds and CI/CD
+__Goal__: Production-ready builds and CI/CD
 
-**Duration**: 1 day
+__Duration__: 1 day
 
 ### 6.1 Build Optimization
 
@@ -1198,13 +1198,13 @@ ______________________________________________________________________
 
 | Phase       | Duration      | Deliverable                     |
 | ----------- | ------------- | ------------------------------- |
-| **Phase 1** | 2-3 days      | Core proxy with stdio transport |
-| **Phase 2** | 1-2 days      | HTTP/SSE transport support      |
-| **Phase 3** | 2-3 days      | OAuth authentication            |
-| **Phase 4** | 1 day         | Import command                  |
-| **Phase 5** | 2-3 days      | Tests + documentation           |
-| **Phase 6** | 1 day         | Build system + CI/CD            |
-| **Total**   | **9-13 days** | Production-ready v1.0.0         |
+| __Phase 1__ | 2-3 days      | Core proxy with stdio transport |
+| __Phase 2__ | 1-2 days      | HTTP/SSE transport support      |
+| __Phase 3__ | 2-3 days      | OAuth authentication            |
+| __Phase 4__ | 1 day         | Import command                  |
+| __Phase 5__ | 2-3 days      | Tests + documentation           |
+| __Phase 6__ | 1 day         | Build system + CI/CD            |
+| __Total__   | __9-13 days__ | Production-ready v1.0.0         |
 
 ______________________________________________________________________
 

@@ -138,12 +138,12 @@ Download from [GitHub Releases](https://github.com/asyrjasalo/dynamic-mcp/releas
 
 ## 📚 Documentation
 
-- [README](../../README.md) - Quick start and configuration
-- [CHANGELOG](../../CHANGELOG.md) - Version history and changes
-- [CONTRIBUTING](../../CONTRIBUTING.md) - Development setup
-- [SECURITY](../../SECURITY.md) - Security considerations
-- [ARCHITECTURE](../implementation/ARCHITECTURE.md) - System design
-- [MIGRATION](../IMPORT.md) - Migrating from standard MCP
+- [README](../../../README.md) - Quick start and configuration
+- [CHANGELOG](../../../CHANGELOG.md) - Version history and changes
+- [CONTRIBUTING](../../../CONTRIBUTING.md) - Development setup
+- [SECURITY](../../../SECURITY.md) - Security considerations
+- [ARCHITECTURE](../ARCHITECTURE.md) - System design
+- [MIGRATION](../../IMPORT.md) - Migrating from standard MCP
 
 ## 🙏 Acknowledgments
 
@@ -158,6 +158,6 @@ Download from [GitHub Releases](https://github.com/asyrjasalo/dynamic-mcp/releas
 - **Releases**: https://github.com/asyrjasalo/dynamic-mcp/releases
 - **Documentation**: https://docs.rs/dynamic-mcp
 
-______________________________________________________________________
+**_****_****_****_****_****_****_****_****_****_****_****_****_****_**
 
 **Full Changelog**: https://github.com/asyrjasalo/dynamic-mcp/commits/v1.0.0

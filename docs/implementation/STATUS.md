@@ -29,7 +29,7 @@
 3. ✅ Fixed tool error format to use `isError` flag (enables LLM self-correction)
 4. ✅ Added OAuth 2.1 `resource` parameter
 
-**Note**: The `initialized` notification is intentionally NOT implemented to avoid stdio transport deadlock. See [MCP_SPEC_COMPLIANCE.md](MCP_SPEC_COMPLIANCE.md#11-initialized-notification--%EF%B8%8F-intentionally-not-implemented) for details.
+**Note**: The `initialized` notification is intentionally NOT implemented to avoid stdio transport deadlock. See [MCP_SPEC_COMPLIANCE.md](MCP_SPEC_COMPLIANCE.md#11-initialized-notification----intentionally-not-implemented) for details.
 
 See [MCP_SPEC_COMPLIANCE.md](MCP_SPEC_COMPLIANCE.md) for detailed compliance audit.
 
@@ -271,7 +271,7 @@ See [MCP_SPEC_COMPLIANCE.md](MCP_SPEC_COMPLIANCE.md) for detailed compliance aud
 
 ### Module Structure
 
-```
+```text
 src/
 ├── main.rs              - CLI entry point with live reload
 ├── server.rs            - MCP server implementation (Tools, Resources, Prompts APIs)
@@ -388,6 +388,6 @@ cargo doc --no-deps   # Full API documentation
 
 All public APIs have doc comments with examples.
 
-______________________________________________________________________
+**_****_****_****_****_****_****_****_****_****_****_****_****_****_**
 
 **Status**: ✅ Production-Ready | v1.3.0

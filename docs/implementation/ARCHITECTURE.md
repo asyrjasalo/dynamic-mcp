@@ -4,7 +4,7 @@ Dynamic-MCP is a proxy server that reduces LLM context overhead by grouping tool
 
 ## Project Structure
 
-```
+```text
 dynamic-mcp/
 ├── src/
 │   ├── main.rs              # CLI entry point
@@ -37,7 +37,7 @@ dynamic-mcp/
 
 ## System Overview
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                         LLM Client                          │
 │                  (Claude, ChatGPT, etc.)                    │
@@ -155,7 +155,7 @@ Dynamic-MCP provides full proxying support for all three MCP APIs:
 
 **Flow**:
 
-```
+```text
 config.json → load_config() → substitute_env_vars() → ServerConfig
 ```
 
@@ -165,7 +165,7 @@ config.json → load_config() → substitute_env_vars() → ServerConfig
 
 **State Machine**:
 
-```
+```text
                     ┌─────────────┐
                     │   Initial   │
                     └──────┬──────┘
@@ -206,7 +206,7 @@ config.json → load_config() → substitute_env_vars() → ServerConfig
 
 **Flow**:
 
-```
+```text
 1. Check ~/.dynamic-mcp/oauth-servers/{server}.json for cached token
 2. If missing/expired:
    a. Discover OAuth endpoints via /.well-known/oauth-authorization-server
@@ -279,7 +279,7 @@ config.json → load_config() → substitute_env_vars() → ServerConfig
 
 **Import Process**:
 
-```
+```text
 Standard MCP Config          Dynamic-MCP Config
 ─────────────────           ──────────────────
 {                           {
@@ -298,7 +298,7 @@ Standard MCP Config          Dynamic-MCP Config
 
 ### Initialization Flow
 
-```
+```text
 1. main.rs reads config file
 2. load_config() parses JSON and substitutes env vars
 3. ModularMcpClient created
@@ -315,7 +315,7 @@ Standard MCP Config          Dynamic-MCP Config
 
 ### Tool Discovery Flow
 
-```
+```text
 LLM Client                  Dynamic-MCP                 Upstream Server
     │                           │                             │
     │  tools/list               │                             │
@@ -336,7 +336,7 @@ LLM Client                  Dynamic-MCP                 Upstream Server
 
 ### Tool Execution Flow
 
-```
+```text
 LLM Client                  Dynamic-MCP                 Upstream Server
     │                           │                             │
     │  call: call_dynamic_tool  │                             │
@@ -359,7 +359,7 @@ LLM Client                  Dynamic-MCP                 Upstream Server
 
 ### Resources API Flow
 
-```
+```text
 LLM Client                  Dynamic-MCP                 Upstream Server
     │                           │                             │
     │  resources/list           │                             │
@@ -389,7 +389,7 @@ LLM Client                  Dynamic-MCP                 Upstream Server
 
 ### Prompts API Flow
 
-```
+```text
 LLM Client                  Dynamic-MCP                 Upstream Server
     │                           │                             │
     │  prompts/list             │                             │

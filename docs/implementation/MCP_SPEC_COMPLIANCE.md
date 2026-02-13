@@ -1,71 +1,71 @@
 # MCP Specification Compliance Audit
 
-> **Last Updated**: January 10, 2026
-> **Protocol Version (Server → LLM Clients)**: `2024-11-05` (src/server.rs)
-> **Protocol Version (Client → Upstream Servers)**: Tries `2025-06-18`, adapts to server version (src/proxy/client.rs)
-> **Spec Reference**: https://modelcontextprotocol.io/specification/2025-11-25 (documentation reference)
-> **dynamic-mcp Version**: 1.3.0
-> **Overall Compliance**: 98.8% (85/86 MUST-have requirements)
-> **Spec Coverage**: All MCP MUST-have requirements implemented (except intentional `initialized` notification omission for stdio stability)
-> **Note**: All MUST-have MCP features fully implemented. Known gaps documented in Section 1.
+> __Last Updated__: January 10, 2026
+> __Protocol Version (Server → LLM Clients)__: `2024-11-05` (src/server.rs)
+> __Protocol Version (Client → Upstream Servers)__: Tries `2025-06-18`, adapts to server version (src/proxy/client.rs)
+> __Spec Reference__: https://modelcontextprotocol.io/specification/2025-11-25 (documentation reference)
+> __dynamic-mcp Version__: 1.3.0
+> __Overall Compliance__: 98.8% (85/86 MUST-have requirements)
+> __Spec Coverage__: All MCP MUST-have requirements implemented (except intentional `initialized` notification omission for stdio stability)
+> __Note__: All MUST-have MCP features fully implemented. Known gaps documented in Section 1.
 
 ## Executive Summary
 
 Comprehensive audit of dynamic-mcp against the [official MCP specification v2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25) from Anthropic/modelcontextprotocol.
 
-**Key Findings**:
+__Key Findings__:
 
-- ✅ **stdio transport**: 100% spec-compliant
-- ✅ **Protocol version negotiation**: Intelligent fallback (tries latest → adapts to upstream server requirements)
-- ⚠️ **JSON-RPC protocol**: 88.9% compliant (missing `initialized` notification - intentional)
-- ✅ **HTTP/SSE transport**: 100% compliant (all MUST-have requirements implemented)
-- ✅ **Tools API**: 100% compliant (list, call, error handling)
-- ✅ **Prompts API**: 100% compliant (list, get with all content types)
-- ✅ **Resources API**: 100% compliant (list, read, templates, size field, annotations)
-- ✅ **OAuth security**: Strong (PKCE, token refresh, OAuth 2.1 resource parameter)
-- ✅ **Error recovery**: Best-in-class (retry, backoff, periodic reconnection)
+- ✅ __stdio transport__: 100% spec-compliant
+- ✅ __Protocol version negotiation__: Intelligent fallback (tries latest → adapts to upstream server requirements)
+- ⚠️ __JSON-RPC protocol__: 88.9% compliant (missing `initialized` notification - intentional)
+- ✅ __HTTP/SSE transport__: 100% compliant (all MUST-have requirements implemented)
+- ✅ __Tools API__: 100% compliant (list, call, error handling)
+- ✅ __Prompts API__: 100% compliant (list, get with all content types)
+- ✅ __Resources API__: 100% compliant (list, read, templates, size field, annotations)
+- ✅ __OAuth security__: Strong (PKCE, token refresh, OAuth 2.1 resource parameter)
+- ✅ __Error recovery__: Best-in-class (retry, backoff, periodic reconnection)
 
-**Production Readiness**:
+__Production Readiness__:
 
-- ✅ **stdio transport**: Production-ready
-- ✅ **HTTP/SSE transport**: Production-ready
-- ✅ **Tools/Prompts/Resources**: Production-ready (with known limitations documented)
+- ✅ __stdio transport__: Production-ready
+- ✅ __HTTP/SSE transport__: Production-ready
+- ✅ __Tools/Prompts/Resources__: Production-ready (with known limitations documented)
 
 ______________________________________________________________________
 
 ## 🔴 Section 1: Known Limitations (Intentional Only)
 
-### 1.1 `initialized` Notification — ⚠️ **INTENTIONALLY NOT IMPLEMENTED**
+### 1.1 `initialized` Notification — ⚠️ __INTENTIONALLY NOT IMPLEMENTED__ {#11-initialized-notification----intentionally-not-implemented}
 
-**Status**: ❌ **NOT IMPLEMENTED** (Intentional)
-**Priority**: 🟡 **MEDIUM** (Spec violation, but necessary for stdio transport stability)
-**Spec Requirement**: Client MUST send `initialized` notification after receiving `initialize` response
-**Spec Version**: All versions (requirement unchanged across protocol versions)
+__Status__: ❌ __NOT IMPLEMENTED__ (Intentional)
+__Priority__: 🟡 __MEDIUM__ (Spec violation, but necessary for stdio transport stability)
+__Spec Requirement__: Client MUST send `initialized` notification after receiving `initialize` response
+__Spec Version__: All versions (requirement unchanged across protocol versions)
 
-**Official Spec Quote**:
+__Official Spec Quote__:
 
 > "After receiving the initialize response, the client MUST send an initialized notification to indicate that initialization is complete."
 
-**Why NOT Implemented**:
+__Why NOT Implemented__:
 
-**CRITICAL ISSUE**: The JSON-RPC notification format (with `"id": null`) causes **deadlock with stdio transport**.
+__CRITICAL ISSUE__: The JSON-RPC notification format (with `"id": null`) causes __deadlock with stdio transport__.
 
-**Problem Explanation**:
+__Problem Explanation__:
 
 1. JSON-RPC notifications have `"id": null` (per spec)
-2. Per JSON-RPC 2.0 spec: notifications are "fire-and-forget" - **no response expected**
-3. **BUT**: Our stdio transport's `send_request()` method in `transport.rs` blocks waiting for a response
+2. Per JSON-RPC 2.0 spec: notifications are "fire-and-forget" - __no response expected__
+3. __BUT__: Our stdio transport's `send_request()` method in `transport.rs` blocks waiting for a response
 4. When we send the notification, we wait forever for a response that will never come
 5. This causes complete hang - no tools are loaded, Cursor shows 0 tools
 
-**Real-World Impact**:
+__Real-World Impact__:
 
 - ✅ Works fine with most MCP servers (they're lenient)
 - ✅ All tested servers (context7, gh-grep, exa, utcp) work without it
 - ❌ May break with strict MCP servers that require full initialization handshake
 - ❌ Violates MCP spec technically, but necessary for practical operation
 
-**Decision**: **DO NOT IMPLEMENT** until proven necessary by real server failures.
+__Decision__: __DO NOT IMPLEMENT__ until proven necessary by real server failures.
 
 ______________________________________________________________________
 
@@ -73,36 +73,36 @@ ______________________________________________________________________
 
 ### 2.1 Resource Templates API ✅
 
-**Status**: ✅ **FULLY IMPLEMENTED** (v1.3.0)
-**Spec Requirement**: MUST implement `resources/templates/list` with URI template support
+__Status__: ✅ __FULLY IMPLEMENTED__ (v1.3.0)
+__Spec Requirement__: MUST implement `resources/templates/list` with URI template support
 
-**Implementation Details**:
+__Implementation Details__:
 
-1. **ResourceTemplate type** in `src/proxy/types.rs`
+1. __ResourceTemplate type__ in `src/proxy/types.rs`
 
    - Required fields: `uriTemplate`, `name`
    - Optional fields: `description`, `mimeType`, `annotations`, `icons`
    - Full serialization support with proper field naming
 
-2. **Proxy handler** in `src/proxy/client.rs`
+2. __Proxy handler__ in `src/proxy/client.rs`
 
    - `proxy_resources_templates_list()` method
    - Proper error handling and context propagation
    - Supports group-based upstream server selection
 
-3. **Server handler** in `src/server.rs`
+3. __Server handler__ in `src/server.rs`
 
    - `handle_resources_templates_list()` method
    - Routes to correct upstream group
    - Proper JSON-RPC error codes (-32602, -32603)
 
-4. **Tests**: Unit + integration tests
+4. __Tests__: Unit + integration tests
 
    - `test_resource_template_serialization` - Full template with all fields
    - `test_resource_template_minimal` - Minimal required fields only
    - Integration tests validate response formats
 
-**Features**:
+__Features__:
 
 - ✅ RFC 6570 URI template support
 - ✅ Resource annotations (audience, priority, lastModified)
@@ -110,7 +110,7 @@ ______________________________________________________________________
 - ✅ Cursor-based pagination (passed through)
 - ✅ Proper error handling
 
-**Impact**:
+__Impact__:
 
 - Clients can now discover parameterized resources
 - Servers can expose dynamic resource templates
@@ -120,10 +120,10 @@ ______________________________________________________________________
 
 ### 2.2 Resource `size` Field ✅
 
-**Status**: ✅ **FULLY IMPLEMENTED** (v1.3.0)
-**Spec Requirement**: SHOULD include `size` field in Resource list entries
+__Status__: ✅ __FULLY IMPLEMENTED__ (v1.3.0)
+__Spec Requirement__: SHOULD include `size` field in Resource list entries
 
-**Implementation** (src/proxy/types.rs):
+__Implementation__ (src/proxy/types.rs):
 
 ```rust
 pub struct Resource {
@@ -138,20 +138,20 @@ pub struct Resource {
 }
 ```
 
-**Features**:
+__Features__:
 
 - ✅ Optional u64 field for resource size in bytes
 - ✅ Proper JSON serialization (skips if None)
 - ✅ Works with all resource types
 - ✅ Non-breaking addition (optional field)
 
-**Tests**:
+__Tests__:
 
 - `test_resource_with_size` - Size field serialization
 - `test_resource_optional_fields_omitted` - Size field omission
 - Integration tests validate size in list responses
 
-**Impact**:
+__Impact__:
 
 - Hosts can estimate context window usage
 - UI can display file sizes to users
@@ -161,72 +161,72 @@ ______________________________________________________________________
 
 ### 2.3 Protocol Version Negotiation ✅
 
-**Status**: ✅ **FULLY COMPLIANT** (v1.2.1+)
-**Protocol Version Strategy**: Tries `2025-06-18`, adapts to server version
-**Implementation** (src/proxy/client.rs):
+__Status__: ✅ __FULLY COMPLIANT__ (v1.2.1+)
+__Protocol Version Strategy__: Tries `2025-06-18`, adapts to server version
+__Implementation__ (src/proxy/client.rs):
 
 - Client sends `2025-06-18` in initial initialize request
 - If server reports a different version, retries with server's version
 - Per-connection version tracking for HTTP/SSE
 
-**Design Rationale**:
+__Design Rationale__:
 
-- **Proxy acts as intermediary**: Must support both old and new clients/servers
-- **Maximum compatibility**: Works with cutting-edge and legacy servers
-- **No version lock-in**: Each upstream connection negotiates independently
+- __Proxy acts as intermediary__: Must support both old and new clients/servers
+- __Maximum compatibility__: Works with cutting-edge and legacy servers
+- __No version lock-in__: Each upstream connection negotiates independently
 
 ______________________________________________________________________
 
 ### 2.4 MCP-Protocol-Version Header ✅
 
-**Status**: ✅ **IMPLEMENTED** (v1.2.1+)
-**Spec Requirement**: MUST send on all HTTP POST requests
+__Status__: ✅ __IMPLEMENTED__ (v1.2.1+)
+__Spec Requirement__: MUST send on all HTTP POST requests
 
-**Implementation** (src/proxy/transport.rs):
+__Implementation__ (src/proxy/transport.rs):
 
 ```rust
 .header("MCP-Protocol-Version", protocol_ver);  // Uses negotiated version
 ```
 
-**Impact**: Full compatibility with MCP servers requiring protocol version header.
+__Impact__: Full compatibility with MCP servers requiring protocol version header.
 
 ______________________________________________________________________
 
 ### 2.5 MCP-Session-Id Header ✅
 
-**Status**: ✅ **IMPLEMENTED** (v1.2.1+)
-**Spec Requirement**: REQUIRED for stateful HTTP/SSE servers
+__Status__: ✅ __IMPLEMENTED__ (v1.2.1+)
+__Spec Requirement__: REQUIRED for stateful HTTP/SSE servers
 
-**Implementation** (src/proxy/transport.rs):
+__Implementation__ (src/proxy/transport.rs):
 
 - UUID per connection
 - Per-transport session tracking (Arc\<Mutex\<>>)
 - Included on all HTTP/SSE requests after init
 
-**Impact**: Full session support for stateful MCP servers.
+__Impact__: Full session support for stateful MCP servers.
 
 ______________________________________________________________________
 
 ### 2.6 Tools API ✅
 
-**Status**: ✅ **100% COMPLIANT** (v1.2.1+)
-**Spec Version**: 2025-11-25
+__Status__: ✅ __100% COMPLIANT__ (v1.2.1+)
+__Spec Version__: 2025-11-25
 
-**Implemented Methods**:
+__Implemented Methods__:
 
 - ✅ `tools/list` - Proxy with pagination support (cursor)
 - ✅ `tools/call` - Proxy with full argument support
 - ✅ Tool error format - Uses `isError: true` flag (not JSON-RPC errors)
 - ✅ Capability declaration - `tools` capability in initialize response
 
-**Features**:
+__Features__:
 
 - ✅ Tool metadata (name, description, inputSchema)
 - ✅ Multiple content types in results (text, image, audio, resource)
 - ✅ Embedded resources in tool results
 - ✅ Proper error handling (JSON-RPC codes -32601, -32602, -32603)
 
-**Implementation Files**:
+__Implementation Files__:
 
 - `src/proxy/client.rs` - Tool proxying
 - `src/server.rs` - Tool handlers
@@ -236,10 +236,10 @@ ______________________________________________________________________
 
 ### 2.7 Prompts API ✅
 
-**Status**: ✅ **100% COMPLIANT** (v1.3.0+)
-**Spec Version**: 2025-11-25
+__Status__: ✅ __100% COMPLIANT__ (v1.3.0+)
+__Spec Version__: 2025-11-25
 
-**Implemented Methods**:
+__Implemented Methods__:
 
 - ✅ `prompts/list` - Proxy with pagination support (cursor)
 - ✅ `prompts/get` - Proxy with argument support
@@ -247,20 +247,20 @@ ______________________________________________________________________
 - ✅ Multiple content types (text, image, audio, resource)
 - ✅ Proper error handling
 
-**Features**:
+__Features__:
 
 - ✅ PromptArgument with required/optional support
 - ✅ PromptMessage with role-based content
 - ✅ Embedded resources in prompts
 - ✅ Capability declaration (`prompts` capability)
 
-**Implementation Files**:
+__Implementation Files__:
 
 - `src/proxy/client.rs` - Prompt proxying
 - `src/server.rs` - Prompt handlers
 - `src/proxy/types.rs` - Prompt types
 
-**Testing**:
+__Testing__:
 
 - 8 unit tests for Prompt types
 - 8 unit tests for server handler methods
@@ -271,77 +271,77 @@ ______________________________________________________________________
 
 ### 2.8 Resources API — Complete ✅
 
-**Status**: ✅ **100% COMPLIANT** (v1.2.1+, all core features)
-**Spec Version**: 2025-11-25
+__Status__: ✅ __100% COMPLIANT__ (v1.2.1+, all core features)
+__Spec Version__: 2025-11-25
 
-**Implemented Features**:
+__Implemented Features__:
 
-01. ✅ **`resources/list`** (v1.3.0+)
+01. ✅ __`resources/list`__ (v1.3.0+)
 
     - Cursor-based pagination support
     - Resource metadata (uri, name, title, description, mimeType, size, icons, annotations)
     - Proper error handling (-32002 for not found)
 
-02. ✅ **`resources/read`** (v1.3.0+)
+02. ✅ __`resources/read`__ (v1.3.0+)
 
     - Text and binary (blob) content support
     - Resource annotations in response
     - Proper error handling
 
-03. ✅ **`resources/templates/list`** (v1.3.0)
+03. ✅ __`resources/templates/list`__ (v1.3.0)
 
     - RFC 6570 URI template support
     - Template metadata (name, description, mimeType, annotations, icons)
     - Proper error handling
 
-04. ✅ **Resource `size` field** (v1.3.0)
+04. ✅ __Resource `size` field__ (v1.3.0)
 
     - Optional u64 field for resource size in bytes
     - Used for context window estimation
     - Non-breaking addition
 
-05. ✅ **Resource annotations** (v1.3.0+)
+05. ✅ __Resource annotations__ (v1.3.0+)
 
     - `audience` field (string array)
     - `priority` field (float)
     - `lastModified` field (RFC 3339 timestamp)
     - Now available on ResourceTemplate as well
 
-06. ✅ **Resource icons** (v1.3.0+)
+06. ✅ __Resource icons__ (v1.3.0+)
 
     - Icon URIs with optional MIME type
     - Optional sizes array
     - Supported on both Resource and ResourceTemplate
 
-07. ✅ **Capability declaration** (v1.3.0+)
+07. ✅ __Capability declaration__ (v1.3.0+)
 
     - `resources` capability declared
     - No `subscribe` or `listChanged` flags (not applicable to proxy)
 
-08. ✅ **Content types** (v1.3.0+)
+08. ✅ __Content types__ (v1.3.0+)
 
     - Text content (mime + text field)
     - Binary content (mime + blob field, base64-encoded)
 
-09. ❌ **Subscriptions API** (NOT APPLICABLE - v1.3.0)
+09. ❌ __Subscriptions API__ (NOT APPLICABLE - v1.3.0)
 
     - Reason: Proxy cannot deliver notifications to clients
 
-10. ❌ **List changed notifications** (NOT APPLICABLE - v1.3.0)
+10. ❌ __List changed notifications__ (NOT APPLICABLE - v1.3.0)
 
     - Reason: Proxy cannot push notifications on stdio transport
 
-**Architectural Limitation (Proxy Design)**:
+__Architectural Limitation (Proxy Design)__:
 
-1. ⏳ **Server-to-client notifications** (NOT APPLICABLE)
-   - **Reason**: dynamic-mcp is a request-response proxy, not an event-driven server
+1. ⏳ __Server-to-client notifications__ (NOT APPLICABLE)
+   - __Reason__: dynamic-mcp is a request-response proxy, not an event-driven server
    - Server-to-client push requires persistent connections with bidirectional streaming
    - stdio transport (client↔proxy) is request-response only
    - Upstream servers may send notifications to proxy, but proxy cannot forward them to clients
-   - **This is not a bug**: It's a fundamental architectural constraint of proxies
-   - **Client guidance**: Use polling or implement WebSocket push (future enhancement)
+   - __This is not a bug__: It's a fundamental architectural constraint of proxies
+   - __Client guidance__: Use polling or implement WebSocket push (future enhancement)
 
-**Implementation Files**:
+__Implementation Files__:
 
 - `src/proxy/client.rs` - Resource proxying (list, read, templates)
 - `src/server.rs` - Resource handlers
@@ -352,12 +352,12 @@ ______________________________________________________________________
 
 ### 2.9 Error Handling ✅
 
-**Status**: ✅ **100% COMPLIANT**
-**Spec Version**: 2025-11-25
+__Status__: ✅ __100% COMPLIANT__
+__Spec Version__: 2025-11-25
 
-**Implemented**:
+__Implemented__:
 
-1. ✅ **JSON-RPC error codes**
+1. ✅ __JSON-RPC error codes__
 
    - `-32700` PARSE_ERROR
    - `-32600` INVALID_REQUEST
@@ -365,24 +365,24 @@ ______________________________________________________________________
    - `-32602` INVALID_PARAMS
    - `-32603` INTERNAL_ERROR
 
-2. ✅ **Tool execution errors**
+2. ✅ __Tool execution errors__
 
    - `isError: true` flag in results
    - Enables LLM self-correction
    - Proper content format
 
-3. ✅ **Protocol errors**
+3. ✅ __Protocol errors__
 
    - Standard JSON-RPC error responses
    - Appropriate error codes per operation
 
-4. ✅ **Retry and recovery**
+4. ✅ __Retry and recovery__
 
    - Exponential backoff (3 attempts: 2s, 4s, 8s)
    - Periodic reconnection (every 30s for failed servers)
    - Graceful degradation
 
-**Implementation Files**:
+__Implementation Files__:
 
 - `src/server.rs` - Error response construction
 - `src/proxy/client.rs` - Retry and recovery logic
@@ -391,10 +391,10 @@ ______________________________________________________________________
 
 ### 2.10 OAuth Security ✅
 
-**Status**: ✅ **100% COMPLIANT**
-**Spec Version**: 2025-11-25
+__Status__: ✅ __100% COMPLIANT__
+__Spec Version__: 2025-11-25
 
-**Features**:
+__Features__:
 
 - ✅ OAuth 2.0 PKCE flow (S256 challenge hash)
 - ✅ Automatic token discovery (`/.well-known/oauth-authorization-server`)
@@ -403,7 +403,7 @@ ______________________________________________________________________
 - ✅ Token rotation support (RFC 6749)
 - ✅ OAuth 2.1 resource parameter (RFC 8707)
 
-**Implementation**:
+__Implementation__:
 
 - `src/auth/oauth_client.rs` - Full OAuth flow
 - Token stored securely per server
@@ -412,32 +412,32 @@ ______________________________________________________________________
 
 ### 2.11 Transport Mechanisms ✅
 
-**Status**: ✅ **100% COMPLIANT**
-**Spec Version**: 2025-11-25
+__Status__: ✅ __100% COMPLIANT__
+__Spec Version__: 2025-11-25
 
-**Supported Transports**:
+__Supported Transports__:
 
-1. ✅ **stdio**
+1. ✅ __stdio__
 
    - Line-delimited JSON messages
    - Bidirectional communication
    - Process group management
    - 100% spec-compliant
 
-2. ✅ **HTTP**
+2. ✅ __HTTP__
 
    - POST requests with JSON body
    - Proper headers (Content-Type, Accept, MCP-Protocol-Version, MCP-Session-Id)
    - Custom headers forwarding
    - OAuth Bearer token injection
 
-3. ✅ **SSE (Server-Sent Events)**
+3. ✅ __SSE (Server-Sent Events)__
 
    - Event stream parsing
    - Last-Event-ID tracking and resumption
    - Proper headers and session management
 
-**Implementation**:
+__Implementation__:
 
 - `src/proxy/transport.rs` - All transports
 
@@ -449,100 +449,100 @@ ______________________________________________________________________
 
 | Requirement                                     | Status | Location     | Notes                   |
 | ----------------------------------------------- | ------ | ------------ | ----------------------- |
-| **HTTP POST method**                            | ✅     | transport.rs | Correct                 |
-| **Content-Type: application/json**              | ✅     | transport.rs | Correct                 |
-| **Accept: application/json, text/event-stream** | ✅     | transport.rs | Correct                 |
-| **MCP-Protocol-Version header**                 | ✅     | transport.rs | Uses negotiated version |
-| **MCP-Session-Id header**                       | ✅     | transport.rs | UUID per connection     |
-| **Custom headers forwarded**                    | ✅     | transport.rs | Correct                 |
-| **OAuth Authorization header**                  | ✅     | transport.rs | Bearer token            |
-| **HTTP status code handling**                   | ✅     | transport.rs | Correct                 |
-| **SSE format parsing**                          | ✅     | transport.rs | Extracts event ID       |
-| **stdio line-delimited JSON**                   | ✅     | transport.rs | Correct                 |
-| **stdio bidirectional**                         | ✅     | transport.rs | Correct                 |
-| **Timeout handling**                            | ✅     | client.rs    | 5s per operation        |
-| **Last-Event-ID support**                       | ✅     | transport.rs | Tracks and sends        |
+| __HTTP POST method__                            | ✅     | transport.rs | Correct                 |
+| __Content-Type: application/json__              | ✅     | transport.rs | Correct                 |
+| __Accept: application/json, text/event-stream__ | ✅     | transport.rs | Correct                 |
+| __MCP-Protocol-Version header__                 | ✅     | transport.rs | Uses negotiated version |
+| __MCP-Session-Id header__                       | ✅     | transport.rs | UUID per connection     |
+| __Custom headers forwarded__                    | ✅     | transport.rs | Correct                 |
+| __OAuth Authorization header__                  | ✅     | transport.rs | Bearer token            |
+| __HTTP status code handling__                   | ✅     | transport.rs | Correct                 |
+| __SSE format parsing__                          | ✅     | transport.rs | Extracts event ID       |
+| __stdio line-delimited JSON__                   | ✅     | transport.rs | Correct                 |
+| __stdio bidirectional__                         | ✅     | transport.rs | Correct                 |
+| __Timeout handling__                            | ✅     | client.rs    | 5s per operation        |
+| __Last-Event-ID support__                       | ✅     | transport.rs | Tracks and sends        |
 
 ### JSON-RPC Protocol (9 requirements)
 
 | Requirement                     | Status | Location  | Notes   |
 | ------------------------------- | ------ | --------- | ------- |
-| **jsonrpc: "2.0"**              | ✅     | types.rs  | Correct |
-| **id field (request/response)** | ✅     | types.rs  | Correct |
-| **method field (request)**      | ✅     | types.rs  | Correct |
-| **params field (optional)**     | ✅     | types.rs  | Correct |
-| **result field (response)**     | ✅     | types.rs  | Correct |
-| **error field (response)**      | ✅     | types.rs  | Correct |
-| **Error code/message format**   | ✅     | types.rs  | Correct |
-| **Notification (id=null)**      | ✅     | server.rs | Correct |
+| __jsonrpc: "2.0"__              | ✅     | types.rs  | Correct |
+| __id field (request/response)__ | ✅     | types.rs  | Correct |
+| __method field (request)__      | ✅     | types.rs  | Correct |
+| __params field (optional)__     | ✅     | types.rs  | Correct |
+| __result field (response)__     | ✅     | types.rs  | Correct |
+| __error field (response)__      | ✅     | types.rs  | Correct |
+| __Error code/message format__   | ✅     | types.rs  | Correct |
+| __Notification (id=null)__      | ✅     | server.rs | Correct |
 
 ### Tools API (12 requirements)
 
 | Requirement                | Status | Location      | Notes                 |
 | -------------------------- | ------ | ------------- | --------------------- |
-| **tools/list request**     | ✅     | server.rs     | Handled               |
-| **tools/list response**    | ✅     | server.rs     | Correct               |
-| **tools/call request**     | ✅     | server.rs     | Handled               |
-| **tools/call response**    | ✅     | server.rs     | isError flag (v1.2.1) |
-| **Tool name field**        | ✅     | types.rs      | Correct               |
-| **Tool description field** | ✅     | types.rs      | Optional, correct     |
-| **inputSchema format**     | ✅     | types.rs      | Correct               |
-| **Pagination support**     | ✅     | client.rs     | Cursor support        |
-| **Error format**           | ✅     | server.rs     | JSON-RPC errors       |
-| **Tool execution errors**  | ✅     | server.rs     | isError flag          |
-| **Multiple content types** | ✅     | All supported | Correct               |
-| **Capability declaration** | ✅     | server.rs     | Correct               |
+| __tools/list request__     | ✅     | server.rs     | Handled               |
+| __tools/list response__    | ✅     | server.rs     | Correct               |
+| __tools/call request__     | ✅     | server.rs     | Handled               |
+| __tools/call response__    | ✅     | server.rs     | isError flag (v1.2.1) |
+| __Tool name field__        | ✅     | types.rs      | Correct               |
+| __Tool description field__ | ✅     | types.rs      | Optional, correct     |
+| __inputSchema format__     | ✅     | types.rs      | Correct               |
+| __Pagination support__     | ✅     | client.rs     | Cursor support        |
+| __Error format__           | ✅     | server.rs     | JSON-RPC errors       |
+| __Tool execution errors__  | ✅     | server.rs     | isError flag          |
+| __Multiple content types__ | ✅     | All supported | Correct               |
+| __Capability declaration__ | ✅     | server.rs     | Correct               |
 
 ### Prompts API (11 requirements)
 
 | Requirement                | Status | Location  | Notes                        |
 | -------------------------- | ------ | --------- | ---------------------------- |
-| **prompts/list request**   | ✅     | server.rs | Handled (v1.3.0)             |
-| **prompts/list response**  | ✅     | server.rs | Correct (v1.3.0)             |
-| **prompts/get request**    | ✅     | server.rs | Handled (v1.3.0)             |
-| **prompts/get response**   | ✅     | server.rs | Correct (v1.3.0)             |
-| **Prompt name field**      | ✅     | types.rs  | Correct                      |
-| **Prompt description**     | ✅     | types.rs  | Optional, correct            |
-| **Prompt arguments**       | ✅     | types.rs  | Array with required field    |
-| **PromptMessage role**     | ✅     | types.rs  | user/assistant               |
-| **Content types**          | ✅     | types.rs  | text, image, audio, resource |
-| **Pagination support**     | ✅     | client.rs | Cursor support               |
-| **Capability declaration** | ✅     | server.rs | Correct                      |
+| __prompts/list request__   | ✅     | server.rs | Handled (v1.3.0)             |
+| __prompts/list response__  | ✅     | server.rs | Correct (v1.3.0)             |
+| __prompts/get request__    | ✅     | server.rs | Handled (v1.3.0)             |
+| __prompts/get response__   | ✅     | server.rs | Correct (v1.3.0)             |
+| __Prompt name field__      | ✅     | types.rs  | Correct                      |
+| __Prompt description__     | ✅     | types.rs  | Optional, correct            |
+| __Prompt arguments__       | ✅     | types.rs  | Array with required field    |
+| __PromptMessage role__     | ✅     | types.rs  | user/assistant               |
+| __Content types__          | ✅     | types.rs  | text, image, audio, resource |
+| __Pagination support__     | ✅     | client.rs | Cursor support               |
+| __Capability declaration__ | ✅     | server.rs | Correct                      |
 
 ### Resources API (16 requirements - all MUST-have implemented)
 
 | Requirement                      | Status | Location  | Notes                  |
 | -------------------------------- | ------ | --------- | ---------------------- |
-| **resources/list request**       | ✅     | server.rs | Handled (v1.3.0)       |
-| **resources/list response**      | ✅     | server.rs | Correct (v1.3.0)       |
-| **resources/read request**       | ✅     | server.rs | Handled (v1.3.0)       |
-| **resources/read response**      | ✅     | server.rs | Correct (v1.3.0)       |
-| **resources/templates/list**     | ✅     | server.rs | Implemented (v1.3.0)   |
-| **Resource uri field**           | ✅     | types.rs  | Correct                |
-| **Resource name field**          | ✅     | types.rs  | Correct                |
-| **Resource size field**          | ✅     | types.rs  | Implemented (v1.3.0)   |
-| **Resource mimeType**            | ✅     | types.rs  | Optional, correct      |
-| **Resource icons**               | ✅     | types.rs  | Correct (v1.3.0)       |
-| **Resource annotations**         | ✅     | types.rs  | Correct (v1.3.0)       |
-| **ResourceTemplate uriTemplate** | ✅     | types.rs  | Implemented (v1.3.0)   |
-| **ResourceTemplate annotations** | ✅     | types.rs  | Implemented (v1.3.0)   |
-| **TextResourceContents**         | ✅     | types.rs  | text field             |
-| **BlobResourceContents**         | ✅     | types.rs  | blob field             |
-| **Error codes**                  | ✅     | server.rs | -32002, -32602, -32603 |
+| __resources/list request__       | ✅     | server.rs | Handled (v1.3.0)       |
+| __resources/list response__      | ✅     | server.rs | Correct (v1.3.0)       |
+| __resources/read request__       | ✅     | server.rs | Handled (v1.3.0)       |
+| __resources/read response__      | ✅     | server.rs | Correct (v1.3.0)       |
+| __resources/templates/list__     | ✅     | server.rs | Implemented (v1.3.0)   |
+| __Resource uri field__           | ✅     | types.rs  | Correct                |
+| __Resource name field__          | ✅     | types.rs  | Correct                |
+| __Resource size field__          | ✅     | types.rs  | Implemented (v1.3.0)   |
+| __Resource mimeType__            | ✅     | types.rs  | Optional, correct      |
+| __Resource icons__               | ✅     | types.rs  | Correct (v1.3.0)       |
+| __Resource annotations__         | ✅     | types.rs  | Correct (v1.3.0)       |
+| __ResourceTemplate uriTemplate__ | ✅     | types.rs  | Implemented (v1.3.0)   |
+| __ResourceTemplate annotations__ | ✅     | types.rs  | Implemented (v1.3.0)   |
+| __TextResourceContents__         | ✅     | types.rs  | text field             |
+| __BlobResourceContents__         | ✅     | types.rs  | blob field             |
+| __Error codes__                  | ✅     | server.rs | -32002, -32602, -32603 |
 
-**⚠️ IMPORTANT - MCP Spec Compliance Note**:
+__⚠️ IMPORTANT - MCP Spec Compliance Note__:
 
-All `resources/*` and `prompts/*` endpoints fully comply with the MCP specification and **do NOT require any extra parameters** from the proxy:
+All `resources/*` and `prompts/*` endpoints fully comply with the MCP specification and __do NOT require any extra parameters__ from the proxy:
 
-- **`resources/list`**: Optional `cursor` parameter per spec. Proxy accepts optional `group` parameter for direct routing, but **when omitted, aggregates resources from all groups automatically**. ✅ **MCP compliant**: Works without any parameters.
+- __`resources/list`__: Optional `cursor` parameter per spec. Proxy accepts optional `group` parameter for direct routing, but __when omitted, aggregates resources from all groups automatically__. ✅ __MCP compliant__: Works without any parameters.
 
-- **`resources/read`**: Requires only `uri` parameter per spec. Proxy **auto-discovers the group** by searching through all upstream servers to find which one has the resource. ✅ **MCP compliant**: No group parameter needed.
+- __`resources/read`__: Requires only `uri` parameter per spec. Proxy __auto-discovers the group__ by searching through all upstream servers to find which one has the resource. ✅ __MCP compliant__: No group parameter needed.
 
-- **`prompts/list`**: Optional `cursor` parameter per spec. Proxy accepts optional `group` parameter for direct routing, but **when omitted, aggregates prompts from all groups automatically**. ✅ **MCP compliant**: Works without any parameters.
+- __`prompts/list`__: Optional `cursor` parameter per spec. Proxy accepts optional `group` parameter for direct routing, but __when omitted, aggregates prompts from all groups automatically__. ✅ __MCP compliant__: Works without any parameters.
 
-- **`prompts/get`**: Requires only `name` parameter (and optional `arguments`) per spec. Proxy **auto-discovers the group** by searching through all upstream servers to find which one has the prompt. ✅ **MCP compliant**: No group parameter needed.
+- __`prompts/get`__: Requires only `name` parameter (and optional `arguments`) per spec. Proxy __auto-discovers the group__ by searching through all upstream servers to find which one has the prompt. ✅ __MCP compliant__: No group parameter needed.
 
-**Design Philosophy**: The optional `group` parameter is a **performance optimization** for clients that know the group structure, but all endpoints work correctly without it by auto-discovering the appropriate upstream server. This maintains full MCP spec compliance while offering optional direct routing.
+__Design Philosophy__: The optional `group` parameter is a __performance optimization__ for clients that know the group structure, but all endpoints work correctly without it by auto-discovering the appropriate upstream server. This maintains full MCP spec compliance while offering optional direct routing.
 
 ______________________________________________________________________
 
@@ -597,27 +597,27 @@ ______________________________________________________________________
 
 ## 📈 Compliance Score Breakdown
 
-**Overall**: 98.8% (85/86 MUST-have requirements, proxy-applicable features only)
+__Overall__: 98.8% (85/86 MUST-have requirements, proxy-applicable features only)
 
 | Category               | Score                        | Status                                                                  |
 | ---------------------- | ---------------------------- | ----------------------------------------------------------------------- |
-| **stdio transport**    | 100% (11/11)                 | ✅ Excellent                                                            |
-| **HTTP/SSE transport** | 100% (13/13)                 | ✅ Excellent                                                            |
-| **JSON-RPC protocol**  | 88.9% (8/9)                  | ⚠️ Missing `initialized` (intentional)                                  |
-| **Tools API**          | 100% (12/12)                 | ✅ Excellent                                                            |
-| **Prompts API**        | 100% (11/11)                 | ✅ Excellent                                                            |
-| **Resources API**      | 100% (16/16)                 | ✅ Excellent                                                            |
-| **Security/OAuth**     | 100% (8/8)                   | ✅ Excellent                                                            |
-| **Error handling**     | 100% (4/4)                   | ✅ Excellent                                                            |
-| **Optional features**  | 100% (proxy-applicable only) | ✅ Resource templates, size field; ❌ Notifications/subscriptions (N/A) |
+| __stdio transport__    | 100% (11/11)                 | ✅ Excellent                                                            |
+| __HTTP/SSE transport__ | 100% (13/13)                 | ✅ Excellent                                                            |
+| __JSON-RPC protocol__  | 88.9% (8/9)                  | ⚠️ Missing `initialized` (intentional)                                  |
+| __Tools API__          | 100% (12/12)                 | ✅ Excellent                                                            |
+| __Prompts API__        | 100% (11/11)                 | ✅ Excellent                                                            |
+| __Resources API__      | 100% (16/16)                 | ✅ Excellent                                                            |
+| __Security/OAuth__     | 100% (8/8)                   | ✅ Excellent                                                            |
+| __Error handling__     | 100% (4/4)                   | ✅ Excellent                                                            |
+| __Optional features__  | 100% (proxy-applicable only) | ✅ Resource templates, size field; ❌ Notifications/subscriptions (N/A) |
 
-**MUST-have requirements: 85/86 implemented**
+### MUST-have requirements: 85/86 implemented
 
 - ✅ 85 fully compliant (All core features 100%!)
 - ⚠️ 1 intentionally omitted (`initialized` notification - architectural decision for stdio stability)
 - ❌ 0 missing (all spec requirements met!)
 
-**OPTIONAL MCP features: Implemented (Where Applicable)**
+### OPTIONAL MCP features: Implemented (Where Applicable)
 
 - ✅ Resource templates (RFC 6570 URI support) - FULLY WORKING
 - ✅ Resource size field (context estimation) - FULLY WORKING
@@ -641,9 +641,9 @@ ______________________________________________________________________
 
 ### ✅ Production-Ready
 
-**Status**: **PRODUCTION-READY** for all transport types (stdio, HTTP, SSE)
+__Status__: __PRODUCTION-READY__ for all transport types (stdio, HTTP, SSE)
 
-**All Critical Requirements Implemented**:
+__All Critical Requirements Implemented__:
 
 - ✅ All transports fully functional (stdio, HTTP, SSE)
 - ✅ Intelligent protocol version negotiation
@@ -654,16 +654,16 @@ ______________________________________________________________________
 - ✅ OAuth 2.1 with PKCE
 - ✅ Error recovery and retry logic
 
-**Known Limitation** (Low Risk):
+__Known Limitation__ (Low Risk):
 
-- ⚠️ **`initialized` notification**: Intentionally NOT sent (prevents stdio deadlock)
+- ⚠️ __`initialized` notification__: Intentionally NOT sent (prevents stdio deadlock)
   - Impact: Works with all tested servers
   - Risk: May break with hypothetical strict servers
   - Decision: Intentional for stability
 
-**Not Applicable (Proxy Architecture)**:
+__Not Applicable (Proxy Architecture)__:
 
-- ⏳ **Server-to-client notifications** (CANNOT implement)
+- ⏳ __Server-to-client notifications__ (CANNOT implement)
   - Reason: Proxy communicates via stdio (request-response only), not push
   - Impact: Clients must poll `get_dynamic_tools` for schema updates
   - Alternative: Clients can call `resources/subscribe` to express interest, but will not receive pushed notifications
@@ -675,19 +675,19 @@ ______________________________________________________________________
 
 ### Core Documents
 
-- **Main Specification**: https://modelcontextprotocol.io/specification/2025-11-25
-- **Tools**: https://modelcontextprotocol.io/specification/2025-11-25/server/tools
-- **Resources**: https://modelcontextprotocol.io/specification/2025-11-25/server/resources
-- **Prompts**: https://modelcontextprotocol.io/specification/2025-11-25/server/prompts
-- **Transports**: https://modelcontextprotocol.io/specification/2025-11-25/basic/transports
+- __Main Specification__: https://modelcontextprotocol.io/specification/2025-11-25
+- __Tools__: https://modelcontextprotocol.io/specification/2025-11-25/server/tools
+- __Resources__: https://modelcontextprotocol.io/specification/2025-11-25/server/resources
+- __Prompts__: https://modelcontextprotocol.io/specification/2025-11-25/server/prompts
+- __Transports__: https://modelcontextprotocol.io/specification/2025-11-25/basic/transports
 
 ### TypeScript Schema (Source of Truth)
 
-- **GitHub Repository**: https://github.com/modelcontextprotocol/modelcontextprotocol
-- **Latest schema**: https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/2025-11-25/schema.ts
-- **LATEST_PROTOCOL_VERSION**: "2025-11-25" (defined in schema.ts)
-- **Available schema versions**: 2024-11-05, 2025-03-26, 2025-06-18, 2025-11-25, draft
-- **Tagged branch**: https://github.com/modelcontextprotocol/modelcontextprotocol/tree/2025-11-25
+- __GitHub Repository__: https://github.com/modelcontextprotocol/modelcontextprotocol
+- __Latest schema__: https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/2025-11-25/schema.ts
+- __LATEST_PROTOCOL_VERSION__: "2025-11-25" (defined in schema.ts)
+- __Available schema versions__: 2024-11-05, 2025-03-26, 2025-06-18, 2025-11-25, draft
+- __Tagged branch__: https://github.com/modelcontextprotocol/modelcontextprotocol/tree/2025-11-25
 
 ______________________________________________________________________
 
@@ -695,17 +695,17 @@ ______________________________________________________________________
 
 ### Pitfalls Present in dynamic-mcp
 
-1. ❌ **Not sending `initialized` notification**
+1. ❌ __Not sending `initialized` notification__
    - Issue: Causes stdio transport deadlock (intentional)
    - Consequence: May break with strict servers (none found)
 
 ### Pitfalls Avoided
 
-1. ✅ **Accept header includes both MIME types**
-2. ✅ **Notifications have id=null**
-3. ✅ **OAuth PKCE uses S256**
-4. ✅ **OAuth token refresh before expiry**
-5. ✅ **Process group cleanup for stdio**
+1. ✅ __Accept header includes both MIME types__
+2. ✅ __Notifications have id=null__
+3. ✅ __OAuth PKCE uses S256__
+4. ✅ __OAuth token refresh before expiry__
+5. ✅ __Process group cleanup for stdio__
 
 ______________________________________________________________________
 
@@ -713,65 +713,65 @@ ______________________________________________________________________
 
 ### 1. Protocol Version Alignment
 
-**Current State**:
+__Current State__:
 
 - Server reports `2024-11-05` to LLM clients ([`McpServer::handle_initialize`](../../src/server.rs))
 - Client sends `2025-06-18` to upstream servers ([`UpstreamClient::new`](../../src/proxy/client.rs))
 
-**Issue**: Version asymmetry with no documented reasoning
+__Issue__: Version asymmetry with no documented reasoning
 
 - `2024-11-05` is the oldest MCP spec version (initial release)
 - Chosen in initial commit (Jan 6, 2026) and never updated
 - No code comments or documentation explaining the choice
 
-**Possible Reasons** (speculation):
+__Possible Reasons__ (speculation):
 
 - Conservative approach for maximum LLM client compatibility
 - Never updated from initial implementation
 - Intentional backward compatibility strategy
 
-**Improvement Options**:
+__Improvement Options__:
 
-1. **Update server version to `2025-06-18`** for consistency with client side
+1. __Update server version to `2025-06-18`__ for consistency with client side
 
    - Benefit: Symmetric version handling, simpler to understand
    - Risk: May break older LLM clients (Cursor, Claude Desktop) if they require `2024-11-05`
    - Mitigation: Test with major LLM clients first
 
-2. **Implement version negotiation on server side** (like client side does)
+2. __Implement version negotiation on server side__ (like client side does)
 
    - Benefit: Dynamic adaptation to LLM client requirements
    - Effort: Requires protocol version detection from client's initialize request
    - Complexity: More sophisticated initialization logic
 
-3. **Document the reasoning** for using `2024-11-05`
+3. __Document the reasoning__ for using `2024-11-05`
 
    - Benefit: Clarifies intentional design decision
    - Effort: Minimal (add comment in code + document here)
    - Recommended: Do this regardless of which option above is chosen
 
-**Recommendation**: Start with option 3 (document reasoning), then consider option 1 (update to `2025-06-18`) if no compatibility issues are known.
+__Recommendation__: Start with option 3 (document reasoning), then consider option 1 (update to `2025-06-18`) if no compatibility issues are known.
 
 ### 2. Implement `initialized` Notification
 
-**Current State**: Intentionally NOT implemented ([Section 1.1](#11-initialized-notification--%EF%B8%8F-intentionally-not-implemented))
+__Current State__: Intentionally NOT implemented ([Section 1.1](#11-initialized-notification----intentionally-not-implemented))
 
-**Issue**: Causes stdio transport deadlock due to send_request() blocking on fire-and-forget notification
+__Issue__: Causes stdio transport deadlock due to send_request() blocking on fire-and-forget notification
 
-**Improvement Options**:
+__Improvement Options__:
 
-1. **Add separate `send_notification()` method** to transport layer
+1. __Add separate `send_notification()` method__ to transport layer
 
    - Sends JSON-RPC notification without waiting for response
    - Requires: New method in `src/proxy/transport.rs`
    - Benefit: Full spec compliance, no deadlock
 
-2. **Detect notification vs request** in existing send logic
+2. __Detect notification vs request__ in existing send logic
 
    - Check if `id` is null, handle accordingly
    - Less clean than option 1 but requires fewer changes
 
-**Recommendation**: Implement option 1 when time permits. Low priority (works with all tested servers).
+__Recommendation__: Implement option 1 when time permits. Low priority (works with all tested servers).
 
 ______________________________________________________________________
 
@@ -792,12 +792,12 @@ ______________________________________________________________________
 
 ## 📝 Audit Methodology & Implementation Updates
 
-**Initial Audit Date**: January 8, 2026
-**Implementation Date**: January 8, 2026 (same day)
-**Auditor/Developer**: AI Agent (Sisyphus/Claude)
-**Scope**: Complete compliance review + optional features implementation
+__Initial Audit Date__: January 8, 2026
+__Implementation Date__: January 8, 2026 (same day)
+__Auditor/Developer__: AI Agent (Sisyphus/Claude)
+__Scope__: Complete compliance review + optional features implementation
 
-**Initial Audit Process**:
+__Initial Audit Process__:
 
 1. ✅ Retrieved official specification (v2025-11-25, updated from v2025-03-26)
 2. ✅ Analyzed TypeScript schema from GitHub repository (source of truth)
@@ -806,18 +806,18 @@ ______________________________________________________________________
 5. ✅ Identified gaps and intentional omissions
 6. ✅ Verified with code line references
 
-**Schema Version History**:
+__Schema Version History__:
 
-- **2024-11-05**: Initial MCP specification release
-- **2025-03-26**: First major update (previous audit reference)
-- **2025-06-18**: Additional features and refinements
-- **2025-11-25**: Current latest specification (this document now references this version)
+- __2024-11-05__: Initial MCP specification release
+- __2025-03-26__: First major update (previous audit reference)
+- __2025-06-18__: Additional features and refinements
+- __2025-11-25__: Current latest specification (this document now references this version)
 
 ______________________________________________________________________
 
-**Document Version**: 4.1
-**Status**: 98.8% MUST-have compliance (85/86 core features only, no not-applicable features)
-**Last Update**: January 10, 2026 (Updated documentation to reflect current implementation)
-**Architectural Honesty**: Spec strictly documents only proxy-applicable features, no false claims about push notifications
+__Document Version__: 4.1
+__Status__: 98.8% MUST-have compliance (85/86 core features only, no not-applicable features)
+__Last Update__: January 10, 2026 (Updated documentation to reflect current implementation)
+__Architectural Honesty__: Spec strictly documents only proxy-applicable features, no false claims about push notifications
 
 ______________________________________________________________________

@@ -4,10 +4,10 @@ The test suite contains 270+ tests organized into logical layers, each testing a
 
 ## Current Test Status
 
-**Total Tests**: 270 (with optional type field, enabled field, and strict schema validation tests)
+__Total Tests__: 270 (with optional type field, enabled field, and strict schema validation tests)
 
-- **Unit Tests**: 150 (inline in src/ modules, +5 for optional type field)
-- **Integration Tests**: 120
+- __Unit Tests__: 150 (inline in src/ modules, +5 for optional type field)
+- __Integration Tests__: 120
   - CLI Tests: 5
   - Config Tests: 9
   - Features Tests: 5
@@ -15,9 +15,9 @@ The test suite contains 270+ tests organized into logical layers, each testing a
   - Spec Compliance: 71 (Tools: 15, Prompts: 28, Resources: 28)
   - E2E Tests: 11
 
-**Pass Rate**: 100% ✅
+__Pass Rate__: 100% ✅
 
-**Last Updated**: 2026-01-12
+__Last Updated__: 2026-01-12
 
 ______________________________________________________________________
 
@@ -40,11 +40,11 @@ ______________________________________________________________________
 
 | Module            | Files                                  | What They Test                                        |
 | ----------------- | -------------------------------------- | ----------------------------------------------------- |
-| **Server & Core** | `server.rs`, `main.rs`, `watcher.rs`   | MCP protocol handling, CLI args, config watching      |
-| **Config**        | `schema.rs`, `loader.rs`, `env_sub.rs` | Config structures, file loading, env var substitution |
-| **Auth**          | `oauth_client.rs`, `store.rs`          | OAuth2 PKCE flow, token storage                       |
-| **CLI**           | `config_parser.rs`, `tool_detector.rs` | Multi-format parsing, tool detection                  |
-| **Proxy**         | `types.rs`, `transport.rs`             | MCP types, transport creation (stdio/HTTP/SSE)        |
+| __Server & Core__ | `server.rs`, `main.rs`, `watcher.rs`   | MCP protocol handling, CLI args, config watching      |
+| __Config__        | `schema.rs`, `loader.rs`, `env_sub.rs` | Config structures, file loading, env var substitution |
+| __Auth__          | `oauth_client.rs`, `store.rs`          | OAuth2 PKCE flow, token storage                       |
+| __CLI__           | `config_parser.rs`, `tool_detector.rs` | Multi-format parsing, tool detection                  |
+| __Proxy__         | `types.rs`, `transport.rs`             | MCP types, transport creation (stdio/HTTP/SSE)        |
 
 ______________________________________________________________________
 
@@ -52,7 +52,7 @@ ______________________________________________________________________
 
 ### Layer 1: CLI/Binary Tests
 
-**File**: `cli_integration_test.rs` (5 tests)
+__File__: `cli_integration_test.rs` (5 tests)
 
 Tests the binary compilation and command-line interface.
 
@@ -62,13 +62,13 @@ Tests the binary compilation and command-line interface.
 - `test_help_flag` - Tests `--help` CLI flag output
 - `test_invalid_config_path` - Verifies error handling for missing config file
 
-**Purpose**: Ensures the project builds and CLI works correctly.
+__Purpose__: Ensures the project builds and CLI works correctly.
 
 ______________________________________________________________________
 
 ### Layer 2: Configuration Tests
 
-**File**: `config_integration_test.rs` (9 tests)
+__File__: `config_integration_test.rs` (9 tests)
 
 Tests configuration file parsing, schema validation, and live reload functionality.
 
@@ -83,20 +83,20 @@ Tests configuration file parsing, schema validation, and live reload functionali
 - `test_config_live_reload_file_modified` - Tests live reload detects file modifications
 - `test_config_live_reload_add_server` - Tests live reload when new servers are added
 - `test_config_live_reload_remove_server` - Tests live reload when servers are removed
-- ✨ **NEW**: `test_load_config_rejects_unknown_field_in_server` - Strict validation rejects unknown server fields
-- ✨ **NEW**: `test_load_config_rejects_unknown_top_level_field` - Strict validation rejects unknown top-level fields
-- ✨ **NEW**: `test_load_config_rejects_unknown_field_in_features` - Strict validation rejects unknown features fields
-- ✨ **NEW**: `test_load_http_config_rejects_unknown_field` - HTTP server strict validation
-- ✨ **NEW**: `test_load_sse_config_rejects_unknown_field` - SSE server strict validation
-- ✨ **NEW**: `test_load_config_with_optional_fields_valid` - Verifies all valid fields are accepted
+- ✨ __NEW__: `test_load_config_rejects_unknown_field_in_server` - Strict validation rejects unknown server fields
+- ✨ __NEW__: `test_load_config_rejects_unknown_top_level_field` - Strict validation rejects unknown top-level fields
+- ✨ __NEW__: `test_load_config_rejects_unknown_field_in_features` - Strict validation rejects unknown features fields
+- ✨ __NEW__: `test_load_http_config_rejects_unknown_field` - HTTP server strict validation
+- ✨ __NEW__: `test_load_sse_config_rejects_unknown_field` - SSE server strict validation
+- ✨ __NEW__: `test_load_config_with_optional_fields_valid` - Verifies all valid fields are accepted
 
-**Purpose**: Ensures configuration files parse correctly, follow the expected schema (with strict field validation), and live reload works properly.
+__Purpose__: Ensures configuration files parse correctly, follow the expected schema (with strict field validation), and live reload works properly.
 
 ______________________________________________________________________
 
 ### Layer 2.5: Per-Server Feature Flags Tests
 
-**File**: `features_test.rs` (5 tests)
+__File__: `features_test.rs` (5 tests)
 
 Tests per-server feature flag configuration and parsing.
 
@@ -106,13 +106,13 @@ Tests per-server feature flag configuration and parsing.
 - `test_config_with_explicit_enables` - Explicit true values for all features
 - `test_config_with_all_features_disabled` - All features disabled configuration
 
-**Purpose**: Validates per-server feature flag configuration (tools, resources, prompts) added in v1.3.0.
+__Purpose__: Validates per-server feature flag configuration (tools, resources, prompts) added in v1.3.0.
 
 ______________________________________________________________________
 
 ### Layer 3: API Specification Compliance Tests
 
-**Files**:
+__Files__:
 
 - `tools_test.rs` (15 tests)
 - `prompts_test.rs` (28 tests)
@@ -156,15 +156,15 @@ Tests compliance with the MCP specification v2025-11-25 for JSON-RPC message str
 - Multiple URI schemes (file, https, git, custom)
 - Blob content (base64 encoding)
 
-**Purpose**: Validates that the server produces messages that conform to the MCP specification. These tests verify **format compliance**, not actual functionality.
+__Purpose__: Validates that the server produces messages that conform to the MCP specification. These tests verify __format compliance__, not actual functionality.
 
-**Important**: These tests validate JSON structure only, without executing actual protocol operations. For functional testing, see the E2E layer below.
+__Important__: These tests validate JSON structure only, without executing actual protocol operations. For functional testing, see the E2E layer below.
 
 ______________________________________________________________________
 
 ### Layer 4: End-to-End Integration Tests
 
-**File**: `server_everything_e2e_test.rs` (11 tests)
+__File__: `server_everything_e2e_test.rs` (11 tests)
 
 Tests the complete server lifecycle using the official `@modelcontextprotocol/server-everything` test server.
 
@@ -180,11 +180,11 @@ Tests the complete server lifecycle using the official `@modelcontextprotocol/se
 - `test_e2e_resources_templates_list` - Template listing
 - `test_e2e_error_handling_invalid_group` - Error handling for invalid groups
 
-**Purpose**: Verifies the entire system works end-to-end with a real MCP server. These are functional tests that exercise actual protocol behavior.
+__Purpose__: Verifies the entire system works end-to-end with a real MCP server. These are functional tests that exercise actual protocol behavior.
 
-**Server Used**: `@modelcontextprotocol/server-everything` (via npx)
+__Server Used__: `@modelcontextprotocol/server-everything` (via npx)
 
-**Characteristics**:
+__Characteristics__:
 
 - Spawns real upstream server instance via subprocess
 - Makes live JSON-RPC requests through dynamic-mcp proxy
@@ -197,7 +197,7 @@ ______________________________________________________________________
 
 ### Layer 5: CLI Import Command Integration Tests
 
-**File**: `cli_import_integration_test.rs` (20 tests)
+__File__: `cli_import_integration_test.rs` (20 tests)
 
 Tests the CLI `import` command for importing MCP configurations from AI coding tools.
 
@@ -233,72 +233,72 @@ Tests the CLI `import` command for importing MCP configurations from AI coding t
 - `test_import_empty_description_error` - Error on empty description input
 - `test_import_invalid_json_error` - Error on malformed JSON
 
-**Purpose**: Ensures the import command correctly transforms configurations from all supported AI tools into dynamic-mcp format, with proper env var normalization and feature selection.
+__Purpose__: Ensures the import command correctly transforms configurations from all supported AI tools into dynamic-mcp format, with proper env var normalization and feature selection.
 
 ______________________________________________________________________
 
 ### Layer 6: Unit Tests
 
-**Location**: `src/**/*.rs` (inline `#[cfg(test)]` modules) (120+ tests)
+__Location__: `src/**/*.rs` (inline `#[cfg(test)]` modules) (120+ tests)
 
 Core module testing across all source files. Each source file with `#[cfg(test)]` contains unit tests for its functionality.
 
 #### Unit Test Files by Module (12 files)
 
-**Server & Core** (3 files):
+__Server & Core__ (3 files):
 
-- **`src/server.rs`** - MCP server request handling
+- __`src/server.rs`__ - MCP server request handling
   - Tests: initialize, tools/list, tools/call, resources/list, prompts/list, unknown methods
   - Coverage: JSON-RPC protocol, capability negotiation, error handling
-- **`src/main.rs`** - CLI argument parsing and config resolution
+- __`src/main.rs`__ - CLI argument parsing and config resolution
   - Tests: CLI args precedence, environment variable fallback, config path resolution
-- **`src/watcher.rs`** - Configuration file watching
+- __`src/watcher.rs`__ - Configuration file watching
   - Tests: Watcher creation, invalid path handling
 
-**Config Module** (3 files):
+__Config Module__ (3 files):
 
-- **`src/config/schema.rs`** - Configuration data structures (37 tests)
+- __`src/config/schema.rs`__ - Configuration data structures (37 tests)
   - Tests: Features default values, deserialization, per-server feature flags
-  - ✨ **NEW**: Optional type field tests - HTTP/SSE servers without explicit type field (5 tests)
-  - ✨ **NEW**: Strict validation tests - Unknown field rejection for stdio/http/sse servers and features
-  - ✨ **NEW**: `$schema` field support test
+  - ✨ __NEW__: Optional type field tests - HTTP/SSE servers without explicit type field (5 tests)
+  - ✨ __NEW__: Strict validation tests - Unknown field rejection for stdio/http/sse servers and features
+  - ✨ __NEW__: `$schema` field support test
   - Coverage: JSON schema validation, serde behavior, `deny_unknown_fields` attribute, automatic type inference
-- **`src/config/loader.rs`** - Config file loading
+- __`src/config/loader.rs`__ - Config file loading
   - Tests: Valid config loading, env var substitution, nonexistent file errors
-  - ✨ **NEW**: Integration tests for strict field validation across all server types
+  - ✨ __NEW__: Integration tests for strict field validation across all server types
   - Coverage: File I/O, error handling, schema enforcement
-- **`src/config/env_sub.rs`** - Environment variable substitution
+- __`src/config/env_sub.rs`__ - Environment variable substitution
   - Tests: `${VAR}` with/without braces, undefined vars, nested substitution
   - Coverage: Regex matching, env var expansion
 
-**Auth Module** (2 files):
+__Auth Module__ (2 files):
 
-- **`src/auth/oauth_client.rs`** - OAuth2 PKCE flow
+- __`src/auth/oauth_client.rs`__ - OAuth2 PKCE flow
   - Tests: Callback server creation, OAuth client initialization
   - Coverage: OAuth endpoints, PKCE challenge generation
-- **`src/auth/store.rs`** - Token storage
+- __`src/auth/store.rs`__ - Token storage
   - Tests: Save/load tokens, nonexistent token handling, token deletion
   - Coverage: File I/O, JSON serialization, token lifecycle
 
-**CLI Module** (2 files):
+__CLI Module__ (2 files):
 
-- **`src/cli/config_parser.rs`** - Multi-format config parsing
+- __`src/cli/config_parser.rs`__ - Multi-format config parsing
   - Tests: Cursor JSON, OpenCode JSONC, Claude Desktop JSON parsing
   - Coverage: JSON/JSONC/TOML parsing, format detection
-- **`src/cli/tool_detector.rs`** - Tool detection and path resolution
+- __`src/cli/tool_detector.rs`__ - Tool detection and path resolution
   - Tests: Tool name mapping, unknown tools, project/global config paths
   - Coverage: Path resolution, tool-specific config locations
 
-**Proxy Module** (2 files):
+__Proxy Module__ (2 files):
 
-- **`src/proxy/types.rs`** - MCP type definitions (Resource, Prompt, Tool)
+- __`src/proxy/types.rs`__ - MCP type definitions (Resource, Prompt, Tool)
   - Tests: Resource serialization with size field, optional fields omission
   - Coverage: JSON serialization, MCP spec compliance
-- **`src/proxy/transport.rs`** - Transport layer (stdio, HTTP, SSE)
+- __`src/proxy/transport.rs`__ - Transport layer (stdio, HTTP, SSE)
   - Tests: HTTP transport creation, custom headers, SSE transport
   - Coverage: Transport initialization, header injection
 
-**Summary**: All core modules have comprehensive unit test coverage for their internal logic.
+__Summary__: All core modules have comprehensive unit test coverage for their internal logic.
 
 ______________________________________________________________________
 
@@ -310,9 +310,9 @@ ______________________________________________________________________
 cargo test
 ```
 
-- **Result**: 259 tests passed
-- **Coverage**: Unit + Integration + E2E tests
-- **Speed**: Execution time depends on machine hardware and load
+- __Result__: 259 tests passed
+- __Coverage__: Unit + Integration + E2E tests
+- __Speed__: Execution time depends on machine hardware and load
 
 ### Run by Category
 
@@ -363,9 +363,9 @@ ______________________________________________________________________
 
 ## Test Architecture Philosophy
 
-The test suite is organized as a **verification pyramid**:
+The test suite is organized as a __verification pyramid__:
 
-```
+```text
 ┌─────────────────────────────────┐
 │   Unit Tests (120+ tests)       │  Core modules, internal logic
 ├─────────────────────────────────┤
@@ -385,17 +385,17 @@ The test suite is organized as a **verification pyramid**:
 
 ### Benefits of This Structure
 
-1. **Clear Separation of Concerns**: Each layer tests one aspect
-2. **Independent Execution**: Run layers separately without affecting others
-3. **Fast Feedback**: CLI and config tests run instantly
-4. **Comprehensive Coverage**: Spec tests catch format issues, E2E tests catch behavior issues
-5. **Easy Maintenance**: New tests fit naturally into existing structure
-6. **Scalability**: Can add new test layers without reorganizing existing tests
+1. __Clear Separation of Concerns__: Each layer tests one aspect
+2. __Independent Execution__: Run layers separately without affecting others
+3. __Fast Feedback__: CLI and config tests run instantly
+4. __Comprehensive Coverage__: Spec tests catch format issues, E2E tests catch behavior issues
+5. __Easy Maintenance__: New tests fit naturally into existing structure
+6. __Scalability__: Can add new test layers without reorganizing existing tests
 
 ### Test Complementarity
 
-- **Spec tests** (tools/prompts/resources) validate that messages *should* look like
-- **E2E tests** (server_everything) validate that they *actually do* look right when running
+- __Spec tests__ (tools/prompts/resources) validate that messages *should* look like
+- __E2E tests__ (server_everything) validate that they *actually do* look right when running
 - Together, they provide high confidence in both specification compliance and implementation correctness
 
 ______________________________________________________________________
@@ -413,15 +413,15 @@ ______________________________________________________________________
 | cli_import_integration_test.rs | Integration | 20       | CLI import command from AI tools          |
 | cli_integration_test.rs        | Integration | 5        | CLI build & artifact tests                |
 | server_everything_e2e_test.rs  | E2E         | 11       | Real upstream server integration          |
-| **TOTAL**                      |             | **242+** |                                           |
+| __TOTAL__                      |             | __242+__ |                                           |
 
 ______________________________________________________________________
 
 ## MCP Specification Compliance
 
-All tests validate compliance with **MCP Specification v2025-11-25**.
+All tests validate compliance with __MCP Specification v2025-11-25__.
 
-**Validated Requirements**:
+__Validated Requirements__:
 
 - ✅ Tools API (tools/list, tools/call)
 - ✅ Prompts API (prompts/list, prompts/get)
@@ -439,7 +439,7 @@ ______________________________________________________________________
 
 ### No Runtime Configuration Dependency
 
-✅ **All tests are independent of `dynamic-mcp.json`**
+✅ __All tests are independent of `dynamic-mcp.json`__
 
 - Tests create temporary configs or define configs inline
 - Tests never read the real config file
@@ -447,20 +447,20 @@ ______________________________________________________________________
 
 ### Example File Dependency
 
-⚠️ **Some config integration tests depend on `examples/config.example.json`**
+⚠️ __Some config integration tests depend on `examples/config.example.json`__
 
-**Tests that depend on example config**:
+__Tests that depend on example config__:
 
 - `test_config_example_exists` - Verifies example file exists
 - `test_config_example_schema_validation` - Validates example config is valid JSON
 
-**Why**: These tests ensure the documentation example is correct and present.
+__Why__: These tests ensure the documentation example is correct and present.
 
-**Location**: `tests/config_integration_test.rs`
+__Location__: `tests/config_integration_test.rs`
 
 ### E2E Test Dependencies
 
-⚠️ **E2E tests require `@modelcontextprotocol/server-everything`**
+⚠️ __E2E tests require `@modelcontextprotocol/server-everything`__
 
 The package is:
 
@@ -481,9 +481,9 @@ ______________________________________________________________________
 | CLI Tests                            | 5       | Binary build, CLI flags, error handling        |
 | Import Tests                         | 20      | Import from 10 AI tools, env var conversion    |
 | E2E Tests                            | 11      | End-to-end workflows with real MCP server      |
-| **Total**                            | **259** | **Comprehensive coverage**                     |
+| __Total__                            | __259__ | __Comprehensive coverage__                     |
 
-**Notes**:
+__Notes__:
 
 - E2E tests use shared server instance with 60s readiness timeout
 - Import tests validate real tool config fixtures
@@ -501,7 +501,7 @@ ______________________________________________________________________
 
 - Import tests use real tool config fixtures in `tests/fixtures/import/`. Fixture validation happens implicitly during test execution, not in separate tests.
 
-- Total test count: **242+ tests** across 8 integration test files plus inline unit tests in src/ (120+ tests).
+- Total test count: __242+ tests__ across 8 integration test files plus inline unit tests in src/ (120+ tests).
 
 ______________________________________________________________________
 
@@ -509,13 +509,13 @@ ______________________________________________________________________
 
 ### Test Structure
 
-- **Unit tests**: Inline in source files with `#[cfg(test)]`
-- **Integration tests**: Separate files in `tests/` directory
-- **E2E tests**: Single file for all end-to-end scenarios
+- __Unit tests__: Inline in source files with `#[cfg(test)]`
+- __Integration tests__: Separate files in `tests/` directory
+- __E2E tests__: Single file for all end-to-end scenarios
 
 ### Test Naming Convention
 
-```
+```text
 test_<category>_<feature>_<scenario>
 ```
 
@@ -527,10 +527,10 @@ Examples:
 
 ### Adding New Tests
 
-1. **For bug fixes**: Add regression test that reproduces bug, verify fix makes it pass
-2. **For features**: Add tests BEFORE implementation (TDD approach)
-3. **For spec changes**: Update tests before updating implementation
-4. **For new APIs**: Create comprehensive integration test file
+1. __For bug fixes__: Add regression test that reproduces bug, verify fix makes it pass
+2. __For features__: Add tests BEFORE implementation (TDD approach)
+3. __For spec changes__: Update tests before updating implementation
+4. __For new APIs__: Create comprehensive integration test file
 
 ### Test Requirements
 
@@ -560,13 +560,13 @@ cargo test --test <file_name> <test_name>
 
 ______________________________________________________________________
 
-**Last Updated**: January 12, 2026
+__Last Updated__: January 12, 2026
 
 ______________________________________________________________________
 
 ## Recent Updates
 
-- **2026-01-12**: Added per-server enable/disable feature (8 new tests in schema.rs for enabled field). Total: 266 tests.
-- **2026-01-12**: Added strict JSON schema validation tests (17 new tests across schema.rs and loader.rs). Total: 259 tests.
-- **2026-01-10**: Documentation update - Added comprehensive test file listing and unit test breakdown by module. Total: 242+ tests.
-- **2026-01-09**: Added live reload tests (3 tests) and watcher unit tests (2 tests) for ConfigWatcher.
+- __2026-01-12__: Added per-server enable/disable feature (8 new tests in schema.rs for enabled field). Total: 266 tests.
+- __2026-01-12__: Added strict JSON schema validation tests (17 new tests across schema.rs and loader.rs). Total: 259 tests.
+- __2026-01-10__: Documentation update - Added comprehensive test file listing and unit test breakdown by module. Total: 242+ tests.
+- __2026-01-09__: Added live reload tests (3 tests) and watcher unit tests (2 tests) for ConfigWatcher.

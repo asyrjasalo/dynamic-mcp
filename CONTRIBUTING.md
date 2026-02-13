@@ -193,7 +193,7 @@ prek install --hook-type pre-commit --hook-type commit-msg
 
 Use conventional commits format (enforced by commitizen hook):
 
-```
+```text
 <type>(<scope>): <subject>
 
 <body>
@@ -214,7 +214,7 @@ Use conventional commits format (enforced by commitizen hook):
 
 **Examples:**
 
-```
+```text
 feat(auth): add OAuth2 token refresh support
 
 Implements automatic token refresh before expiry using refresh tokens.
@@ -223,7 +223,7 @@ Tokens are stored in ~/.dynamic-mcp/oauth-servers/
 Closes #123
 ```
 
-```
+```text
 fix(config): handle missing environment variables
 
 Properly validate and warn when environment variables are undefined
@@ -324,6 +324,6 @@ Feature suggestions are welcome! Please:
 
 By contributing to dynamic-mcp, you agree that your contributions will be licensed under the MIT License.
 
-______________________________________________________________________
+**_****_****_****_****_****_****_****_****_****_****_****_****_****_**
 
 Thank you for contributing to dynamic-mcp! 🎉

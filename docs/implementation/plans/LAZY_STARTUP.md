@@ -18,7 +18,7 @@
 
 ### Startup Flow (main.rs)
 
-```
+```text
 1. Load and validate config file
 2. Spawn parallel connection tasks for ALL enabled servers
 3. For each server:
@@ -81,7 +81,7 @@
 
 **1. Graceful shutdown (CTRL+C signal)** (lines 266-272):
 
-```
+```text
 tokio::signal::ctrl_c().await.ok()
 tracing::info!("Received shutdown signal, disconnecting all servers...")
 let _ = client_lock.disconnect_all().await;
@@ -158,13 +158,13 @@ enum GroupState {
 
 ### Two Approaches
 
-**Approach A: Pure Lazy** (Fast startup, deferred discovery)
+### Approach A: Pure Lazy
 
 - No connections on startup
 - Connect on first API call to group
 - LLM discovers capabilities on-demand
 
-**Approach B: Hybrid** (Discovery startup, disconnect lazy servers)
+### Approach B: Hybrid
 
 - Connect to ALL servers at startup for discovery
 - Disconnect lazy servers immediately after fetching capabilities
@@ -232,9 +232,9 @@ enum GroupState {
 
 ### Startup Flow Changes
 
-**Approach A: Pure Lazy**
+#### Approach A: Pure Lazy Flow
 
-```
+```text
 1. Load config file
 2. Create Pending state for ALL enabled servers (NO connections)
 3. Start periodic retry task (for failed → pending → connected)
@@ -243,9 +243,9 @@ enum GroupState {
 6. Defer all connections until first access
 ```
 
-**Approach B: Hybrid (Recommended Default)**
+### Approach B: Hybrid (Recommended Default)
 
-```
+```text
 1. Load config file
 2. Connect to ALL servers (parallel)
 3. For each server:
@@ -400,7 +400,7 @@ impl ModularMcpClient {
 }
 ```
 
-````
+````text
 
 ### API Handler Changes
 

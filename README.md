@@ -10,7 +10,7 @@ It supports tools, resources, and prompts from upstream MCP servers with stdio, 
 
 ### Installation
 
-**Option 1: Python package**
+### Option 1: Python package
 
 Use `uvx` to run the [PyPI package](https://pypi.org/project/dmcp/) in your agent's MCP settings:
 
@@ -27,7 +27,7 @@ Use `uvx` to run the [PyPI package](https://pypi.org/project/dmcp/) in your agen
 
 You can set the `DYNAMIC_MCP_CONFIG` environment variable and omit the config path.
 
-**Option 2: Native binary**
+### Option 2: Native binary
 
 Download a [release](https://github.com/asyrjasalo/dynamic-mcp/releases) for
 your operating system and put `dmcp` in your `PATH`:
@@ -44,11 +44,11 @@ your operating system and put `dmcp` in your `PATH`:
 
 Set the `DYNAMIC_MCP_CONFIG` environment variable and omit the `args` altogether.
 
-**Option 3: Compile from source**
+### Option 3: Compile from source
 
 Install from [crates.io](https://crates.io/crates/dynamic-mcp):
 
-```
+```text
 cargo install dynamic-mcp
 ```
 
@@ -386,7 +386,6 @@ You can customize these for servers that need more time:
 | Seconds      | `"30s"`, `"5s"`       | Simple seconds                |
 | Minutes      | `"1min"`, `"2m"`      | Minutes (abbreviated or full) |
 | Milliseconds | `"3000ms"`, `"500ms"` | Milliseconds                  |
-| Hours        | `"1h"`, `"2h"`        | Hours                         |
 | Plain number | `30`                  | Seconds (plain number)        |
 
 **Behavior:**
@@ -465,6 +464,7 @@ uvx dmcp config.json
 - Every MCP server in your config must have a `description` field
 - The description explains what the server does to the LLM
 - Example:
+
   ```json
   {
     "description": "File system access - read, write, and search files",

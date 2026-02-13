@@ -14,7 +14,7 @@ Standard MCP clients load all tool schemas from all servers upfront, consuming s
 
 ### Import from AI Coding Tools
 
-**Project-level config** (run in project directory):
+__Project-level config__ (run in project directory):
 
 ```bash
 dmcp import cursor
@@ -22,7 +22,7 @@ dmcp import vscode
 dmcp import cline
 ```
 
-**Global/user-level config**:
+__Global/user-level config__:
 
 ```bash
 dmcp import --global claude-desktop
@@ -30,7 +30,7 @@ dmcp import --global opencode
 dmcp import --global codex
 ```
 
-**Force overwrite**:
+__Force overwrite__:
 
 ```bash
 dmcp import cursor --force
@@ -42,18 +42,18 @@ The import command currently supports the following AI coding tools:
 
 | Tool                   | Tool Name        | Config Locations                                                                       |
 | ---------------------- | ---------------- | -------------------------------------------------------------------------------------- |
-| **Cursor**             | `cursor`         | Project: `.cursor/mcp.json`<br>Global: `~/.cursor/mcp.json`                            |
-| **OpenCode**           | `opencode`       | Project: `.opencode/opencode.json(c)`<br>Global: `~/.config/opencode/opencode.json(c)` |
-| **Claude Desktop**     | `claude-desktop` | Global only (OS-specific paths)                                                        |
-| **Claude Code CLI**    | `claude`         | Project: `.mcp.json`<br>User: `~/.claude.json`                                         |
-| **Visual Studio Code** | `vscode`         | Project: `.vscode/mcp.json`<br>Global: OS-specific                                     |
-| **Cline**              | `cline`          | Project: `.cline/mcp.json`<br>Global: VS Code extension settings                       |
-| **KiloCode**           | `kilocode`       | Project: `.kilocode/mcp.json`<br>Global: Extension settings                            |
-| **Codex CLI**          | `codex`          | Global: `~/.codex/config.toml` (TOML format)                                           |
-| **Gemini CLI**         | `gemini`         | Project: `.gemini/settings.json`<br>Global: `~/.gemini/settings.json`                  |
-| **Google Antigravity** | `antigravity`    | Global: `~/.gemini/antigravity/mcp_config.json`                                        |
+| __Cursor__             | `cursor`         | Project: `.cursor/mcp.json`<br>Global: `~/.cursor/mcp.json`                            |
+| __OpenCode__           | `opencode`       | Project: `.opencode/opencode.json(c)`<br>Global: `~/.config/opencode/opencode.json(c)` |
+| __Claude Desktop__     | `claude-desktop` | Global only (OS-specific paths)                                                        |
+| __Claude Code CLI__    | `claude`         | Project: `.mcp.json`<br>User: `~/.claude.json`                                         |
+| __Visual Studio Code__ | `vscode`         | Project: `.vscode/mcp.json`<br>Global: OS-specific                                     |
+| __Cline__              | `cline`          | Project: `.cline/mcp.json`<br>Global: VS Code extension settings                       |
+| __KiloCode__           | `kilocode`       | Project: `.kilocode/mcp.json`<br>Global: Extension settings                            |
+| __Codex CLI__          | `codex`          | Global: `~/.codex/config.toml` (TOML format)                                           |
+| __Gemini CLI__         | `gemini`         | Project: `.gemini/settings.json`<br>Global: `~/.gemini/settings.json`                  |
+| __Google Antigravity__ | `antigravity`    | Global: `~/.gemini/antigravity/mcp_config.json`                                        |
 
-**What the import command does**:
+__What the import command does__:
 
 - Automatically detects the tool's config location
 - Parses the config format (JSON, JSONC, or TOML)
@@ -62,7 +62,7 @@ The import command currently supports the following AI coding tools:
 - Preserves all settings (commands, args, env, headers, OAuth)
 - Generates `dynamic-mcp.json` in the current directory
 
-**Example import session**:
+__Example import session__:
 
 ```bash
 $ dmcp import cursor
@@ -102,7 +102,7 @@ Git repository operations
 
 If the import command doesn't support your tool or you prefer manual control:
 
-**Before (Standard MCP)**:
+__Before (Standard MCP)__:
 
 ```json
 {
@@ -130,7 +130,7 @@ If the import command doesn't support your tool or you prefer manual control:
 }
 ```
 
-**After (dynamic-mcp)**:
+__After (dynamic-mcp)__:
 
 ```json
 {
@@ -163,7 +163,7 @@ If the import command doesn't support your tool or you prefer manual control:
 }
 ```
 
-**Changes required**:
+__Changes required__:
 
 1. Add `"type"` field for each server (http or sse) - stdio is default and optional
 2. Add `"description"` field explaining what the server does
@@ -173,7 +173,7 @@ If the import command doesn't support your tool or you prefer manual control:
 
 ### Stdio Servers
 
-**Indicators**: Has `command` field
+__Indicators__: Has `command` field
 
 ```json
 {
@@ -188,7 +188,7 @@ If the import command doesn't support your tool or you prefer manual control:
 
 ### HTTP Servers
 
-**Indicators**: Has `url` field, no SSE endpoint
+__Indicators__: Has `url` field, no SSE endpoint
 
 ```json
 {
@@ -205,7 +205,7 @@ If the import command doesn't support your tool or you prefer manual control:
 
 ### SSE Servers
 
-**Indicators**: Has `url` field with `/sse` endpoint or SSE protocol
+__Indicators__: Has `url` field with `/sse` endpoint or SSE protocol
 
 ```json
 {
@@ -243,7 +243,7 @@ Descriptions are shown to the LLM when listing tools. Write them from the LLM's 
 
 Use this format:
 
-```
+```text
 "[Primary capability] [using/with/on] [technology/resource]"
 ```
 
@@ -258,7 +258,7 @@ Examples:
 
 ### Scenario 1: NPX-based Servers
 
-**Before**:
+__Before__:
 
 ```json
 {
@@ -269,7 +269,7 @@ Examples:
 }
 ```
 
-**After**:
+__After__:
 
 ```json
 {
@@ -283,7 +283,7 @@ Examples:
 
 ### Scenario 2: Environment Variables
 
-**Before**:
+__Before__:
 
 ```json
 {
@@ -298,7 +298,7 @@ Examples:
 }
 ```
 
-**After** (unchanged except for description):
+__After__ (unchanged except for description):
 
 ```json
 {
@@ -316,7 +316,7 @@ Examples:
 
 ### Scenario 3: OAuth-Protected Servers
 
-**Before**:
+__Before__:
 
 ```json
 {
@@ -328,7 +328,7 @@ Examples:
 }
 ```
 
-**After**:
+__After__:
 
 ```json
 {
@@ -344,7 +344,7 @@ Examples:
 
 ### Scenario 4: Custom Headers
 
-**Before**:
+__Before__:
 
 ```json
 {
@@ -358,7 +358,7 @@ Examples:
 }
 ```
 
-**After**:
+__After__:
 
 ```json
 {
@@ -385,7 +385,7 @@ dmcp dynamic-mcp.json
 
 You should see:
 
-```
+```text
 ✅ MCP server config loaded successfully
 ✅ Successfully connected MCP Server: filesystem
 ✅ Successfully connected MCP Server: brave-search
@@ -396,7 +396,7 @@ MCP server listening on stdio
 
 If any servers fail:
 
-```
+```text
 ❌ Failed to connect to server-name: [error details]
 ...
 Some MCP groups failed to connect. success_groups=[...], failed_groups=[...]
@@ -406,9 +406,9 @@ Some MCP groups failed to connect. success_groups=[...], failed_groups=[...]
 
 ### Server Not Connecting
 
-**Symptom**: `❌ Failed to connect to server-name`
+__Symptom__: `❌ Failed to connect to server-name`
 
-**Solutions**:
+__Solutions__:
 
 1. Check server is running (for HTTP/SSE)
 2. Verify command/URL is correct
@@ -417,9 +417,9 @@ Some MCP groups failed to connect. success_groups=[...], failed_groups=[...]
 
 ### OAuth Failures
 
-**Symptom**: Browser doesn't open for OAuth
+__Symptom__: Browser doesn't open for OAuth
 
-**Solutions**:
+__Solutions__:
 
 1. Check `oauth_client_id` is correct
 2. Ensure server supports `.well-known/oauth-authorization-server`
@@ -428,9 +428,9 @@ Some MCP groups failed to connect. success_groups=[...], failed_groups=[...]
 
 ### Environment Variable Issues
 
-**Symptom**: Variables not substituted
+__Symptom__: Variables not substituted
 
-**Solutions**:
+__Solutions__:
 
 1. Ensure vars are exported: `export VAR=value`
 2. Use `${VAR}` syntax (not `$VAR`)
@@ -440,9 +440,9 @@ Some MCP groups failed to connect. success_groups=[...], failed_groups=[...]
 
 If import causes issues, you can:
 
-1. **Keep both configs**: Use original tool config with the original MCP client
-2. **Revert**: Delete `dynamic-mcp.json`, use original config
-3. **Fix forward**: Adjust descriptions or types in imported config
+1. __Keep both configs__: Use original tool config with the original MCP client
+2. __Revert__: Delete `dynamic-mcp.json`, use original config
+3. __Fix forward__: Adjust descriptions or types in imported config
 
 ## Next Steps
 
@@ -482,12 +482,12 @@ dmcp dynamic-mcp.json
 
 ### Cursor
 
-**Config Locations**:
+__Config Locations__:
 
 - Project: `.cursor/mcp.json` (in project root)
 - Global: `~/.cursor/mcp.json`
 
-**Import**:
+__Import__:
 
 ```bash
 # From project config
@@ -498,18 +498,18 @@ dmcp import cursor
 dmcp import --global cursor
 ```
 
-**Environment Variables**: Cursor uses `${env:VAR}` format, automatically converted to `${VAR}`.
+__Environment Variables__: Cursor uses `${env:VAR}` format, automatically converted to `${VAR}`.
 
 ______________________________________________________________________
 
 ### OpenCode
 
-**Config Locations**:
+__Config Locations__:
 
 - Project: `.opencode/opencode.json` or `.opencode/opencode.jsonc`
 - Global: `~/.config/opencode/opencode.json` or `~/.config/opencode/opencode.jsonc`
 
-**Import**:
+__Import__:
 
 ```bash
 # From project config (auto-detects .json or .jsonc)
@@ -519,7 +519,7 @@ dmcp import opencode
 dmcp import --global opencode
 ```
 
-**Special Notes**:
+__Special Notes__:
 
 - Supports both JSON and JSONC (JSON with comments) formats
 - Auto-detects file extension (.json or .jsonc)
@@ -531,13 +531,13 @@ ______________________________________________________________________
 
 ### Claude Desktop
 
-**Config Locations** (global only):
+__Config Locations__ (global only):
 
 - macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
 - Windows: `%APPDATA%\Claude\claude_desktop_config.json`
 - Linux: `~/.config/Claude/claude_desktop_config.json`
 
-**Import**:
+__Import__:
 
 ```bash
 dmcp import --global claude-desktop
@@ -545,18 +545,18 @@ dmcp import --global claude-desktop
 dmcp import --global claude
 ```
 
-**Environment Variables**: Uses `${VAR}` format (already compatible).
+__Environment Variables__: Uses `${VAR}` format (already compatible).
 
 ______________________________________________________________________
 
 ### Claude Code CLI
 
-**Config Locations**:
+__Config Locations__:
 
 - Project: `.mcp.json` (in project root - shared with team, version-controlled)
 - User: `~/.claude.json` (cross-project, private to you)
 
-**Import**:
+__Import__:
 
 ```bash
 # From project config (.mcp.json in project root)
@@ -567,9 +567,9 @@ dmcp import claude
 dmcp import --global claude
 ```
 
-**Environment Variables**: Uses `${VAR}` format (already compatible).
+__Environment Variables__: Uses `${VAR}` format (already compatible).
 
-**Special Notes**:
+__Special Notes__:
 
 - Uses `.mcp.json` in project root (shared/version-controlled)
 - User scope uses `~/.claude.json` (cross-project, private)
@@ -584,7 +584,7 @@ ______________________________________________________________________
 
 ### Visual Studio Code
 
-**Config Locations**:
+__Config Locations__:
 
 - Project: `.vscode/mcp.json` (workspace-level)
 - Global:
@@ -592,7 +592,7 @@ ______________________________________________________________________
   - Windows: `%APPDATA%\Code\User\mcp.json`
   - Linux: `~/.config/Code/User/mcp.json`
 
-**Import**:
+__Import__:
 
 ```bash
 # From project config
@@ -602,7 +602,7 @@ dmcp import vscode
 dmcp import --global vscode
 ```
 
-**Special Notes**:
+__Special Notes__:
 
 - Uses `servers` instead of `mcpServers`
 - Supports `${input:ID}` for secure credential prompts (cannot auto-convert)
@@ -610,7 +610,7 @@ dmcp import --global vscode
 - Can also use Command Palette: `MCP: Open User Configuration`
 - Supports both dedicated `mcp.json` or settings in `settings.json`
 
-**Manual Steps After Import**:
+__Manual Steps After Import__:
 If your config used `${input:credential-id}`:
 
 1. Replace with environment variable: `${API_KEY}`
@@ -620,17 +620,17 @@ ______________________________________________________________________
 
 ### Cline (VS Code Extension)
 
-**Config Location**:
+__Config Location__:
 
 - Project: `.cline/mcp.json`
 
-**Import**:
+__Import__:
 
 ```bash
 dmcp import cline
 ```
 
-**Special Notes**:
+__Special Notes__:
 
 - `alwaysAllow` field is not imported (Cline-specific)
 - `disabled` field is not imported
@@ -640,39 +640,39 @@ ______________________________________________________________________
 
 ### KiloCode
 
-**Config Location**:
+__Config Location__:
 
 - Project: `.kilocode/mcp.json`
 
-**Import**:
+__Import__:
 
 ```bash
 dmcp import kilocode
 ```
 
-**Similar to Cline**: Extension-specific fields (`alwaysAllow`, `disabled`) are not imported.
+__Similar to Cline__: Extension-specific fields (`alwaysAllow`, `disabled`) are not imported.
 
 ______________________________________________________________________
 
 ### Codex CLI
 
-**Config Location**:
+__Config Location__:
 
 - Global: `~/.codex/config.toml`
 
-**Import**:
+__Import__:
 
 ```bash
 dmcp import --global codex
 ```
 
-**Special Notes**:
+__Special Notes__:
 
 - Uses TOML format instead of JSON
 - Format: `[mcp.server-name]` sections
 - Environment variables: TOML string syntax automatically handled
 
-**Example TOML**:
+__Example TOML__:
 
 ```toml
 [mcp.github]
@@ -687,11 +687,11 @@ ______________________________________________________________________
 
 ### Google Antigravity
 
-**Config Location**:
+__Config Location__:
 
 - Global: `~/.gemini/antigravity/mcp_config.json`
 
-**Import**:
+__Import__:
 
 ```bash
 # From global config (standard location)
@@ -701,7 +701,7 @@ dmcp import --global antigravity
 dmcp import /path/to/mcp_config.json
 ```
 
-**Environment Variables**:
+__Environment Variables__:
 
 - Uses system environment (no special conversion needed)
 
@@ -709,12 +709,12 @@ ______________________________________________________________________
 
 ### Gemini CLI
 
-**Config Locations**:
+__Config Locations__:
 
 - Project: `.gemini/settings.json` (in project root)
 - Global: `~/.gemini/settings.json`
 
-**Import**:
+__Import__:
 
 ```bash
 # From project config
@@ -725,9 +725,9 @@ dmcp import gemini
 dmcp import --global gemini
 ```
 
-**Environment Variables**: Uses standard environment variables (no special syntax).
+__Environment Variables__: Uses standard environment variables (no special syntax).
 
-**Special Notes**:
+__Special Notes__:
 
 - Project config allows per-project MCP server configuration
 - Useful for different contexts in different projects

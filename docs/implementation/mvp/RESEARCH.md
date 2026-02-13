@@ -228,16 +228,16 @@ impl ServerHandler for MCPProxy {
 
 ## Alternative Libraries (Tier-1)
 
-| Library                 | Downloads | Best For                              | GitHub                                                      |
-| ----------------------- | --------- | ------------------------------------- | ----------------------------------------------------------- |
-| **rust-mcp-schema**     | 188k+     | Type-safe schema definitions          | [link](https://github.com/rust-mcp-stack/rust-mcp-schema)   |
-| **MCPR**                | 10k+      | Rapid development, project generation | [link](https://github.com/conikeec/mcpr)                    |
-| **turul-mcp-framework** | 1.3k+     | High-performance, HTTP/SSE focus      | [link](https://github.com/aussierobots/turul-mcp-framework) |
-| **turbomcp**            | 10k+      | Complete protocol with context mgmt   | [link](https://github.com/Epistates/turbomcp)               |
+| Library                 | Downloads | Best For                              | GitHub                                                                        |
+| ----------------------- | --------- | ------------------------------------- | ----------------------------------------------------------------------------- |
+| **rust-mcp-schema**     | 188k+     | Type-safe schema definitions          | [rust-mcp-schema](https://github.com/rust-mcp-stack/rust-mcp-schema)         |
+| **MCPR**                | 10k+      | Rapid development, project generation | [MCPR](https://github.com/conikeec/mcpr)                                     |
+| **turul-mcp-framework** | 1.3k+     | High-performance, HTTP/SSE focus      | [turul-mcp-framework](https://github.com/aussierobots/turul-mcp-framework) |
+| **turbomcp**            | 10k+      | Complete protocol with context mgmt   | [turbomcp](https://github.com/Epistates/turbomcp)                           |
 
 ## Recommended Stack for MCP Proxy
 
-```
+```text
 Layer 1: Transport
 ├─ Downstream: transport-streamable-http-server (for clients)
 └─ Upstream: transport-child-process (for servers)

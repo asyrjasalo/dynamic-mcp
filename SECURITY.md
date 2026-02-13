@@ -49,7 +49,7 @@
 2. Use environment variables for sensitive data
 3. Set restrictive permissions on config files (0600)
 4. Review environment variables passed to child processes
-5. Consider using secret management tools (e.g., HashiCorp Vault)
+5. Consider using secret management tools (e.g., HashCorp Vault)
 
 ### Network Security
 
@@ -213,7 +213,7 @@
 - Token Refresh: [RFC 6749 Section 6](https://tools.ietf.org/html/rfc6749#section-6)
 - MCP Specification: [Model Context Protocol](https://modelcontextprotocol.io/)
 
-______________________________________________________________________
+**_****_****_****_****_****_****_****_****_****_****_****_****_****_**
 
 **Last Updated**: January 10, 2026
 **Version**: 1.3.0
