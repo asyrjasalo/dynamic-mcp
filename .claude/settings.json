@@ -1,7 +1,4 @@
 {
-  "permissions": {
-    "allow": ["Bash", "WebFetch"]
-  },
   "enabledMcpjsonServers": ["dynamic-mcp"],
   "enableAllProjectMcpServers": false,
   "enabledPlugins": {
