@@ -354,17 +354,25 @@ Use the optional `enabled` field to disable a specific server without removing i
 
 ### Timeout Configuration
 
-Configure custom timeouts for tool calls per server using the optional `timeout` field. By default, tool calls have a 30-second timeout. You can customize this for servers that need more time:
+Configure custom timeouts for tool, resource, and prompt calls per server using the optional `timeout` field. By default:
+
+- Tool calls: 30 seconds
+- Resource calls: 10 seconds
+- Prompt calls: 10 seconds
+
+You can customize these for servers that need more time:
 
 ```json
 {
   "mcpServers": {
     "slow-server": {
-      "description": "Server with slow tool operations",
+      "description": "Server with slow operations",
       "command": "npx",
       "args": ["-y", "some-slow-mcp-server"],
       "timeout": {
-        "tools": "1min"
+        "tools": "1min",
+        "resources": "30s",
+        "prompts": "30s"
       }
     }
   }
@@ -383,9 +391,9 @@ Configure custom timeouts for tool calls per server using the optional `timeout`
 
 **Behavior:**
 
-- If `timeout` is omitted, the default of 30 seconds is used
-- If `timeout.tools` is omitted, the default of 30 seconds is used
-- Applies only to tool call operations, not to connection or initialization
+- If `timeout` is omitted, defaults are used (tools: 30s, resources: 10s, prompts: 10s)
+- Individual timeout fields default to their respective defaults if not specified
+- Applies only to tool/resource/prompt call operations, not to connection or initialization
 - Useful for servers with long-running operations (database queries, file processing, etc.)
 
 ## Troubleshooting

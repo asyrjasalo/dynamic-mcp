@@ -20,7 +20,9 @@
       "command": "npx",
       "args": ["-y", "@utcp/code-mode-mcp"],
       "timeout": {
-        "tools": "1min"
+        "tools": "1min",
+        "resources": "30s",
+        "prompts": "30s"
       }
     }
   }

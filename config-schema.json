@@ -76,23 +76,39 @@
                  "description": "Enable or disable this server (default: true)"
                },
                "timeout": {
-                 "type": "object",
-                 "additionalProperties": false,
-                 "description": "Timeout configuration for this server",
-                 "properties": {
-                   "tools": {
-                     "oneOf": [
-                       { "type": "string", "description": "Tool call timeout as duration string (e.g., '30s', '1min', '500ms')" },
-                       { "type": "integer", "minimum": 0, "description": "Tool call timeout in seconds" }
-                     ],
-                     "default": "30s",
-                     "description": "Timeout for tool calls (default: 30s)"
-                   }
-                 }
-               }
-             }
-           },
-            {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "description": "Timeout configuration for this server",
+                  "properties": {
+                    "tools": {
+                      "oneOf": [
+                        { "type": "string", "description": "Tool call timeout as duration string (e.g., '30s', '1min', '500ms')" },
+                        { "type": "integer", "minimum": 0, "description": "Tool call timeout in seconds" }
+                      ],
+                      "default": "30s",
+                      "description": "Timeout for tool calls (default: 30s)"
+                    },
+                    "resources": {
+                      "oneOf": [
+                        { "type": "string", "description": "Resource call timeout as duration string (e.g., '30s', '1min', '500ms')" },
+                        { "type": "integer", "minimum": 0, "description": "Resource call timeout in seconds" }
+                      ],
+                      "default": "10s",
+                      "description": "Timeout for resource calls (default: 10s)"
+                    },
+                    "prompts": {
+                      "oneOf": [
+                        { "type": "string", "description": "Prompt call timeout as duration string (e.g., '30s', '1min', '500ms')" },
+                        { "type": "integer", "minimum": 0, "description": "Prompt call timeout in seconds" }
+                      ],
+                      "default": "10s",
+                      "description": "Timeout for prompt calls (default: 10s)"
+                    }
+                  }
+                }
+              }
+            },
+             {
               "type": "object",
               "description": "HTTP/SSE transport server configuration (url-based, type is optional and defaults to http with automatic SSE detection)",
               "required": ["description", "url"],
@@ -169,12 +185,28 @@
                       ],
                       "default": "30s",
                       "description": "Timeout for tool calls (default: 30s)"
+                    },
+                    "resources": {
+                      "oneOf": [
+                        { "type": "string", "description": "Resource call timeout as duration string (e.g., '30s', '1min', '500ms')" },
+                        { "type": "integer", "minimum": 0, "description": "Resource call timeout in seconds" }
+                      ],
+                      "default": "10s",
+                      "description": "Timeout for resource calls (default: 10s)"
+                    },
+                    "prompts": {
+                      "oneOf": [
+                        { "type": "string", "description": "Prompt call timeout as duration string (e.g., '30s', '1min', '500ms')" },
+                        { "type": "integer", "minimum": 0, "description": "Prompt call timeout in seconds" }
+                      ],
+                      "default": "10s",
+                      "description": "Timeout for prompt calls (default: 10s)"
                     }
                   }
                 }
               }
-            }
-         ]
+           }
+        ]
       }
     }
   }

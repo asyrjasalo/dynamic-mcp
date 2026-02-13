@@ -6,6 +6,9 @@ use std::time::Duration;
 /// Default tool call timeout in seconds
 const DEFAULT_TOOL_TIMEOUT_SECS: u64 = 30;
 
+/// Default resource/prompt call timeout in seconds
+const DEFAULT_RESOURCE_PROMPT_TIMEOUT_SECS: u64 = 10;
+
 /// Parse a duration string like "30s", "1min", "3000ms" into a Duration
 fn parse_duration(s: &str) -> Result<Duration, String> {
     let s = s.trim().to_lowercase();
@@ -65,11 +68,15 @@ fn parse_duration(s: &str) -> Result<Duration, String> {
 }
 
 /// Per-server timeout configuration
-#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, Default)]
 #[serde(deny_unknown_fields)]
 pub struct Timeout {
     #[serde(default, deserialize_with = "deserialize_tools_timeout")]
     pub tools: Option<Duration>,
+    #[serde(default, deserialize_with = "deserialize_resource_prompt_timeout")]
+    pub resources: Option<Duration>,
+    #[serde(default, deserialize_with = "deserialize_resource_prompt_timeout")]
+    pub prompts: Option<Duration>,
 }
 
 /// Custom deserializer for tools timeout that accepts Duration or string
@@ -102,10 +109,14 @@ where
     }
 }
 
-impl Default for Timeout {
-    fn default() -> Self {
-        Self { tools: None }
-    }
+/// Custom deserializer for resources/prompts timeout that accepts Duration or string
+fn deserialize_resource_prompt_timeout<'de, D>(
+    deserializer: D,
+) -> Result<Option<Duration>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    deserialize_tools_timeout(deserializer)
 }
 
 impl Timeout {
@@ -115,9 +126,21 @@ impl Timeout {
             .unwrap_or_else(|| Duration::from_secs(DEFAULT_TOOL_TIMEOUT_SECS))
     }
 
+    /// Get the resource call timeout, returning the default if not configured
+    pub fn resource_timeout(&self) -> Duration {
+        self.resources
+            .unwrap_or_else(|| Duration::from_secs(DEFAULT_RESOURCE_PROMPT_TIMEOUT_SECS))
+    }
+
+    /// Get the prompt call timeout, returning the default if not configured
+    pub fn prompt_timeout(&self) -> Duration {
+        self.prompts
+            .unwrap_or_else(|| Duration::from_secs(DEFAULT_RESOURCE_PROMPT_TIMEOUT_SECS))
+    }
+
     /// Returns true if all timeouts are using defaults (None)
     pub fn is_default(&self) -> bool {
-        self.tools.is_none()
+        self.tools.is_none() && self.resources.is_none() && self.prompts.is_none()
     }
 }
 
@@ -375,6 +398,22 @@ impl McpServerConfig {
             McpServerConfig::Stdio { timeout, .. } => timeout.tool_timeout(),
             McpServerConfig::Http { timeout, .. } => timeout.tool_timeout(),
             McpServerConfig::Sse { timeout, .. } => timeout.tool_timeout(),
+        }
+    }
+
+    pub fn resource_timeout(&self) -> Duration {
+        match self {
+            McpServerConfig::Stdio { timeout, .. } => timeout.resource_timeout(),
+            McpServerConfig::Http { timeout, .. } => timeout.resource_timeout(),
+            McpServerConfig::Sse { timeout, .. } => timeout.resource_timeout(),
+        }
+    }
+
+    pub fn prompt_timeout(&self) -> Duration {
+        match self {
+            McpServerConfig::Stdio { timeout, .. } => timeout.prompt_timeout(),
+            McpServerConfig::Http { timeout, .. } => timeout.prompt_timeout(),
+            McpServerConfig::Sse { timeout, .. } => timeout.prompt_timeout(),
         }
     }
 }
@@ -1091,7 +1130,11 @@ mod tests {
     fn test_timeout_default() {
         let timeout = Timeout::default();
         assert!(timeout.tools.is_none());
+        assert!(timeout.resources.is_none());
+        assert!(timeout.prompts.is_none());
         assert_eq!(timeout.tool_timeout(), Duration::from_secs(30));
+        assert_eq!(timeout.resource_timeout(), Duration::from_secs(10));
+        assert_eq!(timeout.prompt_timeout(), Duration::from_secs(10));
     }
 
     #[test]
@@ -1101,6 +1144,95 @@ mod tests {
 
         let timeout: Timeout = serde_json::from_value(json!({ "tools": "30s" })).unwrap();
         assert!(!timeout.is_default());
+
+        let timeout: Timeout = serde_json::from_value(json!({ "resources": "30s" })).unwrap();
+        assert!(!timeout.is_default());
+
+        let timeout: Timeout = serde_json::from_value(json!({ "prompts": "30s" })).unwrap();
+        assert!(!timeout.is_default());
+    }
+
+    #[test]
+    fn test_timeout_deserialize_resources_prompts() {
+        let timeout: Timeout =
+            serde_json::from_value(json!({ "resources": "30s", "prompts": "45s" })).unwrap();
+        assert_eq!(timeout.resources, Some(Duration::from_secs(30)));
+        assert_eq!(timeout.prompts, Some(Duration::from_secs(45)));
+        assert_eq!(timeout.resource_timeout(), Duration::from_secs(30));
+        assert_eq!(timeout.prompt_timeout(), Duration::from_secs(45));
+    }
+
+    #[test]
+    fn test_timeout_deserialize_all_fields() {
+        let timeout: Timeout = serde_json::from_value(json!({
+            "tools": "60s",
+            "resources": "30s",
+            "prompts": "45s"
+        }))
+        .unwrap();
+        assert_eq!(timeout.tools, Some(Duration::from_secs(60)));
+        assert_eq!(timeout.resources, Some(Duration::from_secs(30)));
+        assert_eq!(timeout.prompts, Some(Duration::from_secs(45)));
+        assert_eq!(timeout.tool_timeout(), Duration::from_secs(60));
+        assert_eq!(timeout.resource_timeout(), Duration::from_secs(30));
+        assert_eq!(timeout.prompt_timeout(), Duration::from_secs(45));
+    }
+
+    #[test]
+    fn test_server_config_with_resource_timeout() {
+        let json = json!({
+            "description": "Test server",
+            "command": "test-cmd",
+            "timeout": {
+                "resources": "30s"
+            }
+        });
+        let config: McpServerConfig = serde_json::from_value(json).unwrap();
+        assert_eq!(config.resource_timeout(), Duration::from_secs(30));
+        assert_eq!(config.prompt_timeout(), Duration::from_secs(10));
+    }
+
+    #[test]
+    fn test_server_config_with_prompt_timeout() {
+        let json = json!({
+            "description": "Test server",
+            "command": "test-cmd",
+            "timeout": {
+                "prompts": "45s"
+            }
+        });
+        let config: McpServerConfig = serde_json::from_value(json).unwrap();
+        assert_eq!(config.prompt_timeout(), Duration::from_secs(45));
+        assert_eq!(config.resource_timeout(), Duration::from_secs(10));
+    }
+
+    #[test]
+    fn test_server_config_with_all_timeouts() {
+        let json = json!({
+            "description": "Test server",
+            "command": "test-cmd",
+            "timeout": {
+                "tools": "60s",
+                "resources": "30s",
+                "prompts": "45s"
+            }
+        });
+        let config: McpServerConfig = serde_json::from_value(json).unwrap();
+        assert_eq!(config.tool_timeout(), Duration::from_secs(60));
+        assert_eq!(config.resource_timeout(), Duration::from_secs(30));
+        assert_eq!(config.prompt_timeout(), Duration::from_secs(45));
+    }
+
+    #[test]
+    fn test_server_config_timeout_defaults() {
+        let json = json!({
+            "description": "Test server",
+            "command": "test-cmd"
+        });
+        let config: McpServerConfig = serde_json::from_value(json).unwrap();
+        assert_eq!(config.tool_timeout(), Duration::from_secs(30));
+        assert_eq!(config.resource_timeout(), Duration::from_secs(10));
+        assert_eq!(config.prompt_timeout(), Duration::from_secs(10));
     }
 
     #[test]
@@ -1114,16 +1246,6 @@ mod tests {
         });
         let config: McpServerConfig = serde_json::from_value(json).unwrap();
         assert_eq!(config.tool_timeout(), Duration::from_secs(60));
-    }
-
-    #[test]
-    fn test_server_config_timeout_default() {
-        let json = json!({
-            "description": "Test server",
-            "command": "test-cmd"
-        });
-        let config: McpServerConfig = serde_json::from_value(json).unwrap();
-        assert_eq!(config.tool_timeout(), Duration::from_secs(30));
     }
 
     #[test]

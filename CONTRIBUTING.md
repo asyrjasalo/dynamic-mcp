@@ -36,8 +36,7 @@ Thank you for your interest in contributing to dynamic-mcp! This document provid
 4. **Install pre-commit hooks** (recommended)
 
    ```bash
-   pip install pre-commit
-   pre-commit install --hook-type pre-commit --hook-type commit-msg
+   prek install --hook-type pre-commit --hook-type commit-msg
    ```
 
 5. **Build the project**
@@ -175,13 +174,12 @@ cargo clippy -- -D warnings
 
 ### Pre-commit Hooks
 
-This project uses [pre-commit](https://pre-commit.com/) to enforce code quality and consistency.
+This project uses [prek](https://github.com/j178/prek) to enforce code quality and consistency.
 
 **Installation:**
 
 ```bash
-pip install pre-commit
-pre-commit install --hook-type pre-commit --hook-type commit-msg
+prek install --hook-type pre-commit --hook-type commit-msg
 ```
 
 **If a hook fails:**

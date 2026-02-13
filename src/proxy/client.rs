@@ -385,11 +385,13 @@ impl ModularMcpClient {
                     JsonRpcRequest::new(uuid::Uuid::new_v4().to_string(), "resources/list")
                         .with_params(params);
 
-                let response =
-                    tokio::time::timeout(Duration::from_secs(10), transport.send_request(&request))
-                        .await
-                        .with_context(|| "resources/list request timed out")?
-                        .with_context(|| "Failed to list resources from upstream server")?;
+                let response = tokio::time::timeout(
+                    config.resource_timeout(),
+                    transport.send_request(&request),
+                )
+                .await
+                .with_context(|| "resources/list request timed out")?
+                .with_context(|| "Failed to list resources from upstream server")?;
 
                 if let Some(error) = response.error {
                     return Err(anyhow::anyhow!("Upstream error: {}", error.message));
@@ -430,11 +432,13 @@ impl ModularMcpClient {
                     JsonRpcRequest::new(uuid::Uuid::new_v4().to_string(), "resources/read")
                         .with_params(json!({ "uri": uri }));
 
-                let response =
-                    tokio::time::timeout(Duration::from_secs(10), transport.send_request(&request))
-                        .await
-                        .with_context(|| "resources/read request timed out")?
-                        .with_context(|| "Failed to read resource from upstream server")?;
+                let response = tokio::time::timeout(
+                    config.resource_timeout(),
+                    transport.send_request(&request),
+                )
+                .await
+                .with_context(|| "resources/read request timed out")?
+                .with_context(|| "Failed to read resource from upstream server")?;
 
                 if let Some(error) = response.error {
                     return Err(anyhow::anyhow!("Upstream error: {}", error.message));
@@ -475,13 +479,13 @@ impl ModularMcpClient {
                     "resources/templates/list",
                 );
 
-                let response =
-                    tokio::time::timeout(Duration::from_secs(10), transport.send_request(&request))
-                        .await
-                        .with_context(|| "resources/templates/list request timed out")?
-                        .with_context(|| {
-                            "Failed to list resource templates from upstream server"
-                        })?;
+                let response = tokio::time::timeout(
+                    config.resource_timeout(),
+                    transport.send_request(&request),
+                )
+                .await
+                .with_context(|| "resources/templates/list request timed out")?
+                .with_context(|| "Failed to list resource templates from upstream server")?;
 
                 if let Some(error) = response.error {
                     return Err(anyhow::anyhow!("Upstream error: {}", error.message));
@@ -527,7 +531,7 @@ impl ModularMcpClient {
                     .with_params(params);
 
                 let response =
-                    tokio::time::timeout(Duration::from_secs(10), transport.send_request(&request))
+                    tokio::time::timeout(config.prompt_timeout(), transport.send_request(&request))
                         .await
                         .with_context(|| "prompts/list request timed out")?
                         .with_context(|| "Failed to list prompts from upstream server")?;
@@ -577,7 +581,7 @@ impl ModularMcpClient {
                     .with_params(params);
 
                 let response =
-                    tokio::time::timeout(Duration::from_secs(10), transport.send_request(&request))
+                    tokio::time::timeout(config.prompt_timeout(), transport.send_request(&request))
                         .await
                         .with_context(|| "prompts/get request timed out")?
                         .with_context(|| "Failed to get prompt from upstream server")?;
