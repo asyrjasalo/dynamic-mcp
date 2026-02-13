@@ -326,7 +326,9 @@ impl ModularMcpClient {
         let group = self.groups.get(group_name).context("Group not found")?;
 
         match group {
-            GroupState::Connected { transport, .. } => {
+            GroupState::Connected {
+                transport, config, ..
+            } => {
                 let request = JsonRpcRequest::new(uuid::Uuid::new_v4().to_string(), "tools/call")
                     .with_params(json!({
                         "name": tool_name,
@@ -334,7 +336,7 @@ impl ModularMcpClient {
                     }));
 
                 let response =
-                    tokio::time::timeout(Duration::from_secs(30), transport.send_request(&request))
+                    tokio::time::timeout(config.tool_timeout(), transport.send_request(&request))
                         .await
                         .with_context(|| format!("Tool call timed out: {}", tool_name))?
                         .with_context(|| format!("Tool call failed: {}", tool_name))?;

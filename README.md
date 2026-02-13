@@ -352,6 +352,42 @@ Use the optional `enabled` field to disable a specific server without removing i
 - Useful for temporarily disabling servers during testing or maintenance without editing config structure
 - See `examples/config.features.example.json` for a complete example
 
+### Timeout Configuration
+
+Configure custom timeouts for tool calls per server using the optional `timeout` field. By default, tool calls have a 30-second timeout. You can customize this for servers that need more time:
+
+```json
+{
+  "mcpServers": {
+    "slow-server": {
+      "description": "Server with slow tool operations",
+      "command": "npx",
+      "args": ["-y", "some-slow-mcp-server"],
+      "timeout": {
+        "tools": "1min"
+      }
+    }
+  }
+}
+```
+
+**Supported duration formats:**
+
+| Format       | Example               | Description                   |
+| ------------ | --------------------- | ----------------------------- |
+| Seconds      | `"30s"`, `"5s"`       | Simple seconds                |
+| Minutes      | `"1min"`, `"2m"`      | Minutes (abbreviated or full) |
+| Milliseconds | `"3000ms"`, `"500ms"` | Milliseconds                  |
+| Hours        | `"1h"`, `"2h"`        | Hours                         |
+| Plain number | `30`                  | Seconds (plain number)        |
+
+**Behavior:**
+
+- If `timeout` is omitted, the default of 30 seconds is used
+- If `timeout.tools` is omitted, the default of 30 seconds is used
+- Applies only to tool call operations, not to connection or initialization
+- Useful for servers with long-running operations (database queries, file processing, etc.)
+
 ## Troubleshooting
 
 ### Server Connection Issues
@@ -442,7 +478,7 @@ uvx dmcp config.json
 **Solutions**:
 
 - dynamic-mcp uses strict JSON schema validation that only allows defined fields
-- Check for typos in field names: `description`, `command`, `url`, `type`, `args`, `env`, `headers`, `oauth_client_id`, `oauth_scopes`, `features`
+- Check for typos in field names: `description`, `command`, `url`, `type`, `args`, `env`, `headers`, `oauth_client_id`, `oauth_scopes`, `features`, `enabled`, `timeout`
 - Remove any extra or misspelled fields from your config
 - Refer to the schema examples above to see valid fields for each server type
 

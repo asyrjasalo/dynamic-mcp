@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Per-Server Timeout Configuration** - Custom tool call timeouts per server
+  - Add `"timeout": { "tools": "30s" }` to any server config
+  - Supports formats: `30s`, `1min`, `1m`, `500ms`, `1h`, plain numbers
+  - Defaults to 30 seconds if not specified
+  - Useful for servers with long-running operations
+
 ## [1.4.0] - 2026-01-12
 
 ### Added

@@ -619,7 +619,7 @@ impl Transport {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::config::schema::Features;
+    use crate::config::schema::{Features, Timeout};
     use std::collections::HashMap;
 
     #[tokio::test]
@@ -632,6 +632,7 @@ mod tests {
             oauth_scopes: None,
             features: Features::default(),
             enabled: true,
+            timeout: Timeout::default(),
         };
 
         let result = Transport::new(&config, "test_server").await;
@@ -651,6 +652,7 @@ mod tests {
             oauth_scopes: None,
             features: Features::default(),
             enabled: true,
+            timeout: Timeout::default(),
         };
 
         let result = Transport::new(&config, "test_server").await;
@@ -667,6 +669,7 @@ mod tests {
             oauth_scopes: None,
             features: Features::default(),
             enabled: true,
+            timeout: Timeout::default(),
         };
 
         let result = Transport::new(&config, "test_server").await;
@@ -686,6 +689,7 @@ mod tests {
             oauth_scopes: None,
             features: Features::default(),
             enabled: true,
+            timeout: Timeout::default(),
         };
 
         let result = Transport::new(&config, "test_server").await;
@@ -701,6 +705,7 @@ mod tests {
             env: None,
             features: Features::default(),
             enabled: true,
+            timeout: Timeout::default(),
         };
 
         let result = Transport::new(&config, "test_server").await;
@@ -719,6 +724,7 @@ mod tests {
             oauth_scopes: None,
             features: Features::default(),
             enabled: true,
+            timeout: Timeout::default(),
         };
 
         let sse_config = McpServerConfig::Sse {
@@ -729,6 +735,7 @@ mod tests {
             oauth_scopes: None,
             features: Features::default(),
             enabled: true,
+            timeout: Timeout::default(),
         };
 
         let stdio_config = McpServerConfig::Stdio {
@@ -738,6 +745,7 @@ mod tests {
             env: None,
             features: Features::default(),
             enabled: true,
+            timeout: Timeout::default(),
         };
 
         assert!(discriminant(&http_config) != discriminant(&sse_config));

@@ -41,6 +41,7 @@ pub fn substitute_in_config(config: McpServerConfig) -> McpServerConfig {
             env,
             features,
             enabled,
+            timeout,
         } => McpServerConfig::Stdio {
             description,
             command,
@@ -48,6 +49,7 @@ pub fn substitute_in_config(config: McpServerConfig) -> McpServerConfig {
             env: env.map(substitute_in_object),
             features,
             enabled,
+            timeout,
         },
         McpServerConfig::Http {
             description,
@@ -57,6 +59,7 @@ pub fn substitute_in_config(config: McpServerConfig) -> McpServerConfig {
             oauth_scopes,
             features,
             enabled,
+            timeout,
         } => McpServerConfig::Http {
             description,
             url: substitute_env_vars(&url),
@@ -65,6 +68,7 @@ pub fn substitute_in_config(config: McpServerConfig) -> McpServerConfig {
             oauth_scopes,
             features,
             enabled,
+            timeout,
         },
         McpServerConfig::Sse {
             description,
@@ -74,6 +78,7 @@ pub fn substitute_in_config(config: McpServerConfig) -> McpServerConfig {
             oauth_scopes,
             features,
             enabled,
+            timeout,
         } => McpServerConfig::Sse {
             description,
             url: substitute_env_vars(&url),
@@ -82,6 +87,7 @@ pub fn substitute_in_config(config: McpServerConfig) -> McpServerConfig {
             oauth_scopes,
             features,
             enabled,
+            timeout,
         },
     }
 }

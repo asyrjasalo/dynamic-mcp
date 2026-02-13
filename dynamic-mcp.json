@@ -18,7 +18,10 @@
     "utcp": {
       "description": "Use when you need to execute complex workflows by writing TypeScript code that calls multiple MCP and UTCP tools in a single execution. Ideal for batching operations, orchestrating multi-step workflows, processing large datasets efficiently, or when you need to combine tools from different ecosystems (MCP, HTTP, file-based).",
       "command": "npx",
-      "args": ["-y", "@utcp/code-mode-mcp"]
+      "args": ["-y", "@utcp/code-mode-mcp"],
+      "timeout": {
+        "tools": "1min"
+      }
     }
   }
 }

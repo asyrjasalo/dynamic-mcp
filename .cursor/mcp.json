@@ -1,7 +1,7 @@
 {
   "mcpServers": {
     "dynamic-mcp": {
-      "command": "./target/release/dmcp",
+      "command": "./target/debug/dmcp",
       "env": {
         "DYNAMIC_MCP_CONFIG": "dynamic-mcp.json"
       }

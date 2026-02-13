@@ -74,6 +74,21 @@
                  "type": "boolean",
                  "default": true,
                  "description": "Enable or disable this server (default: true)"
+               },
+               "timeout": {
+                 "type": "object",
+                 "additionalProperties": false,
+                 "description": "Timeout configuration for this server",
+                 "properties": {
+                   "tools": {
+                     "oneOf": [
+                       { "type": "string", "description": "Tool call timeout as duration string (e.g., '30s', '1min', '500ms')" },
+                       { "type": "integer", "minimum": 0, "description": "Tool call timeout in seconds" }
+                     ],
+                     "default": "30s",
+                     "description": "Timeout for tool calls (default: 30s)"
+                   }
+                 }
                }
              }
            },
@@ -141,6 +156,21 @@
                   "type": "boolean",
                   "default": true,
                   "description": "Enable or disable this server (default: true)"
+                },
+                "timeout": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "description": "Timeout configuration for this server",
+                  "properties": {
+                    "tools": {
+                      "oneOf": [
+                        { "type": "string", "description": "Tool call timeout as duration string (e.g., '30s', '1min', '500ms')" },
+                        { "type": "integer", "minimum": 0, "description": "Tool call timeout in seconds" }
+                      ],
+                      "default": "30s",
+                      "description": "Timeout for tool calls (default: 30s)"
+                    }
+                  }
                 }
               }
             }
