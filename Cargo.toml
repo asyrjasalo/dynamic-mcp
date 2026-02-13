@@ -12,13 +12,22 @@ documentation = "https://docs.rs/dynamic-mcp"
 keywords = ["mcp", "proxy", "server", "llm", "ai"]
 categories = ["command-line-utilities", "development-tools", "network-programming"]
 exclude = [
+    ".claude/",
+    ".cursor/",
+    ".opencode/",
     ".github/",
     "benches/",
     "docs/implementation/",
+    '.gitignore',
+    '.mcp.json',
+    ".pre-commit-config.yaml",
     "AGENTS.md",
-    "config-schema.json",
     "CLAUDE.md",
-    "pyproject.toml"
+    "CONTRIBUTING.md",
+    "config-schema.json",
+    "dynamic-mcp.json",
+    "pyproject.toml",
+    "SECURITY.md"
 ]
 
 [[bin]]
