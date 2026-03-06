@@ -416,6 +416,34 @@ impl McpServerConfig {
             McpServerConfig::Sse { timeout, .. } => timeout.prompt_timeout(),
         }
     }
+
+    /// Returns true if this server may require an OAuth browser flow
+    pub fn needs_oauth(&self) -> bool {
+        match self {
+            McpServerConfig::Stdio { .. } => false,
+            McpServerConfig::Http {
+                oauth_client_id,
+                headers,
+                ..
+            }
+            | McpServerConfig::Sse {
+                oauth_client_id,
+                headers,
+                ..
+            } => {
+                // Explicit oauth_client_id means OAuth is configured
+                if oauth_client_id.is_some() {
+                    return true;
+                }
+                // No Authorization header means dynamic registration may be attempted
+                if let Some(h) = headers {
+                    !h.contains_key("Authorization")
+                } else {
+                    true
+                }
+            }
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]

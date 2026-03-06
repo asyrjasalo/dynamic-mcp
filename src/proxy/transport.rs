@@ -236,6 +236,13 @@ impl HttpTransport {
         }
     }
 
+    fn has_session_id(&self) -> bool {
+        self.session_id
+            .try_lock()
+            .map(|sid| sid.is_some())
+            .unwrap_or(false)
+    }
+
     pub fn set_protocol_version(&self, version: String) {
         if let Ok(mut pv) = self.protocol_version.try_lock() {
             *pv = version;
@@ -274,6 +281,18 @@ impl HttpTransport {
             .context("Failed to send HTTP request")?;
 
         let status = response.status();
+
+        // Capture server-assigned Mcp-Session-Id from response headers
+        if let Some(server_session_id) = response
+            .headers()
+            .get("Mcp-Session-Id")
+            .or_else(|| response.headers().get("mcp-session-id"))
+            .and_then(|v| v.to_str().ok())
+        {
+            if let Ok(mut session_id_lock) = self.session_id.try_lock() {
+                *session_id_lock = Some(server_session_id.to_string());
+            }
+        }
 
         // Check Content-Type header for SSE detection
         let content_type = response
@@ -390,6 +409,13 @@ impl SseTransport {
         }
     }
 
+    fn has_session_id(&self) -> bool {
+        self.session_id
+            .try_lock()
+            .map(|sid| sid.is_some())
+            .unwrap_or(false)
+    }
+
     pub fn set_protocol_version(&self, version: String) {
         if let Ok(mut pv) = self.protocol_version.try_lock() {
             *pv = version;
@@ -481,6 +507,19 @@ impl SseTransport {
             .context("Failed to send SSE request")?;
 
         let status = response.status();
+
+        // Capture server-assigned Mcp-Session-Id from response headers
+        if let Some(server_session_id) = response
+            .headers()
+            .get("Mcp-Session-Id")
+            .or_else(|| response.headers().get("mcp-session-id"))
+            .and_then(|v| v.to_str().ok())
+        {
+            if let Ok(mut session_id_lock) = self.session_id.try_lock() {
+                *session_id_lock = Some(server_session_id.to_string());
+            }
+        }
+
         let response_text = response
             .text()
             .await
@@ -537,18 +576,36 @@ impl Transport {
             } => {
                 let mut final_headers = headers.clone().unwrap_or_default();
 
-                if let Some(client_id) = oauth_client_id {
-                    let oauth_client = OAuthClient::new()?;
-                    let token = oauth_client
-                        .authenticate(server_name, url, client_id, oauth_scopes.clone())
-                        .await?;
-
-                    final_headers.insert(
-                        "Authorization".to_string(),
-                        format!("Bearer {}", token.access_token),
-                    );
-
-                    tracing::debug!("Added OAuth token to HTTP transport for {}", server_name);
+                // Attempt OAuth: with explicit client_id, or via dynamic registration
+                let oauth_client = OAuthClient::new()?;
+                match oauth_client
+                    .authenticate(
+                        server_name,
+                        url,
+                        oauth_client_id.as_deref(),
+                        oauth_scopes.clone(),
+                    )
+                    .await
+                {
+                    Ok(token) => {
+                        final_headers.insert(
+                            "Authorization".to_string(),
+                            format!("Bearer {}", token.access_token),
+                        );
+                        tracing::debug!("Added OAuth token to HTTP transport for {}", server_name);
+                    }
+                    Err(e) => {
+                        if oauth_client_id.is_some() {
+                            // Explicit client_id was provided but auth failed — propagate error
+                            return Err(e);
+                        }
+                        // No client_id in config — OAuth not required, skip silently
+                        tracing::debug!(
+                            "OAuth not available for {} (no client_id, discovery failed): {}",
+                            server_name,
+                            e
+                        );
+                    }
                 }
 
                 let transport = HttpTransport::new(url, Some(&final_headers)).await?;
@@ -563,18 +620,34 @@ impl Transport {
             } => {
                 let mut final_headers = headers.clone().unwrap_or_default();
 
-                if let Some(client_id) = oauth_client_id {
-                    let oauth_client = OAuthClient::new()?;
-                    let token = oauth_client
-                        .authenticate(server_name, url, client_id, oauth_scopes.clone())
-                        .await?;
-
-                    final_headers.insert(
-                        "Authorization".to_string(),
-                        format!("Bearer {}", token.access_token),
-                    );
-
-                    tracing::debug!("Added OAuth token to SSE transport for {}", server_name);
+                // Attempt OAuth: with explicit client_id, or via dynamic registration
+                let oauth_client = OAuthClient::new()?;
+                match oauth_client
+                    .authenticate(
+                        server_name,
+                        url,
+                        oauth_client_id.as_deref(),
+                        oauth_scopes.clone(),
+                    )
+                    .await
+                {
+                    Ok(token) => {
+                        final_headers.insert(
+                            "Authorization".to_string(),
+                            format!("Bearer {}", token.access_token),
+                        );
+                        tracing::debug!("Added OAuth token to SSE transport for {}", server_name);
+                    }
+                    Err(e) => {
+                        if oauth_client_id.is_some() {
+                            return Err(e);
+                        }
+                        tracing::debug!(
+                            "OAuth not available for {} (no client_id, discovery failed): {}",
+                            server_name,
+                            e
+                        );
+                    }
                 }
 
                 let transport = SseTransport::new(url, Some(&final_headers)).await?;
@@ -596,6 +669,14 @@ impl Transport {
             Transport::Stdio(_) => {}
             Transport::Http(t) => t.set_session_id(session_id),
             Transport::Sse(t) => t.set_session_id(session_id),
+        }
+    }
+
+    pub fn has_session_id(&self) -> bool {
+        match self {
+            Transport::Stdio(_) => false,
+            Transport::Http(t) => t.has_session_id(),
+            Transport::Sse(t) => t.has_session_id(),
         }
     }
 

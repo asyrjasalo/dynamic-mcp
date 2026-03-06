@@ -42,8 +42,14 @@ impl ModularMcpClient {
         let description = config.description().to_string();
 
         let config_to_use = config.clone();
+        let needs_oauth = config.needs_oauth();
+        let transport_timeout = if needs_oauth {
+            Duration::from_secs(120) // OAuth requires user interaction
+        } else {
+            Duration::from_secs(5)
+        };
         let transport = tokio::time::timeout(
-            Duration::from_secs(5),
+            transport_timeout,
             Transport::new(&config_to_use, &group_name),
         )
         .await
@@ -117,8 +123,12 @@ impl ModularMcpClient {
 
         transport.set_protocol_version(server_version.to_string());
 
-        let session_id = uuid::Uuid::new_v4().to_string();
-        transport.set_session_id(session_id);
+        // If the server didn't assign a session ID in the initialize response,
+        // generate a client-side one as fallback
+        if !transport.has_session_id() {
+            let session_id = uuid::Uuid::new_v4().to_string();
+            transport.set_session_id(session_id);
+        }
 
         // Only list tools if tools feature is enabled
         let tools = if config.features().tools {

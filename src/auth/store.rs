@@ -11,6 +11,8 @@ pub struct OAuthTokens {
     pub refresh_token: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub expires_at: Option<DateTime<Utc>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub client_id: Option<String>,
 }
 
 impl OAuthTokens {
@@ -117,6 +119,7 @@ mod tests {
             access_token: "test_access_token".to_string(),
             refresh_token: Some("test_refresh_token".to_string()),
             expires_at: Some(Utc::now() + chrono::Duration::hours(1)),
+            client_id: None,
         };
 
         store.save_token("test_server", &tokens).await.unwrap();
@@ -148,6 +151,7 @@ mod tests {
             access_token: "test_token".to_string(),
             refresh_token: None,
             expires_at: None,
+            client_id: None,
         };
 
         store.save_token("test_server", &tokens).await.unwrap();
@@ -163,6 +167,7 @@ mod tests {
             access_token: "token".to_string(),
             refresh_token: None,
             expires_at: Some(Utc::now() - chrono::Duration::hours(1)),
+            client_id: None,
         };
         assert!(expired.is_expired());
 
@@ -170,6 +175,7 @@ mod tests {
             access_token: "token".to_string(),
             refresh_token: None,
             expires_at: Some(Utc::now() + chrono::Duration::hours(1)),
+            client_id: None,
         };
         assert!(!valid.is_expired());
 
@@ -177,6 +183,7 @@ mod tests {
             access_token: "token".to_string(),
             refresh_token: None,
             expires_at: None,
+            client_id: None,
         };
         assert!(!no_expiry.is_expired());
     }
@@ -187,6 +194,7 @@ mod tests {
             access_token: "token".to_string(),
             refresh_token: Some("refresh".to_string()),
             expires_at: Some(Utc::now() + chrono::Duration::minutes(3)),
+            client_id: None,
         };
         assert!(needs_refresh.needs_refresh());
 
@@ -194,6 +202,7 @@ mod tests {
             access_token: "token".to_string(),
             refresh_token: Some("refresh".to_string()),
             expires_at: Some(Utc::now() + chrono::Duration::hours(1)),
+            client_id: None,
         };
         assert!(!no_refresh_needed.needs_refresh());
     }

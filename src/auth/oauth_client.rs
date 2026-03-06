@@ -21,6 +21,8 @@ pub struct OAuthServerMetadata {
     pub authorization_endpoint: String,
     pub token_endpoint: String,
     #[serde(default)]
+    pub registration_endpoint: Option<String>,
+    #[serde(default)]
     pub scopes_supported: Vec<String>,
 }
 
@@ -67,27 +69,38 @@ impl OAuthClient {
         &self,
         server_name: &str,
         server_url: &str,
-        client_id: &str,
+        client_id: Option<&str>,
         scopes: Option<Vec<String>>,
     ) -> Result<OAuthTokens> {
         let existing_token = self.store.load_token(server_name).await?;
 
+        // Resolve client_id: config > cached > deferred to perform_oauth_flow (dynamic registration)
+        let resolved_client_id = if let Some(cid) = client_id {
+            Some(cid.to_string())
+        } else if let Some(ref token) = existing_token {
+            token.client_id.clone()
+        } else {
+            None
+        };
+
         if let Some(token) = existing_token {
-            if !token.is_expired() {
+            if !token.is_expired() && !token.needs_refresh() {
                 tracing::debug!("Using existing valid token for {}", server_name);
                 return Ok(token);
             }
 
             if token.needs_refresh() {
                 if let Some(refresh_token) = &token.refresh_token {
-                    tracing::info!("Refreshing expired token for {}", server_name);
-                    match self
-                        .refresh_token(server_name, server_url, client_id, refresh_token)
-                        .await
-                    {
-                        Ok(new_token) => return Ok(new_token),
-                        Err(e) => {
-                            tracing::warn!("Token refresh failed: {}, re-authenticating", e);
+                    if let Some(ref cid) = resolved_client_id {
+                        tracing::info!("Refreshing expired token for {}", server_name);
+                        match self
+                            .refresh_token(server_name, server_url, cid, refresh_token)
+                            .await
+                        {
+                            Ok(new_token) => return Ok(new_token),
+                            Err(e) => {
+                                tracing::warn!("Token refresh failed: {}, re-authenticating", e);
+                            }
                         }
                     }
                 }
@@ -98,11 +111,86 @@ impl OAuthClient {
         let metadata = Self::discover_oauth_endpoints(server_url).await?;
 
         let tokens = self
-            .perform_oauth_flow(server_name, server_url, &metadata, client_id, scopes)
+            .perform_oauth_flow(
+                server_name,
+                server_url,
+                &metadata,
+                resolved_client_id.as_deref(),
+                scopes,
+            )
             .await?;
 
         self.store.save_token(server_name, &tokens).await?;
         Ok(tokens)
+    }
+
+    async fn register_client(
+        &self,
+        server_name: &str,
+        metadata: &OAuthServerMetadata,
+        redirect_url: &str,
+    ) -> Result<String> {
+        let registration_endpoint = metadata
+            .registration_endpoint
+            .as_ref()
+            .ok_or_else(|| {
+                anyhow!(
+                    "Server {} does not support dynamic client registration \
+                     (no registration_endpoint in OAuth discovery). \
+                     Provide oauth_client_id in config instead.",
+                    server_name
+                )
+            })?;
+
+        tracing::info!(
+            "Dynamically registering OAuth client for {} at {}",
+            server_name,
+            registration_endpoint
+        );
+
+        let registration_request = serde_json::json!({
+            "client_name": format!("dynamic-mcp ({})", server_name),
+            "redirect_uris": [redirect_url],
+            "grant_types": ["authorization_code", "refresh_token"],
+            "response_types": ["code"],
+            "token_endpoint_auth_method": "none"
+        });
+
+        let client = reqwest::Client::new();
+        let response = client
+            .post(registration_endpoint)
+            .json(&registration_request)
+            .send()
+            .await
+            .context("Failed to send dynamic client registration request")?;
+
+        if !response.status().is_success() {
+            let status = response.status();
+            let body = response.text().await.unwrap_or_default();
+            bail!(
+                "Dynamic client registration failed ({}): {}",
+                status,
+                body
+            );
+        }
+
+        let reg_response: serde_json::Value = response
+            .json()
+            .await
+            .context("Failed to parse registration response")?;
+
+        let client_id = reg_response["client_id"]
+            .as_str()
+            .ok_or_else(|| anyhow!("Registration response missing client_id"))?
+            .to_string();
+
+        tracing::info!(
+            "Registered dynamic client for {}: {}",
+            server_name,
+            client_id
+        );
+
+        Ok(client_id)
     }
 
     async fn perform_oauth_flow(
@@ -110,13 +198,22 @@ impl OAuthClient {
         server_name: &str,
         server_url: &str,
         metadata: &OAuthServerMetadata,
-        client_id: &str,
+        client_id: Option<&str>,
         scopes: Option<Vec<String>>,
     ) -> Result<OAuthTokens> {
         let (listener, redirect_url) = Self::create_callback_server()?;
 
+        // Resolve client_id: use provided, or dynamically register with actual redirect_uri
+        let resolved_client_id = if let Some(cid) = client_id {
+            cid.to_string()
+        } else {
+            let redirect_str = redirect_url.url().as_str();
+            self.register_client(server_name, metadata, redirect_str)
+                .await?
+        };
+
         let oauth_client = BasicClient::new(
-            ClientId::new(client_id.to_string()),
+            ClientId::new(resolved_client_id.clone()),
             None,
             AuthUrl::new(metadata.authorization_endpoint.clone())
                 .context("Invalid authorization endpoint")?,
@@ -164,6 +261,7 @@ impl OAuthClient {
             access_token: token_result.access_token().secret().clone(),
             refresh_token: token_result.refresh_token().map(|t| t.secret().clone()),
             expires_at,
+            client_id: Some(resolved_client_id),
         };
 
         tracing::info!("Successfully authenticated for {}", server_name);
@@ -207,6 +305,7 @@ impl OAuthClient {
             access_token: token_result.access_token().secret().clone(),
             refresh_token: new_refresh_token.clone(),
             expires_at,
+            client_id: Some(client_id.to_string()),
         };
 
         self.store.save_token(server_name, &tokens).await?;
