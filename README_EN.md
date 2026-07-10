@@ -580,7 +580,7 @@ Since v1.6.0, `--transport` decides how dynamic-mcp serves clients. The single m
 #### Mode 1 · stdio (default, `--transport stdio`)
 
 - **What it is**: dynamic-mcp runs as a local subprocess on your machine; data goes over standard input/output (stdio).
-- **Who starts it**: **Only an LLM client can launch it.** You list `"command": "dmcp"` in the MCP config of a desktop client such as Claude Desktop, Cursor, or VS Code — the client itself starts dmcp and owns its input/output. **You don't — and can't — start it manually in a terminal**; it is born when the client starts and dies when the client exits.
+- **Who starts it**: The **normal way to run stdio mode is for an LLM client to launch it** — you list `"command": "dmcp"` in the MCP config of a desktop client such as Claude Desktop, Cursor, or VS Code, and the client starts dmcp and owns its input/output; the process is born when the client starts and dies when the client exits. **You can also run `dmcp config.json` manually in a terminal**, but then its stdin/stdout are only attached to your terminal with no LLM client driving them — there is no "conversation partner", so it cannot actually be used. For this reason, stdio mode is only useful when launched by an LLM client.
 - **When to use**: Only when you run a desktop AI client locally on your own machine.
 - **Limitation**: An LLM running in a browser, the cloud, or on a phone cannot launch a local process on your machine, so **those environments cannot use stdio mode**.
 
