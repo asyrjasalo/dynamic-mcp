@@ -1,18 +1,62 @@
 # dynamic-mcp
 
-An MCP proxy server that aggregates many upstream MCP servers behind a single entry point — making your AI cheaper on tokens and usable anywhere.
+> In one sentence: it is a "tool relay station" that gathers your scattered AI tools into one place, so your AI assistant uses them more cheaply and more conveniently.
 
-The usual approach hands every MCP tool to the LLM at once; the schemas of dozens of tools can burn thousands of tokens, wasting money and crowding the context. dynamic-mcp solves this with two core capabilities:
+## Understand it in 3 minutes (for non-technical readers)
 
-- **Exposes only 3 tools, loaded on demand**: No matter how many upstream MCP servers you connect, it always exposes just 3 meta-tools to the LLM — list groups, list the tools in a group, and call a tool. A group's tool schemas are loaded only when that group is actually needed. However many upstream tools exist, the initial context cost stays nearly constant, substantially cutting token usage.
-- **Bridges local stdio servers into HTTP services**: Many MCP servers only run locally over `stdio`, out of reach for browsers, the cloud, or phones. dynamic-mcp bridges them into standard `Streamable HTTP` MCP services — configure once, and browser extensions, cloud agents, and mobile apps can all call the same tools remotely.
+Let's explain it in plain language first; the technical details come later.
 
-**Two operating modes:**
+### 1. The two problems it solves
 
-- **Mode 1 · Local proxy (stdio)**: Runs as a local stdio MCP proxy, plugging directly into desktop clients like Claude Desktop and Cursor, focused on aggregation and token savings.
-- **Mode 2 · HTTP gateway (Streamable HTTP)**: Serves over Streamable HTTP, opening your local tools to browsers, the cloud, and mobile for remote use. Both modes can run at the same time.
+**Problem 1: Too many tools — the AI assistant can't keep track, and it costs money**
+An AI assistant (like Claude or GPT) can't actually do work by itself; it has to borrow your various "tools" — looking things up, reading files, doing calculations… If you put 20 tools in front of it at once, it has to keep every tool's instruction on its "work desk". The desk gets cluttered, the assistant slows down, and every sentence you exchange costs more money.
 
-It supports tools, resources, and prompts from upstream MCP servers over stdio, HTTP, and SSE transports, handles OAuth, and automatically retries failed connections.
+dynamic-mcp's clever trick: **at first it shows the assistant only a 3-item "menu"** (list groups, see what's in a group, call a tool). When the assistant actually needs a tool, it fetches that tool's details on the spot. The desk stays tidy — cheaper and simpler.
+
+**Problem 2: The assistant can't reach the tools on your computer**
+Many great tools only "sit inside your computer and work when you're standing right next to it". But if the assistant is in a browser, on a phone, or on another machine in the cloud, it "can't walk over" to grab them.
+
+dynamic-mcp can attach a "phone line" to those local tools so they can be reached from afar too (the technical term is "bridging local stdio into Streamable HTTP"). Once bridged, a distant assistant just makes a "call" (connects to a network address) and can use the tools on your computer.
+
+### 2. Two "ways to open the door" (modes)
+
+Think of the software as a "tool room" that can open a different number of doors:
+
+| Mode | Front door (for the assistant standing at your computer) | Back window (for assistants in browser/phone/cloud) | For whom |
+|---|---|---|---|
+| Mode 1 · stdio | open | closed | Only the AI app installed on your computer |
+| Mode 2 · http | closed | open | Only assistants in browser/phone/cloud |
+| Mode 3 · both | open | open | Both at the same time |
+
+All three modes keep the "only 3 menu items" design.
+
+### 3. Mode 3 (both) — advantages / highlights
+
+Mode 3 is "one room, two doors, one set of tools". Its biggest benefit is **one program does the job of two**:
+
+1. **One program, usable from two places**: your desktop AI app (Claude Desktop / Cursor / VS Code) uses the "front door" (stdio), while browser/phone/cloud assistants use the "back window" (HTTP) — **one process serves both kinds of assistants**, no need to run two dmcp instances.
+2. **Shares one set of tool connections and config**: both doors use the same upstream tools and the same config file. No need to maintain two dmcp instances or connect upstream twice — saves memory and resources, and you configure only once.
+3. **Less hassle**: without Mode 3 you'd run two programs — one stdio for the desktop, one http for the browser — double the connections, double the memory, two configs to maintain. Mode 3 removes all that.
+
+> ⚠️ **Who should open Mode 3 (important)**: let **your desktop AI app (Claude Desktop / Cursor / VS Code) open it for you** — don't launch it manually yourself.
+> Why: whether the "room has power" depends on "whether an assistant walked in through the front door". When the AI app opens dmcp, it pushes open the front door and stands inside — the room powers on, the back window opens too, and the browser assistant can come in through it.
+> If you launch it manually: the front door is open but nobody uses it (waste), and your AI app still can't use it, so it has to open another one → back to two programs, and Mode 3's benefit is gone.
+> Correct approach: in your AI app's settings, tell it to open dmcp "with the both mode"; it does the rest.
+
+> 💡 **Tip**: the room's power depends on "whether the front-door assistant is present". If you close the desktop AI app, dmcp is shut down and the back window closes too — the browser assistant loses access immediately. If you want "the browser assistant to keep working even after the desktop app is closed", split Mode 3 into two separate programs: one always-on for the outside (Mode 2 http, you keep it running), and one for the desktop app (Mode 1 or Mode 3, opened by the app itself).
+
+### 4. How to pick the one switch (for those who want to try)
+
+The switch that decides "how many doors to open" is called `--transport`:
+- `stdio` → only the front door (for the desktop AI app)
+- `http` → only the back window (for browser/phone/cloud)
+- `both` → both doors (let the AI app open it for you)
+
+The other parameters (address, port, path) can stay at their defaults; you only touch them when you want devices *other than your own computer* to reach it (see the "Parameters" section in the technical chapter below).
+
+---
+
+The full technical explanation for developers follows (you don't need it to get the gist above).
 
 ## Quick Start
 
@@ -597,20 +641,24 @@ Since v1.6.0, `--transport` decides how dynamic-mcp serves clients. The single m
 
 #### Mode 3 · both (`--transport both`)
 
-- **What it is**: stdio and HTTP run at the same time — one process, two entry points.
-- **Who starts it**: the stdio side is launched by your LLM client; the HTTP side is started manually by you.
-- **When to use**: when you want token savings on the local desktop client AND want browsers / cloud / mobile to use the same upstream tools.
+- **What it is**: stdio and HTTP run at the same time — one process, two entry points (the back window + the front door).
+- **Advantages / highlights**:
+  - **One program does the job of two**: the desktop AI app uses the stdio door, browser/phone/cloud assistants use the HTTP window — **one process serves both kinds of clients**, no need to run two dmcp instances.
+  - **Shares one set of upstream connections and config**: both entry points use the same upstream tools and the same config file, saving memory and resources, configured only once.
+  - **Less hassle**: without `both` you'd run two programs (one stdio for the desktop, one http for the browser) — double connections, double memory, two configs; `both` removes all that.
+- **Who starts it (key)**: **let your desktop AI app (Claude Desktop / Cursor / VS Code) launch it**, not a manual terminal start. When the app launches dmcp it opens the stdio door and stands inside, the process stays alive, and the HTTP window opens too so the browser assistant can connect. A manual start leaves the stdio door idle and the desktop app can't use it — wasting `both`. See "Understand it in 3 minutes" above for the plain-language version.
+- **When to use**: when you need both local desktop token savings AND browser/cloud/mobile remote use of the same upstream tools.
 
 ### Parameters
 
 New command-line flags control HTTP exposure (the config file is **unchanged** — see below):
 
-| Flag           | Default        | Description                                 |
+| Flag           | Default        | Description (plain language)                |
 | -------------- | -------------- | ------------------------------------------- |
-| `--transport`  | `stdio`        | Transport mode: `stdio`, `http`, or `both`. |
-| `--http-host`  | `127.0.0.1`    | Bind address for the HTTP server.           |
-| `--http-port`  | `8082`         | Bind port for the HTTP server.              |
-| `--http-path`  | `/dynamic-mcp` | Mount path of the Streamable HTTP endpoint. |
+| `--transport`  | `stdio`        | Which doors to open: `stdio` for the desktop AI app only; `http` for browser/phone/cloud only; `both` for both (recommended: let the desktop AI app open it for you). |
+| `--http-host`  | `127.0.0.1`    | Which machine the HTTP window "binds to". Default `127.0.0.1` = only your own computer can reach it (safest). Usually leave it; change only to let LAN/other devices connect (has security risk). |
+| `--http-port`  | `8082`         | The window's "door number". Default 8082; change it (e.g. 9000) if another program already uses 8082. |
+| `--http-path`  | `/dynamic-mcp` | The window's "room name". The address you type in the client must end with it, e.g. `http://127.0.0.1:8082/dynamic-mcp`. |
 
 ### Usage
 
