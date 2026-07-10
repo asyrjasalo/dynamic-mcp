@@ -1,18 +1,18 @@
 # dynamic-mcp
 
-MCP proxy server that reduces LLM context overhead by grouping tools from multiple upstream MCP servers and loading tool schemas on-demand.
+一个 MCP 代理服务器，通过把多个上游 MCP 服务器的工具按「分组（group）」聚合、并按需加载工具 Schema，显著降低 LLM 的上下文开销。
 
-Instead of requiring you to expose all MCP servers upfront (which can consume thousands of tokens), dynamic-mcp exposes only two MCP tools initially.
+dynamic-mcp 不会要求你一次性把所有 MCP 服务器暴露出去（那样可能消耗数千 token），而是初始只暴露少量 MCP 工具。
 
-It supports tools, resources, and prompts from upstream MCP servers with stdio, HTTP, and SSE transports, handles OAuth, and automatically retries failed connections.
+它支持来自上游 MCP 服务器的 tools（工具）、resources（资源）与 prompts（提示模板），传输方式涵盖 stdio、HTTP 与 SSE，并能处理 OAuth，自动重试失败的连接。
 
-## Quick Start
+## 快速开始
 
-### Installation
+### 安装
 
-#### Option 1: Python package
+#### 方式一：Python 包
 
-Use `uvx` to run the [PyPI package](https://pypi.org/project/dmcp/) in your agent's MCP settings:
+在你的智能体 MCP 设置中使用 `uvx` 运行 [PyPI 包](https://pypi.org/project/dmcp/)：
 
 ```json
 {
@@ -25,12 +25,11 @@ Use `uvx` to run the [PyPI package](https://pypi.org/project/dmcp/) in your agen
 }
 ```
 
-You can set the `DYNAMIC_MCP_CONFIG` environment variable and omit the config path.
+你也可以设置 `DYNAMIC_MCP_CONFIG` 环境变量，从而省略配置文件路径。
 
-#### Option 2: Native binary
+#### 方式二：原生二进制
 
-Download a [release](https://github.com/asyrjasalo/dynamic-mcp/releases) for
-your operating system and put `dmcp` in your `PATH`:
+从 [Releases](https://github.com/asyrjasalo/dynamic-mcp/releases) 下载对应操作系统的版本，把 `dmcp` 放入 `PATH`：
 
 ```json
 {
@@ -42,65 +41,65 @@ your operating system and put `dmcp` in your `PATH`:
 }
 ```
 
-Set the `DYNAMIC_MCP_CONFIG` environment variable and omit the `args` altogether.
+设置 `DYNAMIC_MCP_CONFIG` 环境变量后可完全省略 `args`。
 
-#### Option 3: Compile from source
+#### 方式三：从源码编译
 
-Install from [crates.io](https://crates.io/crates/dynamic-mcp):
+从 [crates.io](https://crates.io/crates/dynamic-mcp) 安装：
 
 ```text
 cargo install dynamic-mcp
 ```
 
-The binary is then available at `~/.cargo/bin/dmcp` (`$CARGO_HOME/bin/dmcp`).
+安装后二进制位于 `~/.cargo/bin/dmcp`（`$CARGO_HOME/bin/dmcp`）。
 
-### Import from AI Coding Tools
+### 从 AI 编码工具导入
 
-Dynamic-mcp can automatically import MCP server configurations from popular AI coding tools.
+Dynamic-mcp 可以自动从主流 AI 编码工具导入 MCP 服务器配置。
 
-**Supported Tools** (`<tool-name>`):
+**支持的工具**（`<tool-name>`）：
 
-- Cursor (`cursor`)
-- OpenCode (`opencode`)
-- Claude Desktop (`claude-desktop`)
-- Claude Code CLI (`claude`)
-- Visual Studio Code (`vscode`)
-- Cline (`cline`)
-- KiloCode (`kilocode`)
-- Codex CLI (`codex`)
-- Gemini CLI (`gemini`)
-- Google Antigravity (`antigravity`)
+- Cursor（`cursor`）
+- OpenCode（`opencode`）
+- Claude Desktop（`claude-desktop`）
+- Claude Code CLI（`claude`）
+- Visual Studio Code（`vscode`）
+- Cline（`cline`）
+- KiloCode（`kilocode`）
+- Codex CLI（`codex`）
+- Gemini CLI（`gemini`）
+- Google Antigravity（`antigravity`）
 
-#### Quick Start
+#### 快速开始
 
-**Import from project config** (run in project directory):
+**从项目配置导入**（在项目目录中运行）：
 
 ```bash
 dmcp import <tool-name>
 ```
 
-**Import from global/user config**:
+**从全局 / 用户配置导入**：
 
 ```bash
 dmcp import --global <tool-name>
 ```
 
-**Force overwrite** (skip confirmation prompt):
+**强制覆盖**（跳过确认提示）：
 
 ```bash
 dmcp import <tool-name> --force
 ```
 
-The command will:
+该命令会：
 
-1. Detect your tool's config location
-2. Parse the existing MCP servers
-3. Interactively prompt for descriptions
-4. Interactively prompt for feature selection (tools, resources, prompts)
-5. Normalize environment variable formats
-6. Generate `dynamic-mcp.json`
+1. 检测你的工具配置位置
+2. 解析已有的 MCP 服务器
+3. 交互式提示输入描述
+4. 交互式提示选择功能（tools、resources、prompts）
+5. 规范化环境变量格式
+6. 生成 `dynamic-mcp.json`
 
-#### Example Import
+#### 导入示例
 
 ```bash
 $ dmcp import cursor
@@ -110,7 +109,7 @@ $ dmcp import cursor
 
 ✅ Found 2 MCP server(s) to import
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Server: filesystem
 Type: stdio
 
@@ -129,13 +128,13 @@ Config details:
 📝 Output saved to: dynamic-mcp.json
 ```
 
-**Feature Selection**: During import, you can customize which MCP features are enabled per server:
+**功能选择**：导入过程中，你可以自定义每个服务器启用哪些 MCP 功能：
 
-- Press Enter (or Y) to keep all features (tools, resources, prompts)
-- Type 'n' to selectively enable/disable individual features
-- This allows fine-grained control without manually editing the config file
+- 按回车（或 Y）保留全部功能（tools、resources、prompts）
+- 输入 `n` 来选择性启用 / 禁用单个功能
+- 这样无需手动编辑配置文件即可实现细粒度控制
 
-Example of custom feature selection:
+自定义功能选择示例：
 
 ```bash
 🔧 Keep all features (tools, resources, prompts) for 'server'? [Y/n]: n
@@ -146,41 +145,41 @@ Example of custom feature selection:
   Enable prompts? [Y/n]: n
 ```
 
-#### Tool-Specific Notes
+#### 各工具注意事项
 
-- **Cursor**: Supports both `.cursor/mcp.json` (project) and `~/.cursor/mcp.json` (global)
-- **Claude Desktop**: Global config only, location varies by OS:
-  - macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
-  - Windows: `%APPDATA%\Claude\claude_desktop_config.json`
-  - Linux: `~/.config/Claude/claude_desktop_config.json`
-- **Claude Code CLI**: Supports both `.mcp.json` (project root) and `~/.claude.json` (user/global)
-- **Gemini CLI**: Supports both `.gemini/settings.json` (project) and `~/.gemini/settings.json` (global)
-- **VS Code**: Supports both `.vscode/mcp.json` (project) and user-level config (OS-specific paths)
-- **OpenCode**: Supports both JSON and JSONC formats (JSON with comments)
-- **Codex CLI**: Global only - uses TOML format (`~/.codex/config.toml`)
-- **Antigravity**: Global only - `~/.gemini/antigravity/mcp_config.json`
+- **Cursor**：同时支持 `.cursor/mcp.json`（项目级）与 `~/.cursor/mcp.json`（全局级）
+- **Claude Desktop**：仅全局配置，位置因系统而异：
+  - macOS：`~/Library/Application Support/Claude/claude_desktop_config.json`
+  - Windows：`%APPDATA%\Claude\claude_desktop_config.json`
+  - Linux：`~/.config/Claude/claude_desktop_config.json`
+- **Claude Code CLI**：同时支持 `.mcp.json`（项目根目录）与 `~/.claude.json`（用户 / 全局级）
+- **Gemini CLI**：同时支持 `.gemini/settings.json`（项目级）与 `~/.gemini/settings.json`（全局级）
+- **VS Code**：同时支持 `.vscode/mcp.json`（项目级）与用户级配置（各系统路径不同）
+- **OpenCode**：同时支持 JSON 与 JSONC 格式（带注释的 JSON）
+- **Codex CLI**：仅全局级 —— 使用 TOML 格式（`~/.codex/config.toml`）
+- **Antigravity**：仅全局级 —— `~/.gemini/antigravity/mcp_config.json`
 
-#### Environment Variable Conversion
+#### 环境变量转换
 
-The import command automatically normalizes environment variables to dynamic-mcp's `${VAR}` format:
+导入命令会自动把环境变量规范化为 dynamic-mcp 的 `${VAR}` 格式：
 
-| Tool            | Original Format       | Converted To      |
-| --------------- | --------------------- | ----------------- |
-| Cursor          | `${env:GITHUB_TOKEN}` | `${GITHUB_TOKEN}` |
-| Claude Desktop  | `${GITHUB_TOKEN}`     | `${GITHUB_TOKEN}` |
-| Claude Code CLI | `${GITHUB_TOKEN}`     | `${GITHUB_TOKEN}` |
-| VS Code         | `${env:GITHUB_TOKEN}` | `${GITHUB_TOKEN}` |
-| Codex           | `"${GITHUB_TOKEN}"`   | `${GITHUB_TOKEN}` |
+| 工具            | 原格式                 | 转换后             |
+| --------------- | ---------------------- | ------------------ |
+| Cursor          | `${env:GITHUB_TOKEN}`  | `${GITHUB_TOKEN}`  |
+| Claude Desktop  | `${GITHUB_TOKEN}`      | `${GITHUB_TOKEN}`  |
+| Claude Code CLI | `${GITHUB_TOKEN}`      | `${GITHUB_TOKEN}`  |
+| VS Code         | `${env:GITHUB_TOKEN}`  | `${GITHUB_TOKEN}`  |
+| Codex           | `"${GITHUB_TOKEN}"`    | `${GITHUB_TOKEN}`  |
 
-**Note**: VS Code's `${input:ID}` secure prompts cannot be automatically converted. You'll need to manually configure these after import.
+**注意**：VS Code 的 `${input:ID}` 安全提示无法自动转换，导入后需手动配置。
 
-See [docs/IMPORT.md](docs/IMPORT.md) for detailed tool-specific import guides.
+详细的工具专属导入指南见 [docs/IMPORT.md](docs/IMPORT.md)。
 
-## Dynamic MCP format
+## Dynamic MCP 配置格式
 
-### Calling upstream servers on demand
+### 按需调用上游服务器
 
-Create a `dynamic-mcp.json` file with a `description` field for each server:
+创建一个 `dynamic-mcp.json` 文件，为每个服务器填写 `description` 字段：
 
 ```json
 {
@@ -194,9 +193,9 @@ Create a `dynamic-mcp.json` file with a `description` field for each server:
 }
 ```
 
-### Environment Variables
+### 环境变量
 
-It supports the `${VAR}` syntax for environment variable interpolation:
+支持使用 `${VAR}` 语法进行环境变量插值：
 
 ```json
 {
@@ -213,13 +212,13 @@ It supports the `${VAR}` syntax for environment variable interpolation:
 }
 ```
 
-### Server Types
+### 服务器类型
 
-It supports all [standard MCP transport mechanisms](https://modelcontextprotocol.io/specification/2025-11-25/basic/transports).
+支持所有[标准 MCP 传输机制](https://modelcontextprotocol.io/specification/2025-11-25/basic/transports)。
 
-**Note**: The `type` field is **optional** when `url` is present. If omitted, the server automatically uses HTTP transport with SSE detection per the MCP spec. This maintains backwards compatibility with tools like [OpenCode](https://opencode.ai/docs/mcp-servers/).
+**注意**：当 `url` 存在时，`type` 字段是**可选**的。若省略，服务器会根据 MCP 规范自动使用 HTTP 传输并做 SSE 探测。这保持了与 [OpenCode](https://opencode.ai/docs/mcp-servers/) 等工具的向后兼容。
 
-#### stdio (Default)
+#### stdio（默认）
 
 ```json
 {
@@ -244,7 +243,7 @@ It supports all [standard MCP transport mechanisms](https://modelcontextprotocol
 }
 ```
 
-Or with explicit type:
+或显式指定类型：
 
 ```json
 {
@@ -259,7 +258,7 @@ Or with explicit type:
 
 #### sse
 
-SSE servers are automatically detected when the server responds with `Content-Type: text/event-stream`. You can also explicitly specify `type: "sse"` if the server only supports SSE:
+当服务器以 `Content-Type: text/event-stream` 响应时，SSE 服务器会被自动探测。若服务器仅支持 SSE，也可显式指定 `type: "sse"`：
 
 ```json
 {
@@ -272,7 +271,7 @@ SSE servers are automatically detected when the server responds with `Content-Ty
 }
 ```
 
-#### OAuth Authentication (HTTP/SSE)
+#### OAuth 认证（HTTP / SSE）
 
 ```json
 {
@@ -283,16 +282,16 @@ SSE servers are automatically detected when the server responds with `Content-Ty
 }
 ```
 
-**OAuth Flow:**
+**OAuth 流程：**
 
-- On first connection, a browser opens for authorization
-- Access tokens are stored in `~/.dynamic-mcp/oauth-servers/<server-name>.json`
-- Automatic token refresh before expiry (with RFC 6749 token rotation support)
-- The token is injected as an `Authorization: Bearer <token>` header
+- 首次连接时，浏览器会打开以进行授权
+- 访问令牌保存在 `~/.dynamic-mcp/oauth-servers/<server-name>.json`
+- 在过期前自动刷新令牌（支持 RFC 6749 令牌轮换）
+- 令牌以 `Authorization: Bearer <token>` 请求头形式注入
 
-### Feature Flags
+### 功能开关（Feature Flags）
 
-Control which MCP features are exposed per server using the optional `features` field. By default, all features (`tools`, `resources`, `prompts`) are enabled. You can selectively disable features:
+使用可选的 `features` 字段，按服务器控制暴露哪些 MCP 功能。默认情况下全部功能（`tools`、`resources`、`prompts`）均启用。你可以选择性地禁用某些功能：
 
 ```json
 {
@@ -317,16 +316,16 @@ Control which MCP features are exposed per server using the optional `features` 
 }
 ```
 
-**Behavior:**
+**行为：**
 
-- If `features` is omitted, all features are enabled (opt-out design)
-- If `features` is specified, unmentioned features default to `true` (enabled)
-- Disabled features return an error if accessed via the proxy
-- Example: If `resources: false`, calling `resources/list` returns an error
+- 若省略 `features`，则全部功能启用（opt-out 设计）
+- 若指定了 `features`，未提及的功能默认仍为 `true`（启用）
+- 被禁用的功能通过代理访问时会返回错误
+- 例如：若 `resources: false`，调用 `resources/list` 会返回错误
 
-### Disabling Servers
+### 禁用服务器
 
-Use the optional `enabled` field to disable a specific server without removing it from the config:
+使用可选的 `enabled` 字段，在不从配置中删除服务器的前提下将其禁用：
 
 ```json
 {
@@ -345,22 +344,22 @@ Use the optional `enabled` field to disable a specific server without removing i
 }
 ```
 
-**Behavior:**
+**行为：**
 
-- If `enabled` is omitted, the server is enabled (default behavior)
-- If `enabled: false`, the server is skipped during connection and won't appear in available groups
-- Useful for temporarily disabling servers during testing or maintenance without editing config structure
-- See `examples/config.features.example.json` for a complete example
+- 若省略 `enabled`，服务器为启用状态（默认行为）
+- 若 `enabled: false`，则在连接阶段跳过该服务器，不会出现在可用分组中
+- 适用于测试或维护期间临时禁用服务器而无需改动配置结构
+- 完整示例见 `examples/config.features.example.json`
 
-### Timeout Configuration
+### 超时配置
 
-Configure custom timeouts for tool, resource, and prompt calls per server using the optional `timeout` field. By default:
+使用可选的 `timeout` 字段，按服务器自定义工具、资源、提示调用的超时时间。默认值：
 
-- Tool calls: 30 seconds
-- Resource calls: 10 seconds
-- Prompt calls: 10 seconds
+- 工具调用：30 秒
+- 资源调用：10 秒
+- 提示调用：10 秒
 
-You can customize these for servers that need more time:
+你可以为需要更长时间的服务器自定义：
 
 ```json
 {
@@ -379,91 +378,193 @@ You can customize these for servers that need more time:
 }
 ```
 
-**Supported duration formats:**
+**支持的时长格式：**
 
-| Format       | Example               | Description                   |
-| ------------ | --------------------- | ----------------------------- |
-| Seconds      | `"30s"`, `"5s"`       | Simple seconds                |
-| Minutes      | `"1min"`, `"2m"`      | Minutes (abbreviated or full) |
-| Milliseconds | `"3000ms"`, `"500ms"` | Milliseconds                  |
-| Plain number | `30`                  | Seconds (plain number)        |
+| 格式         | 示例             | 说明                 |
+| ------------ | ---------------- | -------------------- |
+| 秒           | `"30s"`、`"5s"`  | 简单秒数             |
+| 分钟         | `"1min"`、`"2m"` | 分钟（缩写或完整）   |
+| 毫秒         | `"3000ms"`、`"500ms"` | 毫秒           |
+| 纯数字       | `30`             | 秒（纯数字）         |
 
-**Behavior:**
+**行为：**
 
-- If `timeout` is omitted, defaults are used (tools: 30s, resources: 10s, prompts: 10s)
-- Individual timeout fields default to their respective defaults if not specified
-- Applies only to tool/resource/prompt call operations, not to connection or initialization
-- Useful for servers with long-running operations (database queries, file processing, etc.)
+- 若省略 `timeout`，使用默认值（tools: 30s，resources: 10s，prompts: 10s）
+- 单个超时字段若未指定，默认取各自对应的默认值
+- 仅适用于工具 / 资源 / 提示调用操作，不适用于连接或初始化
+- 适用于存在长时间运行操作的服务器（数据库查询、文件处理等）
 
-## Troubleshooting
+## v1.6.0 新增：Streamable HTTP 传输
 
-### Server Connection Issues
+除默认的 stdio 传输外，dynamic-mcp 现在可以把其「分组工具门面（grouped-tool facade）」通过一个**单一的 Streamable HTTP MCP 端点**暴露出来。这让基于 HTTP / SSE 的 MCP 客户端（Web UI、远程智能体、其他 MCP 代理、网关）无需 stdio 即可连接 dynamic-mcp。
 
-**Problem**: `❌ Failed to connect to <server>`
+该 HTTP 端点会把所有已配置的上游（stdio）服务器聚合为 3 个工具的门面：
 
-**Solutions**:
+- `list_groups` —— 列出所有已配置的分组及其连接状态。
+- `get_dynamic_tools` —— 按需获取某个选定分组的工具 Schema。
+- `call_dynamic_tool` —— 通过代理在选定分组上调用某个工具。
 
-- **Connection timeout**: Each server has 10-second timeout for transport creation, initialization, and tool listing
-- **Automatic retry**: Failed servers are retried up to 3 times with exponential backoff (2s, 4s, 8s)
-- **Periodic retry**: Failed servers are retried every 30 seconds in the background
-- **Slow HTTP servers**: If remote HTTP/SSE servers are slow, they'll timeout and be retried automatically
-- **Stdio servers**: Verify command exists (`which <command>`)
-- **HTTP/SSE servers**: Check that the server is running and the URL is correct
-- **Environment variables**: Ensure all `${VAR}` references are defined
-- **OAuth servers**: Complete OAuth flow when prompted
+### 参数（命令行）
 
-**Logging**:
+新增的命令行参数用于控制 HTTP 暴露方式（**配置文件无需改动**，见下文）：
 
-By default, errors and warnings are logged to the terminal. For more verbose output:
+| 参数            | 默认值          | 说明                                              |
+| --------------- | --------------- | ------------------------------------------------- |
+| `--transport`   | `stdio`         | 传输模式：`stdio`、`http` 或 `both`。             |
+| `--http-host`   | `127.0.0.1`     | HTTP 服务器绑定的地址。                           |
+| `--http-port`   | `8082`          | HTTP 服务器绑定的端口。                           |
+| `--http-path`   | `/dynamic-mcp`  | Streamable HTTP MCP 端点的挂载路径。              |
+
+### 使用方法
 
 ```bash
-# Debug mode (all logs including debug-level details)
+# 仅 HTTP（关闭 stdio）：
+dmcp --transport http /path/to/dynamic-mcp.json
+
+# stdio 与 HTTP 同时开启：
+dmcp --transport both /path/to/dynamic-mcp.json
+
+# 绑定到所有网卡，自定义端口与路径：
+dmcp --transport http --http-host 0.0.0.0 --http-port 9000 --http-path /mcp /path/to/dynamic-mcp.json
+```
+
+当使用 `--transport http` 或 `both` 时，门面服务地址为 `http://<host>:<port><path>`（例如 `http://127.0.0.1:8082/dynamic-mcp`）。
+
+### 配置文件（无需改动）
+
+v1.6.0 **没有**修改 `dynamic-mcp.json` 的 Schema。你已有的配置原样可用；HTTP 暴露完全由上面的命令行参数控制，沿用同一个 `config-schema.json`。
+
+示例 `dynamic-mcp.json`（保持不变）：
+
+```json
+{
+  "mcpServers": {
+    "filesystem": {
+      "description": "Use when you need to read, write, or search files.",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/tmp"]
+    }
+  }
+}
+```
+
+然后以开启 HTTP 的方式运行：
+
+```bash
+dmcp --transport both /path/to/dynamic-mcp.json
+```
+
+### 应用场景
+
+- **远程 / 容器化部署**：在 Docker、k8s、远程虚拟机等无法使用 stdio 的环境。
+- **反向代理 / 网关前置**：用 nginx、Traefik 等把 dynamic-mcp 前置，让多个客户端共享一个后端。
+- **基于 Web 的 MCP 客户端与调试台**：直接以 Streamable HTTP 方式通信的网页工具。
+- **级联 MCP 代理**：第二个代理 / 编排器通过 HTTP 连接 dynamic-mcp，而无需拉起子进程。
+- **单端点多分组访问**：一个 HTTP 端点服务所有分组；客户端通过 `get_dynamic_tools` / `call_dynamic_tool` 选择分组。
+
+## 从源码构建
+
+### Rust 二进制
+
+直接构建 Rust 二进制：
+
+```bash
+git clone https://github.com/asyrjasalo/dynamic-mcp.git
+cd dynamic-mcp
+cargo build --release
+```
+
+构建后二进制位于 `./target/release/dmcp`。
+
+### Python 包
+
+构建 Python 包（wheel）：
+
+```bash
+# 构建 wheel
+uvx maturin build --release
+
+# 本地安装
+pip install target/wheels/dmcp-*.whl
+```
+
+Python 包使用 **maturin** 配合 `bindings = "bin"`，将 Rust 二进制直接编译进 wheel。
+
+## 关于本分支（fork）使用 GitHub Actions 自行构建的说明
+
+> **说明**：上游仓库（asyrjasalo/dynamic-mcp）较长时间未更新。为了不等待上游发版即可使用 v1.6.0 的新功能（含 HTTP 门面），本 fork 通过 **GitHub Actions** 自行构建二进制——具体由 Release 工作流在推送 `v*` 标签时触发。构建产物为跨平台二进制（含 Windows 的 `dmcp.exe`），作为 Release 资产（assets）发布。
+>
+> 这些构建**不会**发布到 crates.io / PyPI，请直接从本 fork 的 Releases 页面下载二进制使用。
+
+## 故障排查
+
+### 服务器连接问题
+
+**问题**：`❌ Failed to connect to <server>`
+
+**解决方案**：
+
+- **连接超时**：每个服务器在传输创建、初始化与工具列举上各有 10 秒超时
+- **自动重试**：失败服务器最多重试 3 次，采用指数退避（2s、4s、8s）
+- **周期性重试**：失败服务器在后台每 30 秒重试一次
+- **慢速 HTTP 服务器**：远程 HTTP / SSE 服务器若响应慢会超时并被自动重试
+- **stdio 服务器**：确认命令存在（`which <command>`）
+- **HTTP / SSE 服务器**：检查服务器是否在运行、URL 是否正确
+- **环境变量**：确保全部 `${VAR}` 引用均已定义
+- **OAuth 服务器**：按提示完成 OAuth 流程
+
+**日志：**
+
+默认情况下，错误与警告会记录到终端。如需更详细的输出：
+
+```bash
+# 调试模式（全部日志，含 debug 级别细节）
 RUST_LOG=debug uvx dmcp config.json
 
-# Info mode (includes informational messages)
+# 信息模式（含信息级消息）
 RUST_LOG=info uvx dmcp config.json
 
-# Default mode (errors and warnings only, no RUST_LOG needed)
+# 默认模式（仅错误与警告，无需 RUST_LOG）
 uvx dmcp config.json
 ```
 
-### OAuth Authentication Problems
+### OAuth 认证问题
 
-**Problem**: The browser doesn't open for OAuth
+**问题**：浏览器未打开进行 OAuth
 
-**Solutions**:
+**解决方案**：
 
-- Manually open the URL shown in the console
-- Check that the firewall allows localhost connections
-- Verify `oauth_client_id` is correct for the server
+- 手动打开控制台显示的 URL
+- 检查防火墙是否允许 localhost 连接
+- 确认服务器的 `oauth_client_id` 正确
 
-**Problem**: Token refresh fails
+**问题**：令牌刷新失败
 
-**Solutions**:
+**解决方案**：
 
-- Delete cached token: `rm ~/.dynamic-mcp/oauth-servers/<server-name>.json`
-- Re-authenticate on next connection
+- 删除缓存令牌：`rm ~/.dynamic-mcp/oauth-servers/<server-name>.json`
+- 下次连接时重新认证
 
-### Environment Variable Not Substituted
+### 环境变量未被替换
 
-**Problem**: Config shows `${VAR}` instead of value
+**问题**：配置中显示的是 `${VAR}` 而非实际值
 
-**Solutions**:
+**解决方案**：
 
-- Use `${VAR}` syntax, not `$VAR`
-- Export variable: `export VAR=value`
-- Variable names are case-sensitive
-- Check for typos in variable name
+- 使用 `${VAR}` 语法，而非 `$VAR`
+- 导出变量：`export VAR=value`
+- 变量名区分大小写
+- 检查变量名是否拼写错误
 
-### Configuration Errors
+### 配置错误
 
-**Problem**: `Server missing 'description' field`
+**问题**：`Server missing 'description' field`
 
-**Solutions**:
+**解决方案**：
 
-- Every MCP server in your config must have a `description` field
-- The description explains what the server does to the LLM
-- Example:
+- 配置中的每个 MCP 服务器都必须有 `description` 字段
+- 该描述用于向 LLM 解释服务器用途
+- 示例：
 
   ```json
   {
@@ -473,98 +574,70 @@ uvx dmcp config.json
   }
   ```
 
-**Problem**: `Invalid JSON in config file`
+**问题**：`Invalid JSON in config file`
 
-**Solutions**:
+**解决方案**：
 
-- Validate JSON syntax (use `jq . config.json`)
-- Check for trailing commas
-- Ensure all required fields are present (`description` is always required; `type` is required only for http/sse servers)
+- 校验 JSON 语法（使用 `jq . config.json`）
+- 检查是否有尾随逗号
+- 确保所有必需字段齐全（`description` 始终必需；`type` 仅 http/sse 服务器必需）
 
-**Problem**: Unknown field in config (e.g., `unknown field \`typo_field\`\`)
+**问题**：配置中存在未知字段（如 `unknown field \`typo_field\`\`）
 
-**Solutions**:
+**解决方案**：
 
-- dynamic-mcp uses strict JSON schema validation that only allows defined fields
-- Check for typos in field names: `description`, `command`, `url`, `type`, `args`, `env`, `headers`, `oauth_client_id`, `oauth_scopes`, `features`, `enabled`, `timeout`
-- Remove any extra or misspelled fields from your config
-- Refer to the schema examples above to see valid fields for each server type
+- dynamic-mcp 使用严格的 JSON Schema 校验，仅允许已定义的字段
+- 检查字段名拼写：`description`、`command`、`url`、`type`、`args`、`env`、`headers`、`oauth_client_id`、`oauth_scopes`、`features`、`enabled`、`timeout`
+- 从配置中移除任何多余或拼写错误的字段
+- 参考上文各服务器类型的示例查看合法字段
 
-**Problem**: `Failed to resolve config path`
+**问题**：`Failed to resolve config path`
 
-**Solutions**:
+**解决方案**：
 
-- Use an absolute path or a path relative to the working directory
-- Check that the file exists and has read permissions
-- Try: `ls -la <config-path>`
+- 使用绝对路径或相对于工作目录的路径
+- 检查文件是否存在且具有读权限
+- 尝试：`ls -la <config-path>`
 
-### Tool Call Failures
+### 工具调用失败
 
-**Problem**: Tool call returns error
+**问题**：工具调用返回错误
 
-**Debugging**:
+**排查**：
 
-1. Test the tool directly with the upstream server
-2. Check that the tool name and arguments match the schema
-3. Verify the group name is correct
-4. Enable debug logging to see JSON-RPC messages
+1. 直接使用上游服务器测试该工具
+2. 检查工具名与参数是否与 Schema 匹配
+3. 确认分组名正确
+4. 开启 debug 日志查看 JSON-RPC 消息
 
-### Performance Issues
+### 性能问题
 
-**Problem**: Slow startup
+**问题**：启动缓慢
 
-**Solutions**:
+**解决方案**：
 
-- Parallel connections already enabled
-- Check network latency for HTTP/SSE servers
-- Some servers may be slow to initialize (normal)
+- 已启用并行连接
+- 检查 HTTP / SSE 服务器的网络延迟
+- 部分服务器初始化较慢属正常现象
 
-**Problem**: High memory usage
+**问题**：内存占用高
 
-**Solutions**:
+**解决方案**：
 
-- Tools are cached in memory (expected)
-- Failed groups use minimal memory
-- Large tool schemas contribute to memory usage
+- 工具会缓存在内存中（预期行为）
+- 失败的分组占用内存极少
+- 大型工具 Schema 会增加内存占用
 
-## Building from source
+## 贡献
 
-### Rust Binary
+关于开发环境搭建、测试与贡献的说明，见 [CONTRIBUTING.md](CONTRIBUTING.md)。
 
-To build the Rust binary directly:
+## 版本历史
 
-```bash
-git clone https://github.com/asyrjasalo/dynamic-mcp.git
-cd dynamic-mcp
-cargo build --release
-```
+版本历史与发版说明见 [CHANGELOG.md](CHANGELOG.md)。
 
-The binary is then available at `./target/release/dmcp`.
+## 致谢
 
-### Python Package
-
-To build the Python package (wheel):
-
-```bash
-# Build wheel
-uvx maturin build --release
-
-# Install locally
-pip install target/wheels/dmcp-*.whl
-```
-
-The Python package uses **maturin** with `bindings = "bin"` to compile the Rust binary directly into the wheel.
-
-## Contributing
-
-For instructions on development setup, testing, and contributing, see [CONTRIBUTING.md](CONTRIBUTING.md).
-
-## Release History
-
-See [CHANGELOG.md](CHANGELOG.md) for version history and release notes.
-
-## Acknowledgments
-
-- TypeScript implementation: [modular-mcp](https://github.com/d-kimuson/modular-mcp)
-- MCP Specification: [Model Context Protocol](https://modelcontextprotocol.io/)
-- Rust MCP Ecosystem: [rust-mcp-stack](https://github.com/rust-mcp-stack)
+- TypeScript 实现：[modular-mcp](https://github.com/d-kimuson/modular-mcp)
+- MCP 规范：[Model Context Protocol](https://modelcontextprotocol.io/)
+- Rust MCP 生态：[rust-mcp-stack](https://github.com/rust-mcp-stack)
