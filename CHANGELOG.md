@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **Three-source PATH resolution for stdio subprocesses** - dynamic-mcp now reconstructs a complete, de-duplicated `PATH` for every spawned stdio MCP server from three sources: the inherited `PATH`, the system/user `PATH` (Windows registry / Linux `/etc/environment` / macOS `/etc/paths` + `/etc/paths.d`), and the `PATH` declared in configuration. This fixes `uv`/`uvx`/`python`/`npx`/`npm` not being found when dynamic-mcp is launched by an IDE or service manager with a stripped `PATH`.
+  - New module `src/config/path_resolver.rs` (`build_merged_path`) implementing the cross-platform merge.
+  - New top-level `env` field in config JSON (and `config-schema.json`) lets a shared environment — most importantly a shared `PATH` — be declared once and merged into every stdio server's `env` (root `PATH` is concatenated with per-server `PATH`; other variables fall back to the global value).
+  - `StdioTransport::new` now injects the merged `PATH` and, on Windows, wraps `.cmd`/`.bat`/`.ps1` commands via `cmd /c` (resolving `ERROR_BAD_EXE_FORMAT` / exit code 193).
+
 ## [1.5.0] - 2026-02-14
 
 ### Added

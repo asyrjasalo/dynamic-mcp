@@ -425,6 +425,13 @@ pub struct ServerConfig {
     pub mcp_servers: HashMap<String, McpServerConfig>,
     #[serde(skip_serializing_if = "Option::is_none", rename = "$schema")]
     pub schema: Option<String>,
+    /// Global environment variables applied to every stdio server. The `PATH`
+    /// value here is merged (not replaced) with each server's own `env.PATH`
+    /// and with the system/user PATH at spawn time — see
+    /// `config::path_resolver`. Other variables act as defaults that per-server
+    /// `env` entries override. Supports `${VAR}` substitution.
+    #[serde(skip_serializing_if = "Option::is_none", rename = "env")]
+    pub env: Option<HashMap<String, String>>,
 }
 
 /// Intermediate representation for migration from various tools

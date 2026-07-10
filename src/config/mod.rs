@@ -18,6 +18,7 @@
 
 pub mod env_sub;
 pub mod loader;
+pub mod path_resolver;
 pub mod schema;
 
 pub use loader::load_config;

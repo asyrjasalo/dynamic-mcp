@@ -10,6 +10,13 @@
       "type": "string",
       "description": "JSON Schema reference (optional, for IDE validation)"
     },
+    "env": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "description": "Global environment variables applied to every stdio server (supports ${VAR} syntax). The PATH value here is merged — not replaced — with each server's own env.PATH and with the system/user PATH at spawn time. Other variables act as defaults that per-server env entries override."
+    },
     "mcpServers": {
       "type": "object",
       "description": "Map of server names to their configurations",

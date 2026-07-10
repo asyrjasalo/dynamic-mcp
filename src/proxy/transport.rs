@@ -2,6 +2,7 @@ use crate::auth::OAuthClient;
 use crate::config::McpServerConfig;
 use crate::proxy::types::{JsonRpcRequest, JsonRpcResponse};
 use anyhow::{Context, Result};
+use std::collections::HashMap;
 use std::process::Stdio;
 use std::sync::Arc;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
@@ -14,21 +15,137 @@ pub struct StdioTransport {
     stdout: Arc<Mutex<BufReader<ChildStdout>>>,
 }
 
+/// Resolve the final command, arguments, and environment for spawning a stdio
+/// MCP subprocess.
+///
+/// This performs two cross-platform correctness fixes that the naive
+/// `Command::new(command).args(args).envs(env)` path gets wrong:
+///
+/// 1. **PATH reconstruction.** Host processes that launch dynamic-mcp (IDEs,
+///    browsers, minimal service managers) frequently provide a stripped `PATH`.
+///    We rebuild a complete PATH from three sources — the inherited `PATH`, the
+///    system/user `PATH` (Windows registry / `/etc/environment` / `/etc/paths`),
+///    and the `PATH` supplied in the server's `env` config — de-duplicated and
+///    joined with the platform separator. See [`crate::config::path_resolver`].
+///
+/// 2. **Windows script wrapping.** `CreateProcess` cannot directly launch
+///    `.cmd`/`.bat`/`.ps1` files (it fails with `ERROR_BAD_EXE_FORMAT`, 193).
+///    On Windows, such commands are rewritten to `cmd /c <command> <args...>`,
+///    and the `PATH` produced in step 1 guarantees `cmd` itself is reachable.
+///
+/// The function is pure (its only side effect is reading the process
+/// environment for PATH reconstruction) so it can be unit-tested without
+/// spawning any processes.
+pub fn prepare_subprocess(
+    command: &str,
+    args: Option<&Vec<String>>,
+    env: Option<&HashMap<String, String>>,
+) -> (String, Vec<String>, HashMap<String, String>) {
+    // 1. Merge PATH from inherited + system/user + config env.PATH.
+    let config_path = env
+        .and_then(|e| e.get("PATH"))
+        .map(|s| s.as_str())
+        .unwrap_or("");
+    let merged_path = crate::config::path_resolver::build_merged_path(config_path);
+
+    let mut env_map: HashMap<String, String> = env.cloned().unwrap_or_default();
+    env_map.insert("PATH".to_string(), merged_path);
+
+    // 2. Windows script wrapping.
+    #[cfg(windows)]
+    let (resolved_command, resolved_args): (String, Vec<String>) = {
+        let lower = command.to_lowercase();
+        if lower.ends_with(".cmd") || lower.ends_with(".bat") || lower.ends_with(".ps1") {
+            let mut a = vec!["/c".to_string(), command.to_string()];
+            if let Some(args) = args {
+                a.extend(args.iter().cloned());
+            }
+            ("cmd".to_string(), a)
+        } else {
+            (command.to_string(), args.cloned().unwrap_or_default())
+        }
+    };
+    #[cfg(not(windows))]
+    let (resolved_command, resolved_args): (String, Vec<String>) =
+        (command.to_string(), args.cloned().unwrap_or_default());
+
+    (resolved_command, resolved_args, env_map)
+}
+
+#[cfg(test)]
+mod prepare_subprocess_tests {
+    use super::*;
+
+    #[test]
+    fn merges_config_path_into_resolved_env() {
+        let mut env = HashMap::new();
+        let cfg_path = if cfg!(windows) { "C:\\mybin" } else { "/mybin" }.to_string();
+        env.insert("PATH".to_string(), cfg_path.clone());
+        env.insert("FOO".to_string(), "bar".to_string());
+
+        let (_cmd, _args, resolved) =
+            prepare_subprocess("node", Some(&vec!["-v".to_string()]), Some(&env));
+
+        let sep = if cfg!(windows) { ';' } else { ':' };
+        let path = resolved.get("PATH").expect("PATH must be set");
+        assert!(
+            path.split(sep).any(|p| p == cfg_path),
+            "config PATH missing from merged PATH: {path}"
+        );
+        // Non-PATH env vars must be preserved verbatim.
+        assert_eq!(resolved.get("FOO"), Some(&"bar".to_string()));
+    }
+
+    #[test]
+    fn injects_path_even_when_env_has_none() {
+        let env: HashMap<String, String> = HashMap::new();
+        let (_cmd, _args, resolved) = prepare_subprocess("node", None, Some(&env));
+        assert!(
+            resolved.contains_key("PATH"),
+            "PATH should always be injected"
+        );
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn wraps_script_extensions_via_cmd_exe() {
+        for ext in ["npx.cmd", "build.bat", "run.ps1"] {
+            let (cmd, args, _env) =
+                prepare_subprocess(ext, Some(&vec!["arg1".to_string()]), None);
+            assert_eq!(cmd, "cmd");
+            assert_eq!(
+                args,
+                vec!["/c".to_string(), ext.to_string(), "arg1".to_string()]
+            );
+        }
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn does_not_wrap_regular_executables() {
+        let (cmd, args, _env) =
+            prepare_subprocess("node", Some(&vec!["-v".to_string()]), None);
+        assert_eq!(cmd, "node");
+        assert_eq!(args, vec!["-v".to_string()]);
+    }
+}
+
 impl StdioTransport {
     pub async fn new(
         command: &str,
         args: Option<&Vec<String>>,
         env: Option<&std::collections::HashMap<String, String>>,
     ) -> Result<Self> {
-        let mut cmd = Command::new(command);
+        let (resolved_command, resolved_args, resolved_env) =
+            prepare_subprocess(command, args, env);
 
-        if let Some(args) = args {
-            cmd.args(args);
+        let mut cmd = Command::new(&resolved_command);
+
+        if !resolved_args.is_empty() {
+            cmd.args(&resolved_args);
         }
 
-        if let Some(env_vars) = env {
-            cmd.envs(env_vars);
-        }
+        cmd.envs(&resolved_env);
 
         cmd.stdin(Stdio::piped())
             .stdout(Stdio::piped())

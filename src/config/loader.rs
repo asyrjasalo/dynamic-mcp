@@ -1,6 +1,7 @@
 use crate::config::env_sub::substitute_in_config;
-use crate::config::schema::ServerConfig;
+use crate::config::schema::{McpServerConfig, ServerConfig};
 use anyhow::{Context, Result};
+use std::collections::HashMap;
 use std::path::Path;
 use tokio::fs;
 
@@ -55,6 +56,17 @@ pub async fn load_config(path: &str) -> Result<ServerConfig> {
         }
     })?;
 
+    // Merge the document-level `env` (a single shared environment, most
+    // importantly a shared `PATH`) into every stdio server's own `env` so users
+    // do not have to repeat it per server. The final OS/system PATH merge and
+    // de-duplication happens later in `StdioTransport::new` via
+    // `config::path_resolver`.
+    if let Some(root_env) = config.env.clone() {
+        for server in config.mcp_servers.values_mut() {
+            merge_root_env_into_server(server, &root_env);
+        }
+    }
+
     config.mcp_servers = config
         .mcp_servers
         .into_iter()
@@ -64,6 +76,53 @@ pub async fn load_config(path: &str) -> Result<ServerConfig> {
     tracing::info!("✅ MCP server config loaded successfully");
 
     Ok(config)
+}
+
+/// Merge the global `env` block into a single server's `env`.
+///
+/// - `PATH` is concatenated (global first, then per-server) so both sources
+///   contribute; de-duplication against the inherited/system PATH happens later
+///   in `config::path_resolver::build_merged_path`.
+/// - All other variables: the server's value wins; absent ones fall back to the
+///   global value.
+fn merge_root_env_into_server(server: &mut McpServerConfig, root_env: &HashMap<String, String>) {
+    if let McpServerConfig::Stdio { env, .. } = server {
+        let mut merged: HashMap<String, String> = root_env.clone();
+        if let Some(server_env) = env {
+            let root_path = merged.remove("PATH").unwrap_or_default();
+            let server_path = server_env.get("PATH").cloned().unwrap_or_default();
+            let combined_path = combine_path_values(&root_path, &server_path);
+            for (k, v) in server_env.iter() {
+                merged.insert(k.clone(), v.clone());
+            }
+            if !combined_path.is_empty() {
+                merged.insert("PATH".to_string(), combined_path);
+            }
+        }
+        *env = Some(merged);
+    }
+}
+
+#[cfg(windows)]
+const PATH_SEPARATOR: char = ';';
+#[cfg(not(windows))]
+const PATH_SEPARATOR: char = ':';
+
+/// Join two PATH strings, skipping empty parts, using the platform separator.
+fn combine_path_values(a: &str, b: &str) -> String {
+    let a = a.trim();
+    let b = b.trim();
+    match (a, b) {
+        ("", "") => String::new(),
+        (_, "") => a.to_string(),
+        ("", _) => b.to_string(),
+        _ => format!(
+            "{}{}{}",
+            a.trim_end_matches(PATH_SEPARATOR),
+            PATH_SEPARATOR,
+            b.trim_start_matches(PATH_SEPARATOR)
+        ),
+    }
 }
 
 #[cfg(test)]
@@ -473,5 +532,83 @@ mod tests {
         let config = result.unwrap();
         assert_eq!(config.mcp_servers.len(), 1);
         assert!(config.mcp_servers.contains_key("full_featured"));
+    }
+
+    #[tokio::test]
+    async fn test_load_config_merges_root_env_into_servers() {
+        let mut temp_file = NamedTempFile::new().unwrap();
+        let config_json = r#"{
+            "env": {
+                "GLOBAL_VAR": "from-root",
+                "PATH": "/global/bin"
+            },
+            "mcpServers": {
+                "test": {
+                    "type": "stdio",
+                    "description": "Test server",
+                    "command": "node",
+                    "env": {
+                        "LOCAL_VAR": "from-server",
+                        "PATH": "/server/bin"
+                    }
+                }
+            }
+        }"#;
+        temp_file.write_all(config_json.as_bytes()).unwrap();
+        temp_file.flush().unwrap();
+
+        let config = load_config(temp_file.path().to_str().unwrap())
+            .await
+            .unwrap();
+
+        if let crate::config::McpServerConfig::Stdio { env, .. } =
+            config.mcp_servers.get("test").unwrap()
+        {
+            let env = env.as_ref().expect("merged env should be present");
+            // Server override wins for non-PATH vars.
+            assert_eq!(env.get("LOCAL_VAR"), Some(&"from-server".to_string()));
+            // Global default applies when the server does not set it.
+            assert_eq!(env.get("GLOBAL_VAR"), Some(&"from-root".to_string()));
+            // PATH is concatenated (root first, then server).
+            let sep = if cfg!(windows) { ';' } else { ':' };
+            let path = env.get("PATH").expect("PATH should be present");
+            let parts: Vec<&str> = path.split(sep).collect();
+            let root_idx = parts.iter().position(|p| *p == "/global/bin");
+            let server_idx = parts.iter().position(|p| *p == "/server/bin");
+            assert!(root_idx.is_some() && server_idx.is_some(), "PATH not merged: {path}");
+            assert!(root_idx.unwrap() < server_idx.unwrap(), "root PATH should precede server PATH: {path}");
+        } else {
+            panic!("Expected Stdio config");
+        }
+    }
+
+    #[tokio::test]
+    async fn test_load_config_root_env_applies_when_server_has_no_env() {
+        let mut temp_file = NamedTempFile::new().unwrap();
+        let config_json = r#"{
+            "env": { "GLOBAL_VAR": "from-root" },
+            "mcpServers": {
+                "test": {
+                    "type": "stdio",
+                    "description": "Test server",
+                    "command": "node"
+                }
+            }
+        }"#;
+        temp_file.write_all(config_json.as_bytes()).unwrap();
+        temp_file.flush().unwrap();
+
+        let config = load_config(temp_file.path().to_str().unwrap())
+            .await
+            .unwrap();
+
+        if let crate::config::McpServerConfig::Stdio { env, .. } =
+            config.mcp_servers.get("test").unwrap()
+        {
+            let env = env.as_ref().expect("merged env should be present");
+            assert_eq!(env.get("GLOBAL_VAR"), Some(&"from-root".to_string()));
+        } else {
+            panic!("Expected Stdio config");
+        }
     }
 }
