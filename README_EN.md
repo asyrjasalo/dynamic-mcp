@@ -1,10 +1,18 @@
 # dynamic-mcp
 
-MCP proxy server that reduces LLM context overhead by grouping tools from multiple upstream MCP servers and loading tool schemas on-demand.
+An MCP proxy server that aggregates many upstream MCP servers behind a single entry point — making your AI cheaper on tokens and usable anywhere.
 
-Instead of requiring you to expose all MCP servers upfront (which can consume thousands of tokens), dynamic-mcp exposes only two MCP tools initially.
+The usual approach hands every MCP tool to the LLM at once; the schemas of dozens of tools can burn thousands of tokens, wasting money and crowding the context. dynamic-mcp solves this with two core capabilities:
 
-It supports tools, resources, and prompts from upstream MCP servers with stdio, HTTP, and SSE transports, handles OAuth, and automatically retries failed connections.
+- **Exposes only 3 tools, loaded on demand**: No matter how many upstream MCP servers you connect, it always exposes just 3 meta-tools to the LLM — list groups, list the tools in a group, and call a tool. A group's tool schemas are loaded only when that group is actually needed. However many upstream tools exist, the initial context cost stays nearly constant, substantially cutting token usage.
+- **Bridges local stdio servers into HTTP services**: Many MCP servers only run locally over `stdio`, out of reach for browsers, the cloud, or phones. dynamic-mcp bridges them into standard `Streamable HTTP` MCP services — configure once, and browser extensions, cloud agents, and mobile apps can all call the same tools remotely.
+
+**Two operating modes:**
+
+- **Mode 1 · Local proxy (stdio)**: Runs as a local stdio MCP proxy, plugging directly into desktop clients like Claude Desktop and Cursor, focused on aggregation and token savings.
+- **Mode 2 · HTTP gateway (Streamable HTTP)**: Serves over Streamable HTTP, opening your local tools to browsers, the cloud, and mobile for remote use. Both modes can run at the same time.
+
+It supports tools, resources, and prompts from upstream MCP servers over stdio, HTTP, and SSE transports, handles OAuth, and automatically retries failed connections.
 
 ## Quick Start
 

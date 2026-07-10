@@ -1,10 +1,18 @@
 # dynamic-mcp
 
-一个 MCP 代理服务器，通过把多个上游 MCP 服务器的工具按「分组（group）」聚合、并按需加载工具 Schema，显著降低 LLM 的上下文开销。
+一个 MCP 代理服务器：把多个上游 MCP 服务器聚合到一个入口，让 AI 更省 token、随处可用。
 
-dynamic-mcp 不会要求你一次性把所有 MCP 服务器暴露出去（那样可能消耗数千 token），而是初始只暴露少量 MCP 工具。
+普通做法是把所有 MCP 工具一次性交给大模型（LLM），几十个工具的 Schema 动辄消耗数千 token，既烧钱又挤占上下文。dynamic-mcp 用两个核心能力解决它：
 
-它支持来自上游 MCP 服务器的 tools（工具）、resources（资源）与 prompts（提示模板），传输方式涵盖 stdio、HTTP 与 SSE，并能处理 OAuth，自动重试失败的连接。
+- **只暴露 3 个工具，按需动态加载**：无论接入多少个上游 MCP 服务器，始终只向 LLM 暴露 3 个「元工具」——列分组、查看某分组内的工具、调用具体工具。用到哪个分组，才临时加载对应工具的 Schema。上游工具再多，初始上下文开销几乎恒定，实质性降低 token 消耗。
+- **把本地 stdio 服务桥接成 HTTP 服务**：许多 MCP 服务器只能以本地 `stdio` 方式运行，浏览器、云端、手机都用不上。dynamic-mcp 能把它们桥接成标准的 `Streamable HTTP` MCP 服务——一次配置，浏览器插件、云端 Agent、移动端 App 都能远程调用同一套工具。
+
+**两种运行模式：**
+
+- **模式一 · 本地代理（stdio）**：作为本地 stdio MCP 代理运行，直接对接 Claude Desktop、Cursor 等桌面客户端，专注「聚合 + 省 token」。
+- **模式二 · HTTP 网关（Streamable HTTP）**：以 Streamable HTTP 对外提供服务，把本地工具开放给浏览器、云端、移动端远程使用。两种模式也可同时开启。
+
+它支持来自上游 MCP 服务器的 tools（工具）、resources（资源）与 prompts（提示模板），传输方式涵盖 stdio、HTTP 与 SSE，并能处理 OAuth 认证、自动重试失败的连接。
 
 ## 快速开始
 
