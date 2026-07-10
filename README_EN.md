@@ -573,6 +573,34 @@ The HTTP endpoint aggregates all configured upstream (stdio) servers into a 3-to
 - `get_dynamic_tools` — fetch the tool schemas of a selected group (on demand).
 - `call_dynamic_tool` — invoke a tool on a selected group through the proxy.
 
+### Transport modes (stdio / http / both)
+
+Since v1.6.0, `--transport` decides how dynamic-mcp serves clients. The single most important difference between the modes is **who starts the process**:
+
+#### Mode 1 · stdio (default, `--transport stdio`)
+
+- **What it is**: dynamic-mcp runs as a local subprocess on your machine; data goes over standard input/output (stdio).
+- **Who starts it**: **Only an LLM client can launch it.** You list `"command": "dmcp"` in the MCP config of a desktop client such as Claude Desktop, Cursor, or VS Code — the client itself starts dmcp and owns its input/output. **You don't — and can't — start it manually in a terminal**; it is born when the client starts and dies when the client exits.
+- **When to use**: Only when you run a desktop AI client locally on your own machine.
+- **Limitation**: An LLM running in a browser, the cloud, or on a phone cannot launch a local process on your machine, so **those environments cannot use stdio mode**.
+
+#### Mode 2 · HTTP (`--transport http`)
+
+- **What it is**: dynamic-mcp runs as a **long-lived HTTP service**, exposing a Streamable HTTP MCP endpoint (`http://<host>:<port><path>`) that any HTTP-capable client can connect to.
+- **Who starts it**: **Only you (the user) can start it manually — an LLM cannot launch it.** The reason: Mode 2 was added precisely to fix stdio's shortcoming. An LLM app in a browser, the cloud, or on a phone has no way to spawn a local subprocess on your machine; so **you must first start it yourself in a terminal or as a service and keep it listening**, and only then can a remote LLM connect to it. **In Mode 2 the LLM is only a "connector", never the "launcher".**
+- **When to use**: Browser extensions, cloud agents, mobile apps, remote / containerized environments (Docker, k8s), or when multiple clients need to share one backend.
+- **Minimal start command:**
+
+  ```bash
+  dmcp --transport http /path/to/dynamic-mcp.json
+  ```
+
+#### Mode 3 · both (`--transport both`)
+
+- **What it is**: stdio and HTTP run at the same time — one process, two entry points.
+- **Who starts it**: the stdio side is launched by your LLM client; the HTTP side is started manually by you.
+- **When to use**: when you want token savings on the local desktop client AND want browsers / cloud / mobile to use the same upstream tools.
+
 ### Parameters
 
 New command-line flags control HTTP exposure (the config file is **unchanged** — see below):
