@@ -133,6 +133,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   build-python-wheels:
+    if: false  # fork: skip wheel build (binary-only release)
     name: Build Python Wheels
     needs: create-release
     strategy:
@@ -176,6 +177,7 @@ jobs:
           path: dist
 
   publish-to-crates-io:
+    if: false  # fork: NEVER publish to crates.io from fork
     name: Publish to crates.io
     needs: create-release
     runs-on: ubuntu-latest
@@ -197,6 +199,7 @@ jobs:
           CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
 
   publish-to-pypi:
+    if: false  # fork: NEVER publish to PyPI from fork
     name: Publish to PyPI
     needs: build-python-wheels
     runs-on: ubuntu-latest

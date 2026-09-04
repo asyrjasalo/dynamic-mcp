@@ -4,6 +4,11 @@ use serde::{Deserialize, Serialize};
 pub struct GroupInfo {
     pub name: String,
     pub description: String,
+    /// Number of tools exposed by this connected group.
+    pub tool_count: usize,
+    /// Capability tags derived from the group's transport/config
+    /// (e.g. "stdio"/"http"/"sse", plus "oauth" when OAuth is required).
+    pub capability_tags: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

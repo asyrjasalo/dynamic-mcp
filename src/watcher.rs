@@ -18,11 +18,11 @@ impl ConfigWatcher {
 
         let mut watcher = notify::recommended_watcher(move |res: Result<Event, _>| match res {
             Ok(event) => match event.kind {
-                EventKind::Modify(_) | EventKind::Create(_) | EventKind::Remove(_) => {
-                    if event.paths.iter().any(|p| p == &watch_path) {
-                        tracing::info!("Config file changed: {:?}, triggering reload", event.kind);
-                        let _ = tx.blocking_send(());
-                    }
+                EventKind::Modify(_) | EventKind::Create(_) | EventKind::Remove(_)
+                    if event.paths.iter().any(|p| p == &watch_path) =>
+                {
+                    tracing::info!("Config file changed: {:?}, triggering reload", event.kind);
+                    let _ = tx.blocking_send(());
                 }
                 _ => {}
             },

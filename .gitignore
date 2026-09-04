@@ -1,5 +1,12 @@
 # releases
 /target
+/releases
 
 # dev
 TODO.md
+
+# work-in-progress root-cause report (not for release)
+TICKTICK_ROOT_CAUSE_REPORT.md
+
+# workbuddy
+.workbuddy/

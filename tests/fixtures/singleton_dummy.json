@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "noop": {
+      "description": "Disabled no-op server used only by the v1.8.0 CLI singleton tests; never actually connected.",
+      "command": "true",
+      "args": [],
+      "enabled": false
+    }
+  }
+}

@@ -9,6 +9,9 @@ const DEFAULT_TOOL_TIMEOUT_SECS: u64 = 30;
 /// Default resource/prompt call timeout in seconds
 const DEFAULT_RESOURCE_PROMPT_TIMEOUT_SECS: u64 = 10;
 
+/// Default connection/initialization timeout in seconds (for slow cold-start backends)
+const DEFAULT_INIT_TIMEOUT_SECS: u64 = 120;
+
 /// Parse a duration string like "30s", "1min", "3000ms" into a Duration
 fn parse_duration(s: &str) -> Result<Duration, String> {
     let s = s.trim().to_lowercase();
@@ -77,6 +80,9 @@ pub struct Timeout {
     pub resources: Option<Duration>,
     #[serde(default, deserialize_with = "deserialize_resource_prompt_timeout")]
     pub prompts: Option<Duration>,
+    // 新增：连接/初始化超时（transport 创建 + initialize + 版本重试 + 首次 tools/list）
+    #[serde(default, deserialize_with = "deserialize_tools_timeout")]
+    pub initialize: Option<Duration>,
 }
 
 /// Custom deserializer for tools timeout that accepts Duration or string
@@ -138,9 +144,20 @@ impl Timeout {
             .unwrap_or_else(|| Duration::from_secs(DEFAULT_RESOURCE_PROMPT_TIMEOUT_SECS))
     }
 
+    /// Get the connection/initialization timeout, returning the default if not configured.
+    /// This bounds transport creation + initialize + version negotiation + first tools/list,
+    /// which is critical for slow cold-start backends (e.g. codebase-memory-mcp).
+    pub fn initialize_timeout(&self) -> Duration {
+        self.initialize
+            .unwrap_or_else(|| Duration::from_secs(DEFAULT_INIT_TIMEOUT_SECS))
+    }
+
     /// Returns true if all timeouts are using defaults (None)
     pub fn is_default(&self) -> bool {
-        self.tools.is_none() && self.resources.is_none() && self.prompts.is_none()
+        self.tools.is_none()
+            && self.resources.is_none()
+            && self.prompts.is_none()
+            && self.initialize.is_none()
     }
 }
 
@@ -414,6 +431,43 @@ impl McpServerConfig {
             McpServerConfig::Stdio { timeout, .. } => timeout.prompt_timeout(),
             McpServerConfig::Http { timeout, .. } => timeout.prompt_timeout(),
             McpServerConfig::Sse { timeout, .. } => timeout.prompt_timeout(),
+        }
+    }
+
+    /// Connection/initialization timeout (slow cold-start backends).
+    pub fn initialize_timeout(&self) -> Duration {
+        match self {
+            McpServerConfig::Stdio { timeout, .. } => timeout.initialize_timeout(),
+            McpServerConfig::Http { timeout, .. } => timeout.initialize_timeout(),
+            McpServerConfig::Sse { timeout, .. } => timeout.initialize_timeout(),
+        }
+    }
+
+    /// Returns true if this server may require an OAuth browser flow
+    pub fn needs_oauth(&self) -> bool {
+        match self {
+            McpServerConfig::Stdio { .. } => false,
+            McpServerConfig::Http {
+                oauth_client_id,
+                headers,
+                ..
+            }
+            | McpServerConfig::Sse {
+                oauth_client_id,
+                headers,
+                ..
+            } => {
+                // Explicit oauth_client_id means OAuth is configured
+                if oauth_client_id.is_some() {
+                    return true;
+                }
+                // No Authorization header means dynamic registration may be attempted
+                if let Some(h) = headers {
+                    !h.contains_key("Authorization")
+                } else {
+                    true
+                }
+            }
         }
     }
 }

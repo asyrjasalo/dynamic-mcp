@@ -117,11 +117,21 @@ Example usage:
   call_dynamic_tool(group="playwright", name="browser_navigate", args={"url": "https://example.com"})
   → Executes the browser_navigate tool from the playwright group with the specified arguments"#;
 
+        let list_groups_desc = "Discover available MCP server groups. Returns each group's name, description, and connection status (connected/failed).\n\nUse this tool first when `enum` fields are not available (e.g., when behind an MCP proxy that strips them), then use get_dynamic_tools to list tools in a specific group, and call_dynamic_tool to execute them.\n\nNo parameters required.";
+
         JsonRpcResponse {
             jsonrpc: "2.0".to_string(),
             id: request.id,
             result: Some(json!({
                 "tools": [
+                    {
+                        "name": "list_groups",
+                        "description": list_groups_desc,
+                        "inputSchema": {
+                            "type": "object",
+                            "properties": {}
+                        }
+                    },
                     {
                         "name": "get_dynamic_tools",
                         "description": get_tools_desc,
@@ -132,6 +142,31 @@ Example usage:
                                     "type": "string",
                                     "description": "The name of the MCP group to get tools from",
                                     "enum": group_names
+                                },
+                                "mode": {
+                                    "type": "string",
+                                    "description": "Output mode: 'full' (name + description + inputSchema, default) or 'compact' (name + description only, schema omitted).",
+                                    "enum": ["full", "compact"]
+                                },
+                                "include_schema": {
+                                    "type": "boolean",
+                                    "description": "Include inputSchema in output. Default true. Has no effect in compact mode."
+                                },
+                                "page": {
+                                    "type": "integer",
+                                    "description": "1-based page number for pagination. Default 1."
+                                },
+                                "page_size": {
+                                    "type": "integer",
+                                    "description": "Items per page. 0 (default) returns all tools as a flat array (no pagination wrapper)."
+                                },
+                                "land_to_file": {
+                                    "type": "boolean",
+                                    "description": "If true, write the result to a JSON file and return its absolute path instead of inline JSON. Default false."
+                                },
+                                "capabilities": {
+                                    "type": "boolean",
+                                    "description": "If true, attach an 'x-capabilities' array (group-level tags such as http/sse/stdio/oauth) to each tool. Default false."
                                 }
                             },
                             "required": ["group"]
@@ -173,6 +208,45 @@ Example usage:
         let arguments = params.get("arguments").cloned().unwrap_or(json!({}));
 
         match tool_name {
+            "list_groups" => {
+                let client = self.client.read().await;
+                let groups = client.list_groups();
+                let failed_groups = client.list_failed_groups();
+
+                let mut all_groups: Vec<serde_json::Value> = Vec::new();
+
+                for g in &groups {
+                    all_groups.push(json!({
+                        "name": g.name,
+                        "description": g.description,
+                        "status": "connected"
+                    }));
+                }
+
+                for g in &failed_groups {
+                    all_groups.push(json!({
+                        "name": g.name,
+                        "description": g.description,
+                        "status": "failed",
+                        "error": g.error
+                    }));
+                }
+
+                JsonRpcResponse {
+                    jsonrpc: "2.0".to_string(),
+                    id: request.id,
+                    result: Some(json!({
+                        "content": [
+                            {
+                                "type": "text",
+                                "text": serde_json::to_string_pretty(&all_groups)
+                                    .unwrap_or_else(|_| "[]".to_string())
+                            }
+                        ]
+                    })),
+                    error: None,
+                }
+            }
             "get_dynamic_tools" => {
                 let group = arguments.get("group").and_then(|v| v.as_str());
 
@@ -189,23 +263,107 @@ Example usage:
                     };
                 }
 
-                let client = self.client.read().await;
-                match client.list_tools(group.unwrap()) {
+                let mut client = self.client.write().await;
+                let g = group.unwrap();
+                match client.list_tools(g).await {
                     Ok(tools) => {
-                        let tools_json: Vec<_> = tools
+                        let mode = arguments
+                            .get("mode")
+                            .and_then(|v| v.as_str())
+                            .unwrap_or("full");
+                        let include_schema = arguments
+                            .get("include_schema")
+                            .and_then(|v| v.as_bool())
+                            .unwrap_or(true);
+                        let page = arguments
+                            .get("page")
+                            .and_then(|v| v.as_u64())
+                            .unwrap_or(1)
+                            .max(1) as usize;
+                        let page_size = arguments
+                            .get("page_size")
+                            .and_then(|v| v.as_u64())
+                            .unwrap_or(0) as usize;
+                        let land_to_file = arguments
+                            .get("land_to_file")
+                            .and_then(|v| v.as_bool())
+                            .unwrap_or(false);
+                        let capabilities = arguments
+                            .get("capabilities")
+                            .and_then(|v| v.as_bool())
+                            .unwrap_or(false);
+
+                        let compact = mode == "compact";
+
+                        // opt-in x-capabilities：取该组的 capability_tags（W5D）。
+                        let tags: Vec<String> = if capabilities {
+                            client
+                                .list_groups()
+                                .into_iter()
+                                .find(|gi| gi.name == g)
+                                .map(|gi| gi.capability_tags)
+                                .unwrap_or_default()
+                        } else {
+                            Vec::new()
+                        };
+
+                        let mut items: Vec<serde_json::Value> = tools
                             .iter()
                             .map(|tool| {
-                                let mut schema = tool.input_schema.clone();
-                                if let Some(obj) = schema.as_object_mut() {
-                                    obj.remove("$schema");
-                                }
-                                json!({
+                                let mut obj = json!({
                                     "name": tool.name,
                                     "description": tool.description,
-                                    "inputSchema": schema
-                                })
+                                });
+                                if include_schema && !compact {
+                                    let mut schema = tool.input_schema.clone();
+                                    if let Some(o) = schema.as_object_mut() {
+                                        o.remove("$schema");
+                                    }
+                                    obj["inputSchema"] = schema;
+                                }
+                                if capabilities {
+                                    obj["x-capabilities"] = serde_json::Value::Array(
+                                        tags.iter()
+                                            .map(|t| serde_json::Value::String(t.clone()))
+                                            .collect(),
+                                    );
+                                }
+                                obj
                             })
                             .collect();
+
+                        // 分页：page_size>0 返回包装 {tools,total,page,page_size,has_more}；
+                        // page_size==0（默认）返回扁平数组，与旧输出逐字节一致。
+                        let output: serde_json::Value = if page_size > 0 {
+                            let total = items.len();
+                            let start = (page - 1) * page_size;
+                            let end = std::cmp::min(start + page_size, total);
+                            let slice: Vec<serde_json::Value> = if start < total {
+                                items.drain(start..end).collect()
+                            } else {
+                                Vec::new()
+                            };
+                            let has_more = end < total;
+                            json!({
+                                "tools": slice,
+                                "total": total,
+                                "page": page,
+                                "page_size": page_size,
+                                "has_more": has_more
+                            })
+                        } else {
+                            serde_json::Value::Array(items)
+                        };
+
+                        let text = if land_to_file {
+                            match crate::http::server_handler::write_dynamic_tools_file(&output) {
+                                Ok(path) => path,
+                                Err(e) => format!("Failed to write tools file: {e}"),
+                            }
+                        } else {
+                            serde_json::to_string_pretty(&output)
+                                .unwrap_or_else(|_| "[]".to_string())
+                        };
 
                         JsonRpcResponse {
                             jsonrpc: "2.0".to_string(),
@@ -214,7 +372,7 @@ Example usage:
                                 "content": [
                                     {
                                         "type": "text",
-                                        "text": serde_json::to_string_pretty(&tools_json).unwrap_or_else(|_| "[]".to_string())
+                                        "text": text
                                     }
                                 ]
                             })),
@@ -251,7 +409,7 @@ Example usage:
                     };
                 }
 
-                let client = self.client.read().await;
+                let mut client = self.client.write().await;
                 match client.call_tool(group.unwrap(), name.unwrap(), args).await {
                     Ok(result) => JsonRpcResponse {
                         jsonrpc: "2.0".to_string(),
@@ -890,13 +1048,17 @@ mod tests {
 
         let result = response.result.unwrap();
         let tools = result.get("tools").unwrap().as_array().unwrap();
-        assert_eq!(tools.len(), 2);
+        assert_eq!(tools.len(), 3);
         assert_eq!(
             tools[0].get("name").unwrap().as_str().unwrap(),
-            "get_dynamic_tools"
+            "list_groups"
         );
         assert_eq!(
             tools[1].get("name").unwrap().as_str().unwrap(),
+            "get_dynamic_tools"
+        );
+        assert_eq!(
+            tools[2].get("name").unwrap().as_str().unwrap(),
             "call_dynamic_tool"
         );
     }
@@ -945,6 +1107,28 @@ mod tests {
         let error = response.error.unwrap();
         assert_eq!(error.code, -32601);
         assert!(error.message.contains("Unknown tool"));
+    }
+
+    #[tokio::test]
+    async fn test_handle_list_groups_returns_empty_array() {
+        let server = create_test_server();
+        let request = JsonRpcRequest::new(1, "tools/call").with_params(json!({
+            "name": "list_groups",
+            "arguments": {}
+        }));
+        let response = server.handle_request(request).await;
+
+        assert!(response.error.is_none());
+        assert!(response.result.is_some());
+
+        let result = response.result.unwrap();
+        let content = result.get("content").unwrap().as_array().unwrap();
+        assert_eq!(content.len(), 1);
+        assert_eq!(content[0].get("type").unwrap(), "text");
+
+        let text = content[0].get("text").unwrap().as_str().unwrap();
+        let groups: Vec<serde_json::Value> = serde_json::from_str(text).unwrap();
+        assert!(groups.is_empty());
     }
 
     #[tokio::test]

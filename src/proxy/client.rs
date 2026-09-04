@@ -27,6 +27,21 @@ pub struct ModularMcpClient {
     groups: HashMap<String, GroupState>,
 }
 
+/// Derive capability tags from a group's server config. Used to enrich
+/// `GroupInfo` and per-tool `x-capabilities` metadata so hosts can learn a
+/// group's transport kind and whether it requires OAuth without probing.
+fn derive_capability_tags(config: &McpServerConfig) -> Vec<String> {
+    let mut tags = match config {
+        McpServerConfig::Stdio { .. } => vec!["stdio".to_string()],
+        McpServerConfig::Http { .. } => vec!["http".to_string()],
+        McpServerConfig::Sse { .. } => vec!["sse".to_string()],
+    };
+    if config.needs_oauth() {
+        tags.push("oauth".to_string());
+    }
+    tags
+}
+
 impl ModularMcpClient {
     pub fn new() -> Self {
         Self {
@@ -35,15 +50,25 @@ impl ModularMcpClient {
     }
 
     pub async fn connect(&mut self, group_name: String, config: McpServerConfig) -> Result<()> {
-        if self.groups.contains_key(&group_name) {
+        // 已处于 Connected 状态则跳过（避免并发重复 connect 同 group）。
+        // Failed 或缺失：移除旧状态后真正重连（原实现 contains_key 短路会使
+        // retry/自愈永远不重连，是 cbm 类后端 flapping 的根因之一）。
+        if let Some(GroupState::Connected { .. }) = self.groups.get(&group_name) {
             return Ok(());
         }
+        self.groups.remove(&group_name);
 
         let description = config.description().to_string();
 
         let config_to_use = config.clone();
+        let needs_oauth = config.needs_oauth();
+        let transport_timeout = if needs_oauth {
+            Duration::from_secs(300) // OAuth requires user interaction (v1.8.2: 120s → 300s)
+        } else {
+            config.initialize_timeout()
+        };
         let transport = tokio::time::timeout(
-            Duration::from_secs(5),
+            transport_timeout,
             Transport::new(&config_to_use, &group_name),
         )
         .await
@@ -60,7 +85,7 @@ impl ModularMcpClient {
         }));
 
         let response = tokio::time::timeout(
-            Duration::from_secs(5),
+            config.initialize_timeout(),
             transport.send_request(&init_request),
         )
         .await
@@ -93,7 +118,7 @@ impl ModularMcpClient {
             }));
 
             let retry_response = tokio::time::timeout(
-                Duration::from_secs(5),
+                config.initialize_timeout(),
                 transport.send_request(&retry_request),
             )
             .await
@@ -117,14 +142,18 @@ impl ModularMcpClient {
 
         transport.set_protocol_version(server_version.to_string());
 
-        let session_id = uuid::Uuid::new_v4().to_string();
-        transport.set_session_id(session_id);
+        // If the server didn't assign a session ID in the initialize response,
+        // generate a client-side one as fallback
+        if !transport.has_session_id() {
+            let session_id = uuid::Uuid::new_v4().to_string();
+            transport.set_session_id(session_id);
+        }
 
         // Only list tools if tools feature is enabled
         let tools = if config.features().tools {
             let list_tools_request = JsonRpcRequest::new(3, "tools/list");
             let tools_response = tokio::time::timeout(
-                Duration::from_secs(5),
+                config.initialize_timeout(),
                 transport.send_request(&list_tools_request),
             )
             .await
@@ -200,10 +229,16 @@ impl ModularMcpClient {
             .values()
             .filter_map(|state| match state {
                 GroupState::Connected {
-                    name, description, ..
+                    name,
+                    description,
+                    tools,
+                    config,
+                    ..
                 } => Some(GroupInfo {
                     name: name.clone(),
                     description: description.clone(),
+                    tool_count: tools.len(),
+                    capability_tags: derive_capability_tags(config),
                 }),
                 _ => None,
             })
@@ -230,7 +265,9 @@ impl ModularMcpClient {
     }
 
     pub async fn retry_failed_connections(&mut self) -> Vec<String> {
-        const MAX_RETRIES: u32 = 3;
+        // Path A: 放宽周期重连上限（3→10），给慢冷启动后端（如 cbm）足够多的
+        // 自愈机会，避免过早放弃进入永久 Failed。
+        const MAX_RETRIES: u32 = 10;
 
         let failed_groups: Vec<_> = self
             .groups
@@ -260,7 +297,9 @@ impl ModularMcpClient {
         let mut retry_handles = Vec::new();
 
         for (group_name, config, retry_count) in failed_groups {
-            let backoff_secs = 2u64.pow(retry_count);
+            // Path A: 有界指数退避，避免 2^n 在 retry_count 较大时溢出/等待过久。
+            // 退避 = min(30, 2 + retry_count*5)：第0次2s、第1次7s、第2次12s…封顶30s。
+            let backoff_secs = std::cmp::min(30u64, 2 + retry_count as u64 * 5);
             tracing::info!(
                 "Retrying connection to {} (attempt {}/{}), waiting {}s...",
                 group_name,
@@ -302,7 +341,22 @@ impl ModularMcpClient {
         successfully_retried
     }
 
-    pub fn list_tools(&self, group_name: &str) -> Result<Vec<ToolInfo>> {
+    pub async fn list_tools(&mut self, group_name: &str) -> Result<Vec<ToolInfo>> {
+        // Path A: Failed 状态下自愈重连（取回 config 后交给 connect 真正重连）。
+        let failed_cfg: Option<McpServerConfig> = match self.groups.get(group_name) {
+            Some(GroupState::Failed { config, .. }) => Some(config.clone()),
+            _ => None,
+        };
+        if let Some(cfg) = failed_cfg {
+            if let Err(e) = self.connect(group_name.to_string(), cfg).await {
+                return Err(anyhow::anyhow!(
+                    "Group '{}' failed to reconnect: {}",
+                    group_name,
+                    e
+                ));
+            }
+        }
+
         let group = self.groups.get(group_name).context("Group not found")?;
 
         match group {
@@ -310,7 +364,8 @@ impl ModularMcpClient {
             GroupState::Failed {
                 error, retry_count, ..
             } => Err(anyhow::anyhow!(
-                "Group failed to connect after {} attempts: {}",
+                "Group '{}' failed to connect after {} attempts: {}",
+                group_name,
                 retry_count + 1,
                 error
             )),
@@ -318,11 +373,26 @@ impl ModularMcpClient {
     }
 
     pub async fn call_tool(
-        &self,
+        &mut self,
         group_name: &str,
         tool_name: &str,
         arguments: serde_json::Value,
     ) -> Result<serde_json::Value> {
+        // Path A: Failed 状态下自愈重连，使首个到达的 request 能触发重连而非立即报错。
+        let failed_cfg: Option<McpServerConfig> = match self.groups.get(group_name) {
+            Some(GroupState::Failed { config, .. }) => Some(config.clone()),
+            _ => None,
+        };
+        if let Some(cfg) = failed_cfg {
+            if let Err(e) = self.connect(group_name.to_string(), cfg).await {
+                return Err(anyhow::anyhow!(
+                    "Group '{}' failed to reconnect: {}",
+                    group_name,
+                    e
+                ));
+            }
+        }
+
         let group = self.groups.get(group_name).context("Group not found")?;
 
         match group {

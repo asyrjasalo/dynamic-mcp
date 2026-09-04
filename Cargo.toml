@@ -1,6 +1,6 @@
 [package]
 name = "dynamic-mcp"
-version = "1.5.0"
+version = "1.9.2"
 edition = "2021"
 rust-version = "1.75"
 authors = ["Anssi Syrjäsalo"]
@@ -44,7 +44,7 @@ harness = false
 [dependencies]
 # MCP Protocol Types
 rust-mcp-schema = "0.9"
-rmcp = { version = "0.12", features = ["client", "transport-streamable-http-client-reqwest"] }
+rmcp = { version = "0.12", features = ["client", "transport-streamable-http-client-reqwest", "server", "transport-streamable-http-server"] }
 
 # Async runtime
 tokio = { version = "1", features = ["full"] }
@@ -57,6 +57,7 @@ reqwest = { version = "0.12", default-features = false, features = ["json", "str
 # Serialization
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+sha2 = "0.10"
 json_comments = "0.2"
 toml = "0.8"
 
@@ -90,11 +91,15 @@ chrono = { version = "0.4", features = ["serde"] }
 tokio-util = { version = "0.7", features = ["codec"] }
 bytes = "1.0"
 
+# HTTP server transport (Streamable HTTP MCP)
+axum = "0.8"
+tower-http = { version = "0.6", features = ["cors"] }
+
 [target.'cfg(unix)'.dependencies]
 libc = "0.2"
 
 [target.'cfg(windows)'.dependencies]
-windows-sys = { version = "0.59", features = ["Win32_Foundation", "Win32_System_Threading", "Win32_System_Console"] }
+windows-sys = { version = "0.59", features = ["Win32_Foundation", "Win32_System_Threading", "Win32_System_Console", "Win32_UI_WindowsAndMessaging", "Win32_System_ProcessStatus"] }
 
 [dev-dependencies]
 tempfile = "3"
