@@ -117,8 +117,10 @@ impl ModularMcpClient {
 
         transport.set_protocol_version(server_version.to_string());
 
-        let session_id = uuid::Uuid::new_v4().to_string();
-        transport.set_session_id(session_id);
+        // Note: do NOT override the server-issued session id. For streamable
+        // HTTP/SSE the transport preserves the id returned by the server in the
+        // mcp-session-id response header (fastmcp-based servers reject a
+        // client-generated one).
 
         // Only list tools if tools feature is enabled
         let tools = if config.features().tools {

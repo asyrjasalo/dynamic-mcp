@@ -283,6 +283,18 @@ impl HttpTransport {
             .unwrap_or("")
             .to_lowercase();
 
+        // Preserve the server-issued session id (streamable HTTP servers like
+        // fastmcp strictly validate it on subsequent requests).
+        if let Some(session_id_hdr) = response
+            .headers()
+            .get("mcp-session-id")
+            .and_then(|v| v.to_str().ok())
+        {
+            if !session_id_hdr.is_empty() {
+                self.set_session_id(session_id_hdr.to_string());
+            }
+        }
+
         let response_text = response
             .text()
             .await
