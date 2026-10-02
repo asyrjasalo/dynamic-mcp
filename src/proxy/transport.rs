@@ -823,4 +823,77 @@ mod tests {
 
         assert_eq!(event_id, Some("test-event-789".to_string()));
     }
+
+    const SESSION_ID: &str = "test-session-abc123";
+    const JSON_RPC_BODY: &str = r#"{"jsonrpc":"2.0","id":"x","result":{}}"#;
+
+    fn make_test_request(id: &str) -> JsonRpcRequest {
+        JsonRpcRequest {
+            jsonrpc: "2.0".to_string(),
+            id: serde_json::json!(id),
+            method: "tools/list".to_string(),
+            params: None,
+        }
+    }
+
+    #[tokio::test]
+    async fn test_http_transport_captures_session_id_from_response_headers() {
+        let mut server =
+            mockito::Server::new_with_opts_async(mockito::ServerOpts::default()).await;
+
+        // Generic fallback for requests that do not carry a session id yet.
+        // Created first so the more specific mock below takes precedence.
+        let _generic = server
+            .mock("POST", mockito::Matcher::Any)
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_header("mcp-session-id", SESSION_ID)
+            .with_body(JSON_RPC_BODY)
+            .create_async()
+            .await;
+
+        // Only matches once a request echoes back the server-issued session id.
+        let _with_session = server
+            .mock("POST", mockito::Matcher::Any)
+            .match_header("MCP-Session-Id", SESSION_ID)
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(JSON_RPC_BODY)
+            .expect(1)
+            .create_async()
+            .await;
+
+        let transport = HttpTransport::new(&server.url(), None).await.unwrap();
+
+        // First request: server issues the session id in response headers.
+        transport.send_request(&make_test_request("1")).await.unwrap();
+
+        // Second request must echo the server-assigned session id.
+        transport.send_request(&make_test_request("2")).await.unwrap();
+
+        _with_session.assert();
+    }
+
+    #[tokio::test]
+    async fn test_http_transport_no_session_header_sends_none() {
+        let mut server =
+            mockito::Server::new_with_opts_async(mockito::ServerOpts::default()).await;
+
+        // If the server never issues a session id, requests must not carry one.
+        let _no_session = server
+            .mock("POST", mockito::Matcher::Any)
+            .match_header("MCP-Session-Id", mockito::Matcher::Missing)
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(JSON_RPC_BODY)
+            .expect(2)
+            .create_async()
+            .await;
+
+        let transport = HttpTransport::new(&server.url(), None).await.unwrap();
+        transport.send_request(&make_test_request("1")).await.unwrap();
+        transport.send_request(&make_test_request("2")).await.unwrap();
+
+        _no_session.assert();
+    }
 }
