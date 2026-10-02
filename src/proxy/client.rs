@@ -117,8 +117,7 @@ impl ModularMcpClient {
 
         transport.set_protocol_version(server_version.to_string());
 
-        let session_id = uuid::Uuid::new_v4().to_string();
-        transport.set_session_id(session_id);
+        // Session ID is captured from server response in transport layer
 
         // Only list tools if tools feature is enabled
         let tools = if config.features().tools {

@@ -273,6 +273,15 @@ impl HttpTransport {
             .await
             .context("Failed to send HTTP request")?;
 
+        // Capture server-assigned session ID from response headers
+        if let Some(sid) = response
+            .headers()
+            .get("mcp-session-id")
+            .and_then(|v| v.to_str().ok())
+        {
+            self.set_session_id(sid.to_string());
+        }
+
         let status = response.status();
 
         // Check Content-Type header for SSE detection
@@ -480,6 +489,15 @@ impl SseTransport {
             .await
             .context("Failed to send SSE request")?;
 
+        // Capture server-assigned session ID from response headers
+        if let Some(sid) = response
+            .headers()
+            .get("mcp-session-id")
+            .and_then(|v| v.to_str().ok())
+        {
+            self.set_session_id(sid.to_string());
+        }
+
         let status = response.status();
         let response_text = response
             .text()
@@ -588,14 +606,6 @@ impl Transport {
             Transport::Stdio(t) => t.send_request(request).await,
             Transport::Http(t) => t.send_request(request).await,
             Transport::Sse(t) => t.send_request(request).await,
-        }
-    }
-
-    pub fn set_session_id(&self, session_id: String) {
-        match self {
-            Transport::Stdio(_) => {}
-            Transport::Http(t) => t.set_session_id(session_id),
-            Transport::Sse(t) => t.set_session_id(session_id),
         }
     }
 
